@@ -1,0 +1,416 @@
+# Projet Portfolio : Hafrose
+
+## 1. Présentation du Projet
+
+### Nom du Projet
+
+**Hafrose**
+
+### Description
+
+Hafrose est une marque moderne spécialisée dans la vente d'accessoires de mode haut de gamme destinés aux hommes et aux femmes.
+
+La marque propose une sélection élégante d'accessoires conçus pour compléter le style quotidien de ses clients tout en mettant l'accent sur la qualité, le design et le raffinement.
+
+Les produits proposés peuvent inclure :
+
+* Sacs à main
+* Portefeuilles
+* Montres
+* Lunettes
+* Bijoux
+* Ceintures
+* Accessoires de luxe
+
+Le site web a pour objectif de présenter l'univers de la marque Hafrose, ses collections d'accessoires et de permettre aux visiteurs de découvrir les produits à travers une expérience moderne, fluide et professionnelle.
+
+---
+
+# 2. Objectifs du Projet
+
+## Pour les visiteurs
+
+* Découvrir la marque Hafrose.
+* Consulter les collections d'accessoires.
+* Visualiser les détails des produits.
+* Rechercher des produits.
+* Filtrer les produits.
+* Ajouter des produits aux favoris.
+* Contacter la marque.
+
+## Pour l'administrateur
+
+* Ajouter des produits.
+* Modifier des produits.
+* Supprimer des produits.
+* Gérer les catégories.
+* Gérer les commandes.
+* Consulter les statistiques.
+* Gérer les utilisateurs.
+
+---
+
+# 3. Architecture Technique
+
+React JS
+↓
+Axios API
+↓
+Laravel REST API
+↓
+MySQL
+
+---
+
+# 4. Technologies Utilisées
+
+## Frontend
+
+### Technologies principales
+
+* React JS
+* React Router DOM
+* Axios
+* Tailwind CSS
+
+### Technologies complémentaires
+
+* Redux Toolkit
+* React Query
+* Framer Motion
+* SweetAlert2
+
+## Backend
+
+### Laravel
+
+Fonctionnalités :
+
+* API REST
+* Validation des données
+* Authentification
+* Gestion des rôles
+* Upload des images
+* Gestion des permissions
+
+### Packages Laravel
+
+* Laravel Sanctum
+* Spatie Laravel Permission
+
+## Base de données
+
+* MySQL
+
+---
+
+# 5. Modules du Site
+
+## Module Accueil
+
+* Bannière principale
+* Présentation de Hafrose
+* Produits vedettes
+* Nouvelles collections
+* Témoignages clients
+* Contact rapide
+
+## Module Catalogue
+
+Catégories :
+
+* Sacs
+* Montres
+* Bijoux
+* Lunettes
+* Portefeuilles
+* Ceintures
+
+## Module Détail Produit
+
+Chaque produit contient :
+
+* Nom
+* Prix
+* Description
+* Images
+* Couleur
+* Matière
+* Dimensions
+* Disponibilité
+* Catégorie
+
+## Module Contact
+
+Formulaire :
+
+* Nom
+* Email
+* Téléphone
+* Message
+
+## Module Administration
+
+Gestion :
+
+* Produits
+* Catégories
+* Commandes
+* Utilisateurs
+* Messages
+
+---
+
+# 6. Conception de la Base de Données
+
+## Table users
+
+* id
+* name
+* email
+* password
+* role
+* created_at
+* updated_at
+
+## Table categories
+
+* id
+* name
+* description
+* created_at
+* updated_at
+
+Exemples :
+
+* Sacs
+* Montres
+* Bijoux
+* Lunettes
+* Portefeuilles
+
+## Table products
+
+* id
+* category_id
+* name
+* slug
+* description
+* price
+* stock
+* material
+* color
+* image
+* is_featured
+* created_at
+* updated_at
+
+Relation :
+
+Une catégorie possède plusieurs produits.
+
+## Table galleries
+
+* id
+* product_id
+* image
+* created_at
+* updated_at
+
+Relation :
+
+Un produit possède plusieurs images.
+
+## Table contacts
+
+* id
+* name
+* email
+* phone
+* message
+* created_at
+
+## Table orders
+
+* id
+* user_id
+* total_price
+* status
+* created_at
+* updated_at
+
+## Table order_items
+
+* id
+* order_id
+* product_id
+* quantity
+* price
+
+---
+
+# 7. Relations Laravel
+
+## Category Model
+
+public function products()
+{
+return $this->hasMany(Product::class);
+}
+
+## Product Model
+
+public function category()
+{
+return $this->belongsTo(Category::class);
+}
+
+public function galleries()
+{
+return $this->hasMany(Gallery::class);
+}
+
+## Order Model
+
+public function user()
+{
+return $this->belongsTo(User::class);
+}
+
+public function items()
+{
+return $this->hasMany(OrderItem::class);
+}
+
+---
+
+# 8. Backend Laravel
+
+Le backend gère toute la logique métier de Hafrose.
+
+### Authentification
+
+* Login
+* Logout
+* Gestion des rôles
+
+### Gestion Produits
+
+* Ajouter
+* Modifier
+* Supprimer
+
+### Gestion Catégories
+
+* CRUD complet
+
+### Gestion Commandes
+
+* Suivi des commandes
+* Changement des statuts
+
+### Gestion Galerie
+
+* Upload des images
+
+### Gestion Messages
+
+* Consultation des messages
+
+### API REST
+
+/api/products
+
+/api/categories
+
+/api/orders
+
+/api/contact
+
+/api/login
+
+/api/logout
+
+---
+
+# 9. Frontend React
+
+## Pages
+
+Accueil
+/
+
+Catalogue
+/products
+
+Détail Produit
+/product/:slug
+
+À propos
+/about
+
+Contact
+/contact
+
+Favoris
+/favorites
+
+## Composants
+
+* Navbar
+* Footer
+* HeroSection
+* ProductCard
+* ProductList
+* SearchBar
+* CategoryFilter
+* ContactForm
+* TestimonialSection
+* FavoriteButton
+
+---
+
+# 10. Fonctionnalités Premium
+
+### Recherche intelligente
+
+* Recherche par nom
+
+### Filtrage avancé
+
+* Catégorie
+* Prix
+* Couleur
+* Matière
+
+### Favoris
+
+* Ajouter aux favoris
+
+### Comparaison
+
+* Comparer plusieurs produits
+
+### Tableau de bord
+
+* Produits populaires
+* Nombre de commandes
+* Chiffre d'affaires
+* Statistiques générales
+
+---
+
+# 11. Compétences Démontrées
+
+* Analyse des besoins
+* Cahier des charges
+* UML
+* MCD / MLD
+* Laravel API
+* React JS
+* MySQL
+* Architecture MVC
+* Authentification JWT/Sanctum
+* Gestion des médias
+* Responsive Design
+* Développement Full Stack
