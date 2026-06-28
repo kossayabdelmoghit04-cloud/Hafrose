@@ -1,0 +1,6 @@
+# robots.txt for Hafrose luxury store
+User-agent: *
+Allow: /
+
+# Sitemap URL
+Sitemap: https://hafrose.com/sitemap.xml
