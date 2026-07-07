@@ -18,6 +18,8 @@ import {
 import Loader from '../components/ui/Loader';
 import { Suspense } from 'react';
 
+import Button from '../components/ui/Button';
+
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -85,13 +87,14 @@ export default function AdminLayout() {
               <div className="text-xs text-luxury-gray capitalize">{user?.role}</div>
             </div>
           </div>
-          <button
+          <Button
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/30 text-red-400 rounded text-sm transition-all duration-300"
+            variant="danger"
+            fullWidth
+            icon={<FiLogOut className="w-4 h-4" />}
           >
-            <FiLogOut className="w-4 h-4" />
             Se déconnecter
-          </button>
+          </Button>
         </div>
       </aside>
 
@@ -136,13 +139,14 @@ export default function AdminLayout() {
             </nav>
 
             <div className="pt-4 border-t border-luxury-gold/10">
-              <button
+              <Button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-950/40 text-red-400 border border-red-800/30 rounded text-sm"
+                variant="danger"
+                fullWidth
+                icon={<FiLogOut className="w-4 h-4" />}
               >
-                <FiLogOut className="w-4 h-4" />
                 Se déconnecter
-              </button>
+              </Button>
             </div>
           </aside>
           <div className="flex-grow" onClick={() => setSidebarOpen(false)}></div>

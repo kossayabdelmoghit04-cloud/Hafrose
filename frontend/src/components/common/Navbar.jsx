@@ -42,22 +42,36 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Injecting CSS overrides for page layout padding-top to resolve spaces and overlaps */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (min-width: 768px) {
+          .pt-32, .pt-36 {
+            padding-top: 80px !important;
+          }
+        }
+        @media (max-width: 767px) {
+          .pt-32, .pt-36 {
+            padding-top: 64px !important;
+          }
+        }
+      `}} />
+
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out flex items-center ${
           scrolled 
-            ? 'bg-luxury-cream/90 backdrop-blur-md shadow-sm border-b border-luxury-charcoal/5 py-4' 
-            : 'bg-transparent py-6'
+            ? 'bg-off-white/90 backdrop-blur-md border-b border-beige h-16 md:h-20 shadow-luxury' 
+            : 'bg-gradient-to-b from-off-white/20 via-off-white/5 to-transparent border-b border-transparent h-16 md:h-24'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full flex items-center justify-between relative">
           
           {/* Menu Mobile Button (Left) */}
           <button 
             type="button"
-            className="md:hidden text-luxury-charcoal focus:outline-none cursor-pointer"
+            className="md:hidden text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer focus-visible:outline-luxury p-2 -ml-2"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle Menu"
           >
@@ -65,20 +79,22 @@ export default function Navbar() {
           </button>
 
           {/* Navigation Links (Left on desktop) */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className="relative font-sans text-xs uppercase tracking-widest text-luxury-charcoal hover:text-luxury-gold transition-colors duration-300 font-medium py-1"
+                  className={`relative font-sans text-xs uppercase tracking-[0.25em] font-medium py-1 transition-colors duration-500 ease-luxury ${
+                    isActive ? 'text-rose-gold' : 'text-anthracite hover:text-rose-gold'
+                  }`}
                 >
                   {link.name}
                   {isActive && (
                     <motion.div
                       layoutId="activeNavBorder"
-                      className="absolute bottom-0 left-0 w-full h-[1px] bg-luxury-gold"
+                      className="absolute bottom-0 left-0 w-full h-[1px] bg-rose-gold"
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -88,26 +104,33 @@ export default function Navbar() {
           </div>
 
           {/* Luxury Logo (Center) */}
-          <div className="absolute left-1/2 transform -translate-x-1/2">
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-auto">
             <Link to="/" className="flex flex-col items-center">
-              <span className="font-serif text-2xl md:text-3xl font-extralight tracking-[0.25em] text-luxury-charcoal select-none">
+              <span className="font-serif text-2xl md:text-3xl font-extralight tracking-[0.25em] text-anthracite select-none transition-colors duration-500">
                 HAFROSE
               </span>
-              <span className="hidden md:block text-[7px] tracking-[0.6em] text-luxury-gold uppercase mt-0.5 ml-2 font-sans font-semibold">
+              <span className="hidden md:block text-[7px] tracking-[0.6em] text-rose-gold uppercase mt-0.5 ml-2 font-sans font-semibold">
                 Haute Maroquinerie
               </span>
             </Link>
           </div>
 
           {/* Action Icons (Right) */}
-          <div className="flex items-center space-x-4 md:space-x-6">
-            {/* Search (Static placeholder for now) */}
-            <button className="text-luxury-charcoal hover:text-luxury-gold transition-colors duration-300 cursor-pointer" aria-label="Recherche">
+          <div className="flex items-center space-x-4 md:space-x-6 z-10">
+            {/* Search */}
+            <button 
+              className="text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer focus-visible:outline-luxury p-1" 
+              aria-label="Recherche"
+            >
               <FiSearch size={18} />
             </button>
 
             {/* Wishlist */}
-            <Link to="#" className="text-luxury-charcoal hover:text-luxury-gold transition-colors duration-300 cursor-pointer" aria-label="Favoris">
+            <Link 
+              to="#" 
+              className="text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer focus-visible:outline-luxury p-1" 
+              aria-label="Favoris"
+            >
               <FiHeart size={18} />
             </Link>
 
@@ -115,12 +138,12 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="relative text-luxury-charcoal hover:text-luxury-gold transition-colors duration-300 cursor-pointer focus:outline-none"
+              className="relative text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer focus-visible:outline-luxury p-1"
               aria-label="Panier"
             >
               <FiShoppingBag size={18} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-luxury-gold text-luxury-cream text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-rose-gold text-off-white text-[8px] font-medium w-4 h-4 rounded-full flex items-center justify-center border border-off-white">
                   {cartCount}
                 </span>
               )}
@@ -136,10 +159,11 @@ export default function Navbar() {
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black z-40 md:hidden"
+              className="fixed inset-0 bg-anthracite/30 backdrop-blur-xs z-40 md:hidden"
             />
 
             {/* Drawer */}
@@ -147,24 +171,25 @@ export default function Navbar() {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 h-full w-[280px] bg-luxury-cream shadow-2xl z-50 md:hidden flex flex-col justify-between p-8"
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-0 left-0 h-full w-[300px] bg-off-white shadow-luxury-lg z-50 md:hidden flex flex-col justify-between p-8 border-r border-beige"
             >
               <div className="space-y-8">
-                <div className="flex items-center justify-between border-b border-luxury-charcoal/5 pb-6">
-                  <span className="font-serif text-xl tracking-[0.25em] text-luxury-charcoal">
+                <div className="flex items-center justify-between border-b border-beige pb-6">
+                  <span className="font-serif text-xl tracking-[0.25em] text-anthracite select-none">
                     HAFROSE
                   </span>
                   <button 
                     type="button" 
                     onClick={() => setIsOpen(false)} 
-                    className="text-luxury-charcoal cursor-pointer"
+                    className="text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer p-2 focus-visible:outline-luxury"
+                    aria-label="Fermer le menu"
                   >
                     <FiX size={20} />
                   </button>
                 </div>
 
-                <div className="flex flex-col space-y-6">
+                <div className="flex flex-col space-y-2 mt-8">
                   {navLinks.map((link) => {
                     const isActive = location.pathname === link.path;
                     return (
@@ -172,8 +197,10 @@ export default function Navbar() {
                         key={link.name}
                         to={link.path}
                         onClick={() => setIsOpen(false)}
-                        className={`font-sans text-xs uppercase tracking-widest font-medium transition-colors ${
-                          isActive ? 'text-luxury-gold font-semibold' : 'text-luxury-charcoal hover:text-luxury-gold'
+                        className={`flex items-center h-12 px-2 font-sans text-xs uppercase tracking-[0.2em] font-medium transition-colors duration-500 ${
+                          isActive 
+                            ? 'text-rose-gold border-l-2 border-rose-gold pl-3' 
+                            : 'text-anthracite hover:text-rose-gold border-l-2 border-transparent'
                         }`}
                       >
                         {link.name}
@@ -183,11 +210,17 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <div className="border-t border-luxury-charcoal/5 pt-6 space-y-4">
-                <p className="text-[9px] tracking-widest uppercase text-luxury-gray text-center font-sans">
+              <div className="border-t border-beige pt-6 space-y-4">
+                <p className="text-[9px] tracking-widest uppercase text-warm-gray text-center font-sans">
                   Maison de Luxe Parisienne
                 </p>
-                <Button variant="primary" size="sm" className="w-full text-center" onClick={() => window.location.href = '/shop'}>
+                <Button
+                  to="/shop"
+                  variant="primary"
+                  size="sm"
+                  fullWidth
+                  onClick={() => setIsOpen(false)}
+                >
                   Explorer
                 </Button>
               </div>
@@ -203,10 +236,11 @@ export default function Navbar() {
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => setIsCartOpen(false)}
-              className="fixed inset-0 bg-black z-40"
+              className="fixed inset-0 bg-anthracite/30 backdrop-blur-xs z-40"
             />
 
             {/* Drawer Container */}
@@ -214,18 +248,18 @@ export default function Navbar() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-luxury-cream shadow-2xl z-50 flex flex-col p-6 border-l border-luxury-charcoal/5"
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-off-white shadow-luxury-lg z-50 flex flex-col p-6 border-l border-beige"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-luxury-charcoal/5 pb-4 mb-6">
-                <span className="font-serif text-lg tracking-wider text-luxury-charcoal">
+              <div className="flex items-center justify-between border-b border-beige pb-4 mb-6">
+                <span className="font-serif text-lg tracking-wider text-anthracite">
                   Votre Panier ({cartCount})
                 </span>
                 <button
                   type="button"
                   onClick={() => setIsCartOpen(false)}
-                  className="text-luxury-charcoal hover:text-luxury-gold transition-colors cursor-pointer"
+                  className="text-anthracite hover:text-rose-gold transition-colors duration-500 cursor-pointer p-2 focus-visible:outline-luxury"
                   aria-label="Fermer le panier"
                 >
                   <FiX size={20} />
@@ -236,8 +270,8 @@ export default function Navbar() {
               <div className="flex-grow overflow-y-auto space-y-4 pr-1">
                 {cart.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                    <FiShoppingBag className="text-luxury-gray/30" size={48} />
-                    <p className="text-sm font-sans text-luxury-gray font-light">
+                    <FiShoppingBag className="text-warm-gray/30" size={48} />
+                    <p className="text-sm font-sans text-warm-gray font-light">
                       Votre panier est vide.
                     </p>
                     <Button
@@ -252,10 +286,10 @@ export default function Navbar() {
                   cart.map((item) => (
                     <div
                       key={item.product.id}
-                      className="flex space-x-4 border-b border-luxury-charcoal/5 pb-4"
+                      className="flex space-x-4 border-b border-beige pb-4"
                     >
                       {/* Product Image */}
-                      <div className="w-20 h-24 bg-luxury-light-gray flex-shrink-0 overflow-hidden border border-luxury-charcoal/5">
+                      <div className="w-20 h-24 bg-blush flex-shrink-0 overflow-hidden border border-beige">
                         <img
                           src={getProductImage(item.product)}
                           alt={item.product.name}
@@ -266,36 +300,37 @@ export default function Navbar() {
                       {/* Details */}
                       <div className="flex-grow flex flex-col justify-between">
                         <div>
-                          <h4 className="font-serif text-xs font-light text-luxury-charcoal leading-tight">
+                          <h4 className="font-serif text-xs font-light text-anthracite leading-tight">
                             {item.product.name}
                           </h4>
                           {item.product.material && (
-                            <p className="text-[9px] tracking-wider uppercase text-luxury-gray font-sans font-light mt-1">
+                            <p className="text-[9px] tracking-wider uppercase text-warm-gray font-sans font-light mt-1">
                               {item.product.material}
                             </p>
                           )}
-                          <p className="text-xs font-sans text-luxury-gold mt-1 font-medium">
+                          <p className="text-xs font-sans text-rose-gold mt-1 font-medium">
                             {formatPrice(item.product.price)}
                           </p>
                         </div>
 
                         {/* Controls */}
                         <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center border border-luxury-charcoal/10">
+                          <div className="flex items-center border border-beige bg-off-white">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                              className="px-2 py-1 text-luxury-charcoal hover:text-luxury-gold transition-colors cursor-pointer"
+                              className="px-2 py-1 text-anthracite hover:text-rose-gold transition-colors cursor-pointer focus-visible:outline-luxury"
+                              aria-label="Diminuer quantité"
                             >
                               <FiMinus size={10} />
                             </button>
-                            <span className="px-2 text-xs font-sans font-light">
+                            <span className="px-2 text-xs font-sans font-light text-anthracite">
                               {item.quantity}
                             </span>
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                              className="px-2 py-1 text-luxury-charcoal hover:text-luxury-gold transition-colors cursor-pointer"
+                              className="px-2 py-1 text-anthracite hover:text-rose-gold transition-colors cursor-pointer focus-visible:outline-luxury"
                               aria-label="Augmenter quantité"
                             >
                               <FiPlus size={10} />
@@ -305,7 +340,7 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => removeFromCart(item.product.id)}
-                            className="text-luxury-gray hover:text-rose-500 transition-colors cursor-pointer"
+                            className="text-warm-gray hover:text-rose-gold transition-colors cursor-pointer p-1.5 focus-visible:outline-luxury"
                             aria-label="Supprimer l'article"
                           >
                             <FiTrash2 size={14} />
@@ -319,25 +354,26 @@ export default function Navbar() {
 
               {/* Subtotal & Action Button */}
               {cart.length > 0 && (
-                <div className="border-t border-luxury-charcoal/10 pt-4 mt-6 space-y-4">
+                <div className="border-t border-beige pt-4 mt-6 space-y-4">
                   <div className="flex items-center justify-between font-sans">
-                    <span className="text-xs uppercase tracking-widest font-medium text-luxury-charcoal">
+                    <span className="text-xs uppercase tracking-widest font-medium text-anthracite">
                       Sous-total
                     </span>
-                    <span className="text-sm font-semibold text-luxury-gold">
+                    <span className="text-sm font-semibold text-rose-gold">
                       {formatPrice(cartTotal)}
                     </span>
                   </div>
-                  <p className="text-[9px] text-luxury-gray font-sans font-light leading-relaxed">
+                  <p className="text-[9px] text-warm-gray font-sans font-light leading-relaxed">
                     Taxes incluses. Livraison calculée lors de la validation de la commande.
                   </p>
-                  <Link
+                  <Button
                     to="/checkout"
+                    variant="primary"
+                    fullWidth
                     onClick={() => setIsCartOpen(false)}
-                    className="block w-full py-3 bg-luxury-charcoal text-luxury-cream text-center text-xs uppercase tracking-widest font-sans font-medium hover:bg-luxury-gold hover:text-luxury-cream transition-colors duration-300"
                   >
                     Commander
-                  </Link>
+                  </Button>
                 </div>
               )}
             </motion.div>

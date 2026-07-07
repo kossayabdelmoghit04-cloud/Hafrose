@@ -95,10 +95,10 @@ export default function Login() {
 
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-luxury-gold hover:bg-luxury-gold-hover text-luxury-charcoal font-semibold rounded transition-all duration-300 uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+            loading={loading}
+            fullWidth
           >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            Se connecter
           </Button>
         </form>
       </div>

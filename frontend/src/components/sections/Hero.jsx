@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 
 export default function Hero() {
@@ -50,11 +49,14 @@ export default function Hero() {
             "L'art d'associer la pureté du geste artisanal à l'audace créative contemporaine."
           </p>
           <div>
-            <Link to="/shop">
-              <Button variant="gold" size="lg" className="shadow-lg">
-                Découvrir la Collection
-              </Button>
-            </Link>
+            <Button
+              to="/shop"
+              variant="luxury"
+              size="lg"
+              className="shadow-lg"
+            >
+              Découvrir la Collection
+            </Button>
           </div>
         </motion.div>
       </div>

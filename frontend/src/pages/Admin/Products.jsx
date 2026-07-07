@@ -15,6 +15,7 @@ import {
   FiStar 
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
+import Button from '../../components/ui/Button';
 
 export default function Products() {
   const queryClient = useQueryClient();
@@ -320,13 +321,13 @@ export default function Products() {
           <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Produits</h2>
           <p className="text-sm text-luxury-gray">Gérez l'ensemble des articles en vente sur Hafrose.</p>
         </div>
-        <button
+        <Button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal border border-luxury-gold/30 rounded text-sm transition-all duration-300 font-semibold uppercase tracking-wider"
+          variant="primary"
+          icon={<FiPlus className="w-4 h-4" />}
         >
-          <FiPlus className="w-4 h-4" />
           Ajouter un Produit
-        </button>
+        </Button>
       </div>
 
       {/* Filters & Search Row */}
@@ -463,20 +464,22 @@ export default function Products() {
           <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center">
             <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => setPage(p => Math.max(p - 1, 1))}
                 disabled={page === 1}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Précédent
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
                 disabled={page === meta.last_page}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Suivant
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -688,14 +691,15 @@ export default function Products() {
                           className="hidden"
                         />
                       </label>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleOpenMediaPicker('main')}
-                        className="flex items-center gap-2 px-3 py-2 bg-luxury-charcoal text-white hover:bg-luxury-gold hover:text-luxury-charcoal rounded text-xs font-semibold"
+                        variant="primary"
+                        size="sm"
+                        icon={<FiImage />}
                       >
-                        <FiImage />
-                        <span>Médiathèque</span>
-                      </button>
+                        Médiathèque
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -719,14 +723,15 @@ export default function Products() {
                         className="hidden"
                       />
                     </label>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleOpenMediaPicker('gallery')}
-                      className="flex items-center gap-2 px-2.5 py-1.5 bg-luxury-charcoal text-white hover:bg-luxury-gold hover:text-luxury-charcoal rounded text-[10px] uppercase font-bold"
+                      variant="primary"
+                      size="xs"
+                      icon={<FiImage />}
                     >
-                      <FiImage />
-                      <span>Ajouter de la médiathèque</span>
-                    </button>
+                      Ajouter de la médiathèque
+                    </Button>
                   </div>
                 </div>
 
@@ -770,20 +775,22 @@ export default function Products() {
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-luxury-gold/10">
-                <button
+                <Button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 bg-luxury-light-gray hover:bg-luxury-gray/10 text-luxury-charcoal rounded text-sm font-semibold"
+                  variant="secondary"
+                  size="sm"
                 >
                   Annuler
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="px-4 py-2 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal rounded text-sm font-semibold uppercase tracking-wider text-xs"
+                  variant="primary"
+                  size="sm"
+                  loading={createMutation.isPending || updateMutation.isPending}
                 >
-                  {createMutation.isPending || updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
+                  Enregistrer
+                </Button>
               </div>
 
             </form>

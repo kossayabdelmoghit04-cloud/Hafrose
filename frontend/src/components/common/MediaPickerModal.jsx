@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
+import Button from '../ui/Button';
 import Loader from '../../components/ui/Loader';
 import { FiX, FiUpload, FiCheck } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -130,20 +131,22 @@ export default function MediaPickerModal({ onClose, onSelect }) {
             Page {meta.current_page} sur {meta.last_page}
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 bg-white border border-luxury-gold/20 hover:border-luxury-gold text-xs rounded font-semibold disabled:opacity-50 disabled:pointer-events-none transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Précédent
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
               disabled={page === meta.last_page}
-              className="px-3 py-1.5 bg-white border border-luxury-gold/20 hover:border-luxury-gold text-xs rounded font-semibold disabled:opacity-50 disabled:pointer-events-none transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Suivant
-            </button>
+            </Button>
           </div>
         </div>
 

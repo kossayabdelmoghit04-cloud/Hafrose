@@ -4,55 +4,272 @@ import { Link } from 'react-router-dom';
 import { getProductImage } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   ProductCard — Phase 1.8 · Luxury Blueprint
+   Visual refonte uniquement. Aucune logique métier modifiée.
+   Props: { product }  (inchangé)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Badges selon les tokens Design System */
+function ProductBadge({ variant, children }) {
+  const styles = {
+    available: {
+      bg: 'var(--color-success-bg)',
+      color: 'var(--color-success-text)',
+    },
+    unavailable: {
+      bg: 'var(--color-error-bg)',
+      color: 'var(--color-error-text)',
+    },
+    new: {
+      bg: 'var(--color-rose-poudre)',
+      color: 'var(--color-rose-gold-dark)',
+    },
+    featured: {
+      bg: 'var(--color-warm-gold)',
+      color: 'var(--color-off-white)',
+    },
+  };
+
+  const s = styles[variant] || styles.available;
+
+  return (
+    <span
+      style={{
+        backgroundColor: s.bg,
+        color: s.color,
+        fontFamily: 'var(--font-body)',
+        fontSize: '9px',
+        fontWeight: 500,
+        letterSpacing: '0.20em',
+        textTransform: 'uppercase',
+        padding: '3px 8px',
+        lineHeight: 1.4,
+        display: 'inline-block',
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 /**
- * Premium Product Card for luxury storefront
+ * Premium Product Card — Luxury Blueprint
  * Memoized to prevent redundant renders under parent filter/search triggers.
  */
 function ProductCard({ product }) {
+  const isAvailable = product.stock > 0;
+  const isFeatured = product.is_featured;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col bg-white overflow-hidden border border-luxury-charcoal/5 hover:border-luxury-gold/20 transition-all duration-500"
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      aria-label={product.name}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--color-off-white)',
+        border: '1px solid var(--color-beige)',
+        borderRadius: 0,
+        overflow: 'hidden',
+        position: 'relative',
+        /* no permanent shadow per Blueprint */
+        transition: 'border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = 'var(--color-rose-gold)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'var(--color-beige)';
+      }}
     >
-      {/* Product Image Container */}
-      <Link to={`/product/${product.slug}`} className="relative aspect-[3/4] overflow-hidden bg-luxury-light-gray block">
+      {/* ── Badge Row ── */}
+      {(isFeatured || !isAvailable) && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            left: '12px',
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          {isFeatured && <ProductBadge variant="featured">Exclusif</ProductBadge>}
+          {!isAvailable && <ProductBadge variant="unavailable">Indisponible</ProductBadge>}
+        </div>
+      )}
+
+      {/* ── Image Container ── */}
+      <Link
+        to={`/product/${product.slug}`}
+        aria-label={`Voir ${product.name}`}
+        className="product-card__image-wrap"
+        style={{
+          display: 'block',
+          position: 'relative',
+          aspectRatio: '3 / 4',
+          overflow: 'hidden',
+          backgroundColor: 'var(--color-blush)',
+        }}
+      >
         <img
           src={getProductImage(product)}
           alt={product.name}
           loading="lazy"
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+          className="product-card__img"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            display: 'block',
+            /* GPU-accelerated zoom — transform only, no layout properties */
+            transform: 'scale(1)',
+            transition: 'transform 1.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            willChange: 'transform',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
         />
-        
-        {/* Hover Action Overlay */}
-        <div className="absolute inset-0 bg-luxury-charcoal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-6">
-          <span className="bg-luxury-cream text-luxury-charcoal font-sans text-[10px] tracking-[0.30em] uppercase py-2.5 px-6 shadow-md hover:bg-luxury-charcoal hover:text-luxury-cream transition-colors duration-300">
+
+        {/* ── Quick View Overlay — desktop hover only ── */}
+        <div
+          className="product-card__overlay"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            paddingBottom: '20px',
+            /* fade + slide from bottom using transform + opacity only */
+            opacity: 0,
+            transform: 'translateY(8px)',
+            transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+            background: 'linear-gradient(to top, rgba(17,17,17,0.18) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }}
+        >
+          <span
+            style={{
+              backgroundColor: 'var(--color-off-white)',
+              color: 'var(--color-anthracite)',
+              fontFamily: 'var(--font-body)',
+              fontSize: '10px',
+              fontWeight: 500,
+              letterSpacing: '0.30em',
+              textTransform: 'uppercase',
+              padding: '10px 24px',
+              display: 'inline-block',
+            }}
+          >
             Aperçu rapide
           </span>
         </div>
       </Link>
 
-      {/* Product Info */}
-      <div className="p-5 flex-grow flex flex-col justify-between text-center bg-luxury-cream/20">
-        <div className="space-y-1">
+      {/* ── Product Info ── */}
+      <div
+        style={{
+          padding: '20px 20px 24px',
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          gap: '12px',
+          backgroundColor: 'var(--color-off-white)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {/* Material label — caption style */}
           {product.material && (
-            <p className="text-[9px] tracking-widest uppercase text-luxury-gray font-sans font-light">
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '9px',
+                fontWeight: 500,
+                letterSpacing: '0.25em',
+                textTransform: 'uppercase',
+                color: 'var(--color-warm-gray)',
+                margin: 0,
+              }}
+            >
               {product.material}
             </p>
           )}
-          <h3 className="font-serif text-sm font-light text-luxury-charcoal hover:text-luxury-gold transition-colors duration-300">
-            <Link to={`/product/${product.slug}`}>{product.name}</Link>
+
+          {/* Product Name — H3 Blueprint · Playfair Display */}
+          <h3
+            style={{
+              fontFamily: 'var(--font-display)',   /* Playfair Display */
+              fontSize: '15px',
+              fontWeight: 400,
+              lineHeight: 1.35,
+              letterSpacing: '0.02em',
+              color: 'var(--color-anthracite)',
+              margin: 0,
+              transition: 'color 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            <Link
+              to={`/product/${product.slug}`}
+              style={{
+                color: 'inherit',
+                textDecoration: 'none',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-rose-gold)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'inherit'; }}
+            >
+              {product.name}
+            </Link>
           </h3>
         </div>
-        <div className="mt-3 pt-2 border-t border-luxury-charcoal/5">
-          <p className="font-sans text-xs tracking-wider text-luxury-gold font-medium">
+
+        {/* Price + availability badge row */}
+        <div
+          style={{
+            borderTop: '1px solid var(--color-beige)',
+            paddingTop: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Price — Plus Jakarta Sans, discreet, never dominates the name */}
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',      /* Plus Jakarta Sans */
+              fontSize: '12px',
+              fontWeight: 500,
+              letterSpacing: '0.08em',
+              /* Rose Gold Dark — WCAG AA contrast on Off White */
+              color: 'var(--color-rose-gold-dark)',
+              margin: 0,
+            }}
+          >
             {formatPrice(product.price)}
           </p>
+
+          {/* Availability inline badge */}
+          {isAvailable ? (
+            <ProductBadge variant="available">Disponible</ProductBadge>
+          ) : (
+            <ProductBadge variant="unavailable">Indisponible</ProductBadge>
+          )}
         </div>
       </div>
-    </motion.div>
+
+      {/* ── Focus ring (keyboard navigation) — global :focus-visible handles it ── */}
+    </motion.article>
   );
 }
 

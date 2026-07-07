@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { FiAward, FiHeart, FiShield, FiStar } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -150,11 +149,9 @@ export default function About() {
           <p className="text-sm text-luxury-gray font-sans font-light leading-relaxed">
             Explorez notre collection d'exception et laissez-vous séduire par le savoir-faire de la Maison Hafrose.
           </p>
-          <Link to="/shop">
-            <Button variant="primary" className="px-10 py-3">
-              Explorer la Collection
-            </Button>
-          </Link>
+          <Button to="/shop" variant="primary">
+            Explorer la Collection
+          </Button>
         </motion.div>
       </section>
     </div>

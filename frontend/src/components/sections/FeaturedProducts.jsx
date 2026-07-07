@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import ProductCard from '../cards/ProductCard';
 import Button from '../ui/Button';
 import Loader from '../ui/Loader';
@@ -45,11 +44,9 @@ export default function FeaturedProducts() {
             <div className="w-12 h-[1px] bg-luxury-gold" />
           </div>
           <div className="text-left md:text-right">
-            <Link to="/shop">
-              <Button variant="text" className="text-xs">
-                Voir toutes les créations &rarr;
-              </Button>
-            </Link>
+            <Button to="/shop" variant="text">
+              Voir toutes les créations &rarr;
+            </Button>
           </div>
         </div>
 

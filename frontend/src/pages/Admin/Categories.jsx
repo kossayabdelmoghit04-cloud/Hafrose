@@ -13,6 +13,7 @@ import {
   FiImage 
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
+import Button from '../../components/ui/Button';
 
 export default function Categories() {
   const queryClient = useQueryClient();
@@ -199,13 +200,13 @@ export default function Categories() {
           <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Catégories</h2>
           <p className="text-sm text-luxury-gray">Organisez et gérez le catalogue de produits Hafrose.</p>
         </div>
-        <button
+        <Button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal border border-luxury-gold/30 rounded text-sm transition-all duration-300 font-semibold uppercase tracking-wider"
+          variant="primary"
+          icon={<FiPlus className="w-4 h-4" />}
         >
-          <FiPlus className="w-4 h-4" />
           Ajouter
-        </button>
+        </Button>
       </div>
 
       {/* Search Bar */}
@@ -364,14 +365,15 @@ export default function Categories() {
                           className="hidden"
                         />
                       </label>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => setIsMediaPickerOpen(true)}
-                        className="flex items-center gap-2 px-3 py-2 bg-luxury-charcoal text-white hover:bg-luxury-gold hover:text-luxury-charcoal rounded text-xs font-semibold transition-all duration-300"
+                        variant="primary"
+                        size="sm"
+                        icon={<FiImage />}
                       >
-                        <FiImage />
-                        <span>Médiathèque</span>
-                      </button>
+                        Médiathèque
+                      </Button>
                     </div>
                     <span className="text-[10px] text-luxury-gray">
                       Recommandé : 600x600 px (JPEG, PNG, WEBP), max 5 Mo.
@@ -382,20 +384,22 @@ export default function Categories() {
 
               {/* Actions buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-luxury-gold/10">
-                <button
+                <Button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 bg-luxury-light-gray hover:bg-luxury-gray/10 text-luxury-charcoal rounded text-sm transition-all duration-300 font-semibold"
+                  variant="secondary"
+                  size="sm"
                 >
                   Annuler
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="px-4 py-2 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal rounded text-sm transition-all duration-300 font-semibold uppercase tracking-wider text-xs"
+                  variant="primary"
+                  size="sm"
+                  loading={createMutation.isPending || updateMutation.isPending}
                 >
-                  {createMutation.isPending || updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
+                  Enregistrer
+                </Button>
               </div>
             </form>
           </div>

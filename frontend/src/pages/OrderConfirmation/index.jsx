@@ -1,4 +1,4 @@
-import { useLocation, Link, Navigate } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheck, FiMapPin, FiPhone, FiUser, FiCalendar, FiBox } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
@@ -150,11 +150,9 @@ export default function OrderConfirmation() {
       </div>
 
       <div className="mt-16 text-center">
-        <Link to="/shop">
-          <Button variant="primary" className="px-12 py-4">
-            Retourner à la Boutique
-          </Button>
-        </Link>
+        <Button to="/shop" variant="primary">
+          Retourner à la Boutique
+        </Button>
       </div>
     </div>
   );

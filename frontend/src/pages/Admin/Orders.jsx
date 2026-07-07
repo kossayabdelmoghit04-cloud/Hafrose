@@ -15,6 +15,7 @@ import {
   FiMapPin 
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import Button from '../../components/ui/Button';
 
 export default function Orders() {
   const queryClient = useQueryClient();
@@ -256,20 +257,22 @@ export default function Orders() {
           <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center print:hidden">
             <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => setPage(p => Math.max(p - 1, 1))}
                 disabled={page === 1}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Précédent
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
                 disabled={page === meta.last_page}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Suivant
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -392,21 +395,23 @@ export default function Orders() {
                 </div>
                 
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={handlePrint}
-                    className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/35 text-luxury-charcoal hover:border-luxury-gold hover:bg-luxury-gold/5 rounded text-xs font-semibold transition-all duration-300"
+                    variant="secondary"
+                    size="sm"
+                    icon={<FiPrinter />}
                   >
-                    <FiPrinter />
-                    <span>Imprimer</span>
-                  </button>
-                  <button
+                    Imprimer
+                  </Button>
+                  <Button
                     onClick={() => downloadInvoice(selectedOrder.id)}
-                    disabled={downloadingPdfId === selectedOrder.id}
-                    className="flex items-center gap-2 px-3 py-2 bg-luxury-charcoal text-white hover:bg-luxury-gold hover:text-luxury-charcoal rounded text-xs font-semibold transition-all duration-300 disabled:opacity-50"
+                    loading={downloadingPdfId === selectedOrder.id}
+                    variant="primary"
+                    size="sm"
+                    icon={<FiDownload />}
                   >
-                    <FiDownload />
-                    <span>{downloadingPdfId === selectedOrder.id ? 'Génération...' : 'Facture PDF'}</span>
-                  </button>
+                    Facture PDF
+                  </Button>
                 </div>
               </div>
 

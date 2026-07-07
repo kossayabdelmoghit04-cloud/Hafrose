@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
+import Button from '../../components/ui/Button';
 import { FiUpload, FiTrash2, FiImage, FiX, FiGrid } from 'react-icons/fi';
 
 export default function Media() {
@@ -219,20 +220,22 @@ export default function Media() {
         <div className="flex justify-between items-center pt-4 border-t border-luxury-gold/10">
           <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-xs font-semibold disabled:opacity-40 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Précédent
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
               disabled={page === meta.last_page}
-              className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-xs font-semibold disabled:opacity-40 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Suivant
-            </button>
+            </Button>
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiCreditCard } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -166,11 +166,13 @@ export default function Cart() {
             <p className="text-sm text-luxury-gray font-sans font-light leading-relaxed max-w-sm">
               Vous n'avez sélectionné aucune pièce d'exception pour le moment. Explorez nos collections de maroquinerie, joaillerie et horlogerie.
             </p>
-            <Link to="/shop">
-              <Button variant="primary" className="px-10 py-3.5 mt-4">
-                Explorer la Boutique
-              </Button>
-            </Link>
+            <Button
+              to="/shop"
+              variant="primary"
+              className="mt-4"
+            >
+              Explorer la Boutique
+            </Button>
           </motion.div>
         ) : (
           <motion.div
@@ -236,8 +238,8 @@ export default function Cart() {
                     <Button
                       variant="primary"
                       type="submit"
+                      fullWidth
                       disabled={isSubmitting}
-                      className="w-full py-4 text-xs font-semibold uppercase tracking-[0.2em]"
                     >
                       {isSubmitting ? 'Validation en cours...' : `Confirmer & Régler la commande`}
                     </Button>

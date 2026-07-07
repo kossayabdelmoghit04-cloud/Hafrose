@@ -1,33 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 
 @import "tailwindcss";
-
-@theme {
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  
-  --color-luxury-gold: #D4AF37;
-  --color-luxury-gold-hover: #C5A028;
-  --color-luxury-gold-dark: #AA7C11;
-  --color-luxury-cream: #FDFBF7;
-  --color-luxury-charcoal: #111111;
-  --color-luxury-gray: #7F7F7F;
-  --color-luxury-light-gray: #F5F5F5;
-  --color-luxury-bronze: #8C6239;
-  
-  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* Custom styling defaults for high-end boutique feel */
 html, body {
@@ -44,17 +20,715 @@ h1, h2, h3, h4, h5, h6, .font-serif {
   letter-spacing: -0.02em;
 }
 
-/* Luxury scrollbar */
+/* Typography Hierarchy Utility Classes */
+.text-h1 {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: 0.15em;
+}
+
+@media (min-width: 1024px) {
+  .text-h1 {
+    font-size: 64px;
+  }
+}
+
+.text-h2 {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1.2;
+  letter-spacing: 0.10em;
+}
+
+@media (min-width: 1024px) {
+  .text-h2 {
+    font-size: 40px;
+  }
+}
+
+.text-h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0.05em;
+}
+
+@media (min-width: 1024px) {
+  .text-h3 {
+    font-size: 24px;
+  }
+}
+
+.text-h4 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 1024px) {
+  .text-h4 {
+    font-size: 18px;
+  }
+}
+
+.text-body-large {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+.text-body,
+.text-body-standard {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+.text-body-small {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+.text-caption,
+.text-caption-luxury {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.text-button,
+.text-button-luxury {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.0;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+}
+
+.text-label,
+.text-label-luxury {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.0;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Design Tokens
+   ========================================================================== */
+@theme {
+  /* Typography */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  
+  --font-heading: "Cormorant Garamond", Georgia, serif;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Colors */
+  --color-rose-gold: #B5828C;
+  --color-rose-gold-dark: #9E6E78;
+  --color-rose-poudre: #E8C5CC;
+  --color-blush: #F5E6E8;
+  --color-off-white: #FDFBF7;
+  --color-warm-gold: #C4A882;
+  --color-warm-gold-dark: #B09070;
+  --color-anthracite: #111111;
+  --color-warm-gray: #7F7F7F;
+  --color-beige: #F2EDE8;
+
+  --color-primary: var(--color-rose-gold);
+  --color-primary-hover: var(--color-rose-gold-dark);
+  --color-secondary: var(--color-rose-poudre);
+  --color-background: var(--color-blush);
+  --color-surface: var(--color-off-white);
+  --color-accent: var(--color-warm-gold);
+  --color-accent-hover: var(--color-warm-gold-dark);
+  --color-text-primary: var(--color-anthracite);
+  --color-text-secondary: var(--color-warm-gray);
+  --color-border: var(--color-beige);
+
+  /* Semantic Colors */
+  --color-success: #2E5A44;
+  --color-success-bg: #E2ECE9;
+  --color-success-text: #2E5A44;
+  
+  --color-warning: #996A32;
+  --color-warning-bg: #F7EFE5;
+  --color-warning-text: #996A32;
+  
+  --color-error: #A33E53;
+  --color-error-bg: #FAF0F2;
+  --color-error-text: #A33E53;
+  
+  --color-info: #2C4D75;
+  --color-info-bg: #E9EFF5;
+  --color-info-text: #2C4D75;
+
+  /* Spacing */
+  --spacing-sp-1: 4px;
+  --spacing-sp-2: 8px;
+  --spacing-sp-3: 12px;
+  --spacing-sp-4: 16px;
+  --spacing-sp-6: 24px;
+  --spacing-sp-8: 32px;
+  --spacing-sp-10: 40px;
+  --spacing-sp-12: 48px;
+  --spacing-sp-16: 64px;
+  --spacing-sp-20: 80px;
+  --spacing-sp-24: 96px;
+  --spacing-sp-32: 128px;
+
+  /* Borders */
+  --radius-luxury: 0px;
+
+  /* Shadows */
+  --shadow-luxury-sm: none;
+  --shadow-luxury: 0 4px 20px -2px rgba(17, 17, 17, 0.03);
+  --shadow-luxury-lg: 0 20px 40px -10px rgba(17, 17, 17, 0.08);
+
+  /* Motion */
+  --animate-fade-in-up: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-luxury-position: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* Compatibility Layer Aliases */
+  --color-luxury-gold: var(--color-primary);
+  --color-luxury-gold-hover: var(--color-primary-hover);
+  --color-luxury-gold-dark: var(--color-primary-hover);
+  --color-luxury-cream: var(--color-surface);
+  --color-luxury-charcoal: var(--color-text-primary);
+  --color-luxury-gray: var(--color-text-secondary);
+  --color-luxury-light-gray: var(--color-background);
+  --color-luxury-bronze: var(--color-accent);
+}
+
+:root {
+  /* Outline */
+  --outline-luxury: 1px solid var(--color-primary);
+  --outline-offset-luxury: 2px;
+
+  /* Divider */
+  --divider-luxury: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Compatibility Layer
+   ========================================================================== */
+/* CSS variables for compatibility with legacy Tailwind / component configurations */
+:root {
+  --color-luxury-gold: var(--color-rose-gold);
+  --color-luxury-gold-hover: var(--color-rose-gold-dark);
+  --color-luxury-gold-dark: var(--color-rose-gold-dark);
+  --color-luxury-cream: var(--color-off-white);
+  --color-luxury-charcoal: var(--color-anthracite);
+  --color-luxury-gray: var(--color-warm-gray);
+  --color-luxury-light-gray: var(--color-blush);
+  --color-luxury-bronze: var(--color-warm-gold);
+}
+
+/* ==========================================================================
+   Scrollbars
+   ========================================================================== */
+/* Elegant luxury scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-warm-gold) var(--color-beige);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--color-luxury-cream);
+  background: var(--color-beige);
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #D4AF37;
-  border-radius: 3px;
+  background: var(--color-warm-gold);
+  border-radius: 0px;
+  transition: background-color 0.3s var(--ease-luxury);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #AA7C11;
+  background: var(--color-rose-gold);
 }
+
+/* ==========================================================================
+   Text Selection
+   ========================================================================== */
+::selection {
+  background-color: var(--color-rose-gold);
+  color: var(--color-off-white);
+}
+
+::-moz-selection {
+  background-color: var(--color-rose-gold);
+  color: var(--color-off-white);
+}
+
+/* ==========================================================================
+   Focus System
+   ========================================================================== */
+:focus-visible {
+  outline: 1px solid var(--color-rose-gold) !important;
+  outline-offset: 2px !important;
+  transition: outline-color 0.3s var(--ease-luxury), outline-offset 0.3s var(--ease-luxury) !important;
+}
+
+/* ==========================================================================
+   Disabled State
+   ========================================================================== */
+:disabled,
+[aria-disabled="true"] {
+  opacity: 0.40 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ==========================================================================
+   Containers
+   ========================================================================== */
+.container-luxury,
+.container-narrow,
+.container-wide {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (min-width: 768px) {
+  .container-luxury,
+  .container-narrow,
+  .container-wide {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-luxury,
+  .container-narrow,
+  .container-wide {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+}
+
+.container-luxury {
+  max-width: 1280px;
+}
+
+.container-narrow {
+  max-width: 800px;
+}
+
+.container-wide {
+  max-width: 1440px;
+}
+
+/* ==========================================================================
+   Spacing
+   ========================================================================== */
+:root {
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-32: 128px;
+}
+
+/* Section System */
+.section-luxury {
+  padding-top: var(--sp-12);
+  padding-bottom: var(--sp-12);
+}
+
+@media (min-width: 768px) {
+  .section-luxury {
+    padding-top: var(--sp-20);
+    padding-bottom: var(--sp-20);
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-luxury {
+    padding-top: var(--sp-24);
+    padding-bottom: var(--sp-24);
+  }
+}
+
+.section-large {
+  padding-top: var(--sp-16);
+  padding-bottom: var(--sp-16);
+}
+
+@media (min-width: 768px) {
+  .section-large {
+    padding-top: var(--sp-24);
+    padding-bottom: var(--sp-24);
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-large {
+    padding-top: var(--sp-32);
+    padding-bottom: var(--sp-32);
+  }
+}
+
+.section-compact {
+  padding-top: var(--sp-6);
+  padding-bottom: var(--sp-6);
+}
+
+@media (min-width: 768px) {
+  .section-compact {
+    padding-top: var(--sp-8);
+    padding-bottom: var(--sp-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-compact {
+    padding-top: var(--sp-12);
+    padding-bottom: var(--sp-12);
+  }
+}
+
+/* ==========================================================================
+   Borders
+   ========================================================================== */
+:root {
+  --radius-luxury: 0px;
+}
+
+.border-luxury {
+  border: 1px solid var(--color-border);
+}
+
+.border-divider {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rounded-luxury {
+  border-radius: var(--radius-luxury, 0px);
+}
+
+/* Ready for future radius expansions */
+.rounded-luxury-sm {
+  border-radius: 0px;
+}
+
+.rounded-luxury-md {
+  border-radius: 0px;
+}
+
+.rounded-luxury-lg {
+  border-radius: 0px;
+}
+
+/* ==========================================================================
+   Shadows
+   ========================================================================== */
+:root {
+  --shadow-luxury-sm: none;
+  --shadow-luxury: 0 4px 20px -2px rgba(17, 17, 17, 0.03);
+  --shadow-luxury-lg: 0 20px 40px -10px rgba(17, 17, 17, 0.08);
+}
+
+.shadow-luxury-sm {
+  box-shadow: var(--shadow-luxury-sm);
+}
+
+.shadow-luxury {
+  box-shadow: var(--shadow-luxury);
+}
+
+.shadow-luxury-lg {
+  box-shadow: var(--shadow-luxury-lg);
+}
+
+/* ==========================================================================
+   Transitions
+   ========================================================================== */
+:root {
+  --transition-luxury: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-zoom: all 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.transition-luxury {
+  transition: all 0.3s var(--ease-luxury);
+}
+
+.transition-fast {
+  transition: all 0.15s var(--ease-luxury);
+}
+
+.transition-slow {
+  transition: all 0.5s var(--ease-luxury-position);
+}
+
+.transition-image {
+  transition: transform 1.5s var(--ease-luxury), opacity 1.5s var(--ease-luxury);
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+@keyframes slow-zoom {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.03);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s var(--ease-luxury) forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s var(--ease-luxury) forwards;
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(253, 251, 247, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 10s var(--ease-luxury) infinite;
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 2s var(--ease-luxury) forwards;
+}
+
+/* ==========================================================================
+   Accessibility
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+.bg-surface {
+  background-color: var(--color-surface);
+}
+
+.bg-blush {
+  background-color: var(--color-background);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-accent {
+  background-color: var(--color-accent);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-accent {
+  border-color: var(--color-accent);
+}
+
+/* ==========================================================================
+   ProductCard — Phase 1.8 Luxury Blueprint
+   Performance: only transform + opacity are animated (no layout properties).
+   Desktop hover only — @media (hover: hover) prevents mobile simulation.
+   ========================================================================== */
+
+/* Image slow zoom on card hover — GPU only via transform */
+@media (hover: hover) {
+  .product-card__image-wrap:hover .product-card__img {
+    transform: scale(1.03) !important;
+  }
+
+  /* Quick-view overlay: slides up + fades in from bottom */
+  .product-card__image-wrap:hover .product-card__overlay {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+  }
+}
+
+/* Touch / mobile: no hover simulation */
+@media (hover: none) {
+  .product-card__overlay {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Luxury Button System
+   ========================================================================== */
+
+/* High-performance GPU-friendly transitions for background, border, text color, and shadows */
+.btn-luxury-transition {
+  transition: background-color 0.3s var(--ease-luxury),
+              border-color 0.3s var(--ease-luxury),
+              color 0.3s var(--ease-luxury),
+              box-shadow 0.3s var(--ease-luxury),
+              opacity 0.3s var(--ease-luxury);
+}
+
+/* Underline micro-animation for text variant */
+.btn-text-underline {
+  position: relative;
+}
+
+.btn-text-underline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-luxury);
+}
+
+@media (hover: hover) {
+  .btn-text-underline:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* Accessible sémantique error animation - shake horizontally without layout change */
+@keyframes btn-error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.btn-shake {
+  animation: btn-error-shake 0.4s var(--ease-luxury) forwards;
+}
+

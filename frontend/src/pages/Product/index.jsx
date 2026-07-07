@@ -173,9 +173,13 @@ export default function Product() {
                 <span className="px-4 font-sans text-sm font-light select-none">{qty}</span>
                 <button type="button" onClick={() => setQty(q => Math.min(product.stock, q + 1))} className="px-3 py-2 text-luxury-charcoal hover:text-luxury-gold cursor-pointer"><FiPlus size={12} /></button>
               </div>
-              <Button variant="primary" onClick={handleAddToCart} className="flex-grow flex items-center justify-center space-x-2 py-3">
-                <FiShoppingBag size={14} />
-                <span>Ajouter au panier</span>
+              <Button
+                variant="primary"
+                onClick={handleAddToCart}
+                className="flex-grow"
+                icon={<FiShoppingBag size={14} />}
+              >
+                Ajouter au panier
               </Button>
             </div>
           )}
@@ -224,7 +228,7 @@ export default function Product() {
               <label className="text-[10px] tracking-[0.25em] uppercase font-sans font-medium text-luxury-charcoal/80">Commentaire (min. 10 caractères)</label>
               <textarea value={revComment} onChange={(e) => setRevComment(e.target.value)} rows={4} className="w-full px-4 py-3 bg-white border border-luxury-charcoal/10 focus:border-luxury-gold outline-none text-xs font-sans font-light tracking-wide text-luxury-charcoal transition-all duration-300 placeholder:text-luxury-gray/50 rounded-none" required />
             </div>
-            <Button variant="primary" type="submit" disabled={isSubmittingReview} className="w-full py-2.5">
+            <Button variant="primary" type="submit" fullWidth disabled={isSubmittingReview}>
               {isSubmittingReview ? 'Transmission...' : 'Soumettre mon avis'}
             </Button>
           </form>

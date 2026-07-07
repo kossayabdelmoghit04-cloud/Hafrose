@@ -10,6 +10,8 @@ import {
   FiStar, 
   FiMessageSquare 
 } from 'react-icons/fi';
+import Button from '../../components/ui/Button';
+
 
 export default function Reviews() {
   const queryClient = useQueryClient();
@@ -188,20 +190,22 @@ export default function Reviews() {
         <div className="flex justify-between items-center py-4">
           <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Précédent
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
               disabled={page === meta.last_page}
-              className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+              variant="secondary"
+              size="sm"
             >
               Suivant
-            </button>
+            </Button>
           </div>
         </div>
       )}

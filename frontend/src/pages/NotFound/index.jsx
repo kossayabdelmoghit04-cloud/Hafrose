@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
@@ -24,11 +23,9 @@ export default function NotFound() {
           L'adresse recherchée n'est plus disponible ou a été déplacée. La Maison Hafrose vous invite à retourner vers les créations de nos collections exclusives.
         </p>
         <div className="pt-6">
-          <Link to="/">
-            <Button variant="primary" size="md">
-              Retourner à l'Accueil
-            </Button>
-          </Link>
+          <Button to="/" variant="primary" size="md">
+            Retourner à l'Accueil
+          </Button>
         </div>
       </motion.div>
     </div>

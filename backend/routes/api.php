@@ -40,7 +40,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Api\Admin\AuthController::class, 'login'])->middleware('throttle:api');
 
     // Routes Admin protégées
-    Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         // Profil
         Route::post('/logout', [\App\Http\Controllers\Api\Admin\AuthController::class, 'logout']);
         Route::get('/me', [\App\Http\Controllers\Api\Admin\AuthController::class, 'me']);

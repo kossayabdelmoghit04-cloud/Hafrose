@@ -146,9 +146,14 @@ export default function Contact() {
               {errors.message && <span className="text-[10px] font-sans text-rose-500 font-light">{errors.message}</span>}
             </div>
 
-            <Button variant="primary" type="submit" disabled={isSubmitting} className="w-full py-3 flex items-center justify-center space-x-2">
-              <FiSend size={14} />
-              <span>{isSubmitting ? 'Envoi en cours...' : 'Envoyer votre message'}</span>
+            <Button
+              variant="primary"
+              type="submit"
+              fullWidth
+              disabled={isSubmitting}
+              icon={<FiSend size={14} />}
+            >
+              {isSubmitting ? 'Envoi en cours...' : 'Envoyer votre message'}
             </Button>
           </form>
         </motion.div>

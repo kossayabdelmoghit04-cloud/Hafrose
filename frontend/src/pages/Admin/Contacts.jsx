@@ -12,6 +12,8 @@ import {
   FiCheckCircle, 
   FiPhone 
 } from 'react-icons/fi';
+import Button from '../../components/ui/Button';
+
 
 export default function Contacts() {
   const queryClient = useQueryClient();
@@ -217,20 +219,22 @@ export default function Contacts() {
           <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center">
             <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => setPage(p => Math.max(p - 1, 1))}
                 disabled={page === 1}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Précédent
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
                 disabled={page === meta.last_page}
-                className="px-3 py-1 bg-white border border-luxury-gold/15 rounded text-xs disabled:opacity-50 disabled:pointer-events-none hover:border-luxury-gold transition-all duration-300"
+                variant="secondary"
+                size="sm"
               >
                 Suivant
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -291,21 +295,23 @@ export default function Contacts() {
 
               {/* Actions Footer */}
               <div className="flex justify-between items-center pt-4 border-t border-luxury-gold/10">
-                <button
+                <Button
                   type="button"
                   onClick={() => handleDelete(selectedMessage)}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded text-xs font-semibold border border-red-200 transition-all duration-300"
+                  variant="danger"
+                  size="sm"
+                  icon={<FiTrash2 />}
                 >
-                  <FiTrash2 />
-                  <span>Supprimer</span>
-                </button>
-                <button
+                  Supprimer
+                </Button>
+                <Button
                   type="button"
                   onClick={closeDetails}
-                  className="px-4 py-2 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal rounded text-xs font-semibold uppercase tracking-wider transition-all duration-300"
+                  variant="primary"
+                  size="sm"
                 >
                   Fermer
-                </button>
+                </Button>
               </div>
 
             </div>
