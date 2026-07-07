@@ -14,6 +14,9 @@ import {
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 
 export default function Categories() {
   const queryClient = useQueryClient();
@@ -93,7 +96,7 @@ export default function Categories() {
         value
           .toLowerCase()
           .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '') // Supprimer accents
+          .replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9\s-]/g, '')
           .replace(/\s+/g, '-')
           .replace(/-+/g, '-')
@@ -130,7 +133,7 @@ export default function Categories() {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
-      setSelectedMediaPath(''); // réinitialiser la médiathèque si upload direct
+      setSelectedMediaPath('');
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -140,9 +143,9 @@ export default function Categories() {
   };
 
   const handleMediaSelected = (media) => {
-    setSelectedMediaPath(media.path); // Stocker le chemin relatif pour le serveur
-    setImagePreview(media.url);       // Utiliser l'URL publique pour l'aperçu
-    setImageFile(null);               // réinitialiser l'upload de fichier
+    setSelectedMediaPath(media.path);
+    setImagePreview(media.url);
+    setImageFile(null);
     setIsMediaPickerOpen(false);
   };
 
@@ -190,7 +193,11 @@ export default function Categories() {
   );
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -209,20 +216,22 @@ export default function Categories() {
         </Button>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex bg-white items-center gap-3 px-4 py-3 rounded border border-luxury-gold/15 max-w-md shadow-sm">
-        <FiSearch className="text-luxury-gray" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher une catégorie par nom ou slug..."
-          className="w-full bg-transparent border-none outline-none text-sm text-luxury-charcoal"
-        />
-      </div>
+      {/* Search Bar — Card variant="flat" */}
+      <Card variant="flat" size="xs" animate={false} className="max-w-md">
+        <Card.Content className="flex-row items-center gap-3 py-2 px-4">
+          <FiSearch className="text-luxury-gray shrink-0" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher une catégorie par nom ou slug..."
+            className="w-full bg-transparent border-none outline-none text-sm text-luxury-charcoal"
+          />
+        </Card.Content>
+      </Card>
 
-      {/* Categories Table */}
-      <div className="bg-white border border-luxury-gold/10 rounded-lg shadow-sm overflow-hidden">
+      {/* Categories Table — Card variant="admin" comme panneau contenant le tableau */}
+      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
@@ -255,20 +264,16 @@ export default function Categories() {
                   <td className="px-6 py-4 text-luxury-gray max-w-xs truncate">{category.description || '-'}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button
+                      <AdminActionButton
+                        action="edit"
                         onClick={() => openModal(category)}
-                        className="p-2 hover:bg-luxury-gold/10 text-luxury-charcoal hover:text-luxury-gold rounded transition-all duration-200"
                         title="Modifier"
-                      >
-                        <FiEdit className="w-4 h-4" />
-                      </button>
-                      <button
+                      />
+                      <AdminActionButton
+                        action="delete"
                         onClick={() => handleDelete(category)}
-                        className="p-2 hover:bg-red-50 text-red-500 hover:text-red-700 rounded transition-all duration-200"
                         title="Supprimer"
-                      >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                      />
                     </div>
                   </td>
                 </tr>
@@ -283,128 +288,128 @@ export default function Categories() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
-      {/* Modal - Create/Edit Category */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-luxury-cream border border-luxury-gold/30 rounded-lg shadow-2xl overflow-hidden animate-fade-in-up">
-            <div className="flex justify-between items-center px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
-              <h3 className="font-serif text-lg text-luxury-gold">
-                {editingCategory ? 'Modifier la catégorie' : 'Créer une catégorie'}
-              </h3>
-              <button onClick={closeModal} className="p-1 text-luxury-gray hover:text-white rounded">
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Modal - Create/Edit Category — Card variant="admin" */}
+      <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="lg">
+        <Modal.Backdrop />
+        <Modal.Container>
+          {/* Modal Header */}
+          <Modal.Header className="px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
+            <Modal.Title className="text-luxury-gold">
+              {editingCategory ? 'Modifier la catégorie' : 'Créer une catégorie'}
+            </Modal.Title>
+            <Modal.CloseButton className="text-luxury-gray hover:text-white" />
+          </Modal.Header>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Nom de la catégorie
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={handleNameChange}
-                  placeholder="ex: Arts de la Table"
-                  className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm transition-all duration-300"
-                />
-              </div>
+          <form onSubmit={handleSubmit}>
+            <Modal.Body className="space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Nom de la catégorie
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={handleNameChange}
+                    placeholder="ex: Arts de la Table"
+                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm transition-all duration-300"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Slug (généré automatiquement)
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="ex: arts-de-la-table"
-                  className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs transition-all duration-300"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Slug (généré automatiquement)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="ex: arts-de-la-table"
+                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs transition-all duration-300"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brève description de la catégorie..."
-                  rows="3"
-                  className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none transition-all duration-300"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Brève description de la catégorie..."
+                    rows="3"
+                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none transition-all duration-300"
+                  />
+                </div>
 
-              {/* Image upload & preview */}
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Image de la catégorie
-                </label>
-                <div className="flex gap-4 items-center">
-                  <div className="relative w-20 h-20 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Aperçu" className="w-full h-full object-cover" />
-                    ) : (
-                      <FiImage className="w-8 h-8 text-luxury-light-gray" />
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold transition-all duration-300">
-                        <FiUpload />
-                        <span>Téléverser</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </label>
-                      <Button
-                        type="button"
-                        onClick={() => setIsMediaPickerOpen(true)}
-                        variant="primary"
-                        size="sm"
-                        icon={<FiImage />}
-                      >
-                        Médiathèque
-                      </Button>
+                {/* Image upload & preview */}
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Image de la catégorie
+                  </label>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative w-20 h-20 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Aperçu" className="w-full h-full object-cover" />
+                      ) : (
+                        <FiImage className="w-8 h-8 text-luxury-light-gray" />
+                      )}
                     </div>
-                    <span className="text-[10px] text-luxury-gray">
-                      Recommandé : 600x600 px (JPEG, PNG, WEBP), max 5 Mo.
-                    </span>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold transition-all duration-300">
+                          <FiUpload />
+                          <span>Téléverser</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <Button
+                          type="button"
+                          onClick={() => setIsMediaPickerOpen(true)}
+                          variant="primary"
+                          size="sm"
+                          icon={<FiImage />}
+                        >
+                          Médiathèque
+                        </Button>
+                      </div>
+                      <Card.Meta>Recommandé : 600x600 px (JPEG, PNG, WEBP), max 5 Mo.</Card.Meta>
+                    </div>
                   </div>
                 </div>
-              </div>
+            </Modal.Body>
 
               {/* Actions buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-luxury-gold/10">
-                <Button
-                  type="button"
-                  onClick={closeModal}
-                  variant="secondary"
-                  size="sm"
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  loading={createMutation.isPending || updateMutation.isPending}
-                >
-                  Enregistrer
-                </Button>
-              </div>
+              <Modal.Footer>
+                <Modal.Actions>
+                  <Button
+                    type="button"
+                    onClick={closeModal}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    loading={createMutation.isPending || updateMutation.isPending}
+                  >
+                    Enregistrer
+                  </Button>
+                </Modal.Actions>
+              </Modal.Footer>
             </form>
-          </div>
-        </div>
-      )}
+          </Modal.Container>
+        </Modal>
 
       {/* Modal - Media Library Picker */}
       {isMediaPickerOpen && (

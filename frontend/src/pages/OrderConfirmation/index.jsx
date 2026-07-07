@@ -4,6 +4,7 @@ import { FiCheck, FiMapPin, FiPhone, FiUser, FiCalendar, FiBox } from 'react-ico
 import Button from '../../components/ui/Button';
 import { formatPrice } from '../../utils/format';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import Card from '../../components/ui/Card';
 
 export default function OrderConfirmation() {
   const location = useLocation();
@@ -50,23 +51,28 @@ export default function OrderConfirmation() {
           Merci pour votre confiance
         </h1>
         <div className="w-12 h-[1px] bg-luxury-gold mx-auto my-4" />
-        <p className="text-sm text-luxury-gray font-sans font-light leading-relaxed max-w-lg">
+        <p className="text-sm text-luxury-gray font-sans font-light leading-relaxed max-w-lg mx-auto">
           Votre commande a été transmise à notre atelier parisien. Un conseiller de la Maison Hafrose prendra soin de préparer votre colis dans un écrin signature.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Order Details Card */}
-        <motion.div
-          {...fadeUp}
-          className="md:col-span-7 bg-white border border-luxury-charcoal/5 p-6 md:p-8 space-y-6"
+        <Card
+          variant="confirmation"
+          className="md:col-span-7 p-6 md:p-8"
+          initial="initial"
+          animate="animate"
+          variants={fadeUp}
         >
-          <h2 className="font-serif text-lg font-light text-luxury-charcoal pb-3 border-b border-luxury-charcoal/5 flex items-center gap-2">
+          <Card.Header className="pb-3 border-b border-luxury-charcoal/5 flex items-center gap-2 mb-0">
             <FiBox size={16} className="text-luxury-gold" />
-            <span>Détails de la commande</span>
-          </h2>
+            <Card.Title as="h2" className="text-lg font-light text-luxury-charcoal">
+              Détails de la commande
+            </Card.Title>
+          </Card.Header>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans font-light text-luxury-gray">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans font-light text-luxury-gray mt-6">
             <div className="space-y-1">
               <span className="text-[9px] tracking-wider uppercase text-luxury-charcoal font-semibold">Référence</span>
               <p className="text-sm font-medium text-luxury-charcoal">#HAF-{order.id}</p>
@@ -94,7 +100,7 @@ export default function OrderConfirmation() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-luxury-charcoal/5 space-y-2">
+          <div className="pt-4 border-t border-luxury-charcoal/5 space-y-2 mt-6">
             <span className="text-[9px] tracking-wider uppercase text-luxury-charcoal font-semibold block">Adresse de livraison</span>
             <div className="flex items-start gap-2 text-xs text-luxury-gray font-light">
               <FiMapPin size={14} className="text-luxury-gold mt-0.5 flex-shrink-0" />
@@ -104,19 +110,24 @@ export default function OrderConfirmation() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </Card>
 
         {/* Order Summary (Items & Total) */}
-        <motion.div
-          {...fadeUp}
+        <Card
+          variant="confirmation"
+          className="md:col-span-5 p-6"
+          initial="initial"
+          animate="animate"
+          variants={fadeUp}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="md:col-span-5 bg-white border border-luxury-charcoal/5 p-6 space-y-6"
         >
-          <h2 className="font-serif text-lg font-light text-luxury-charcoal pb-3 border-b border-luxury-charcoal/5">
-            Résumé des articles
-          </h2>
+          <Card.Header className="pb-3 border-b border-luxury-charcoal/5 mb-0">
+            <Card.Title as="h2" className="text-lg font-light text-luxury-charcoal">
+              Résumé des articles
+            </Card.Title>
+          </Card.Header>
 
-          <div className="divide-y divide-luxury-charcoal/5 max-h-[250px] overflow-y-auto pr-1">
+          <div className="divide-y divide-luxury-charcoal/5 max-h-[250px] overflow-y-auto pr-1 mt-4">
             {order.order_items?.map((item) => (
               <div key={item.id} className="py-3 flex justify-between items-center text-xs">
                 <div>
@@ -127,14 +138,14 @@ export default function OrderConfirmation() {
                     Quantité : {item.quantity} × {formatPrice(item.unit_price)}
                   </p>
                 </div>
-                <span className="font-sans font-medium text-luxury-charcoal">
+                <Card.Price className="text-xs">
                   {formatPrice(item.subtotal)}
-                </span>
+                </Card.Price>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-luxury-charcoal/5 pt-4 space-y-3">
+          <div className="border-t border-luxury-charcoal/5 pt-4 space-y-3 mt-4">
             <div className="flex justify-between text-xs text-luxury-gray">
               <span>Livraison</span>
               <span className="text-[10px] uppercase text-green-600 font-semibold tracking-wider">Offerte</span>
@@ -146,7 +157,7 @@ export default function OrderConfirmation() {
               </span>
             </div>
           </div>
-        </motion.div>
+        </Card>
       </div>
 
       <div className="mt-16 text-center">

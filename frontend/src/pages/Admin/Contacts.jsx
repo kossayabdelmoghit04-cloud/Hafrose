@@ -13,6 +13,9 @@ import {
   FiPhone 
 } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 
 
 export default function Contacts() {
@@ -46,7 +49,7 @@ export default function Contacts() {
     onSuccess: (res) => {
       if (res.success) {
         queryClient.invalidateQueries({ queryKey: ['adminContacts'] });
-        queryClient.invalidateQueries({ queryKey: ['adminDashboard'] }); // pour mettre à jour l'alerte sur le sidebar
+        queryClient.invalidateQueries({ queryKey: ['adminDashboard'] });
       }
     }
   });
@@ -102,7 +105,11 @@ export default function Contacts() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const contactsList = contactsData?.data || [];
   const meta = contactsData?.meta || { current_page: 1, last_page: 1, total: 0 };
@@ -115,39 +122,41 @@ export default function Contacts() {
         <p className="text-sm text-luxury-gray">Consultez et répondez aux messages laissés par les utilisateurs.</p>
       </div>
 
-      {/* Filter Row */}
-      <div className="flex flex-wrap bg-white p-4 rounded border border-luxury-gold/10 gap-4 items-center shadow-sm">
-        
-        {/* Search */}
-        <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-          <FiSearch className="text-luxury-gray" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Rechercher par nom, email, sujet..."
-            className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-          />
-        </div>
+      {/* Filter Row — Card variant="flat" comme panneau de filtres */}
+      <Card variant="flat" size="sm" animate={false}>
+        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
+          
+          {/* Search */}
+          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
+            <FiSearch className="text-luxury-gray" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Rechercher par nom, email, sujet..."
+              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
+            />
+          </div>
 
-        {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-        >
-          <option value="">Tous les messages</option>
-          <option value="0">Non lus</option>
-          <option value="1">Lus</option>
-        </select>
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
+          >
+            <option value="">Tous les messages</option>
+            <option value="0">Non lus</option>
+            <option value="1">Lus</option>
+          </select>
 
-        <div className="ml-auto text-xs text-luxury-gray font-semibold">
-          {meta.total} message(s) trouvé(s)
-        </div>
-      </div>
+          <div className="ml-auto text-xs text-luxury-gray font-semibold">
+            {meta.total} message(s) trouvé(s)
+          </div>
+        </Card.Content>
+      </Card>
 
-      {/* Messages List / Table */}
-      <div className="bg-white border border-luxury-gold/10 rounded-lg shadow-sm overflow-hidden">
+      {/* Messages List / Table — Card variant="admin" comme panneau contenant le tableau */}
+      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
@@ -185,20 +194,16 @@ export default function Contacts() {
                   </td>
                   <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-2">
-                      <button
+                      <AdminActionButton
+                        action="view"
                         onClick={() => openDetails(msg)}
-                        className="p-2 hover:bg-luxury-gold/10 text-luxury-charcoal hover:text-luxury-gold rounded transition-all duration-200"
                         title="Consulter"
-                      >
-                        <FiEye className="w-4 h-4" />
-                      </button>
-                      <button
+                      />
+                      <AdminActionButton
+                        action="delete"
                         onClick={() => handleDelete(msg)}
-                        className="p-2 hover:bg-red-50 text-red-500 hover:text-red-700 rounded transition-all duration-200"
                         title="Supprimer"
-                      >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                      />
                     </div>
                   </td>
                 </tr>
@@ -238,37 +243,37 @@ export default function Contacts() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Modal - Message Details */}
-      {isDetailOpen && selectedMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-luxury-cream border border-luxury-gold/30 rounded-lg shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
-            
-            {/* Modal Header */}
-            <div className="flex justify-between items-center px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
-              <div className="flex items-center gap-2">
-                <FiMail className="text-luxury-gold" />
-                <h3 className="font-serif text-sm uppercase tracking-wider text-luxury-gold">Consulter le Message</h3>
-              </div>
-              <button onClick={closeDetails} className="p-1 text-luxury-gray hover:text-white rounded">
-                <FiX className="w-5 h-5" />
-              </button>
+      {/* Modal - Message Details — Card variant="confirmation" */}
+      <Modal isOpen={isDetailOpen} onClose={closeDetails} variant="confirmation" size="lg">
+        <Modal.Backdrop />
+        <Modal.Container className="w-full max-w-lg overflow-hidden flex flex-col">
+          {/* Modal Header */}
+          <Modal.Header className="px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
+            <div className="flex items-center gap-2">
+              <FiMail className="text-luxury-gold" />
+              <Modal.Title className="text-sm uppercase tracking-wider text-luxury-gold font-serif">
+                Consulter le Message
+              </Modal.Title>
             </div>
+            <Modal.CloseButton className="text-luxury-gray hover:text-white" />
+          </Modal.Header>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
+          {/* Modal Body */}
+          <Modal.Body className="space-y-6">
               
               {/* Sender Details */}
-              <div className="pb-4 border-b border-luxury-gold/10 space-y-2">
+              <Card.Divider />
+              <div className="pb-4 space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-[10px] text-luxury-gray uppercase tracking-widest font-bold">De</span>
-                  <span className="text-[10px] text-luxury-gray font-mono">
+                  <Card.Meta className="uppercase tracking-widest font-bold">De</Card.Meta>
+                  <Card.Meta className="font-mono">
                     {new Date(selectedMessage.created_at).toLocaleString('fr-FR')}
-                  </span>
+                  </Card.Meta>
                 </div>
-                <div className="text-sm font-semibold text-luxury-charcoal">{selectedMessage.name}</div>
-                <div className="text-xs text-luxury-gray">{selectedMessage.email}</div>
+                <Card.Title as="div" className="text-sm font-semibold">{selectedMessage.name}</Card.Title>
+                <Card.Meta>{selectedMessage.email}</Card.Meta>
                 {selectedMessage.phone && (
                   <div className="flex items-center gap-1.5 text-xs text-luxury-gray mt-1">
                     <FiPhone className="w-3.5 h-3.5" />
@@ -280,21 +285,24 @@ export default function Contacts() {
               {/* Subject & Message text */}
               <div className="space-y-3">
                 <div>
-                  <span className="text-[10px] text-luxury-gray uppercase tracking-widest font-bold block mb-1">Objet</span>
-                  <div className="text-sm font-semibold text-luxury-charcoal bg-white p-3 rounded border border-luxury-gold/10">
+                  <Card.Meta className="uppercase tracking-widest font-bold block mb-1">Objet</Card.Meta>
+                  <Card.Description className="text-sm font-semibold bg-white p-3 rounded border border-luxury-gold/10">
                     {selectedMessage.subject}
-                  </div>
+                  </Card.Description>
                 </div>
                 <div>
-                  <span className="text-[10px] text-luxury-gray uppercase tracking-widest font-bold block mb-1">Message</span>
+                  <Card.Meta className="uppercase tracking-widest font-bold block mb-1">Message</Card.Meta>
                   <p className="text-xs text-luxury-gray bg-white p-4 rounded border border-luxury-gold/10 whitespace-pre-line leading-relaxed h-48 overflow-y-auto">
                     {selectedMessage.message}
                   </p>
                 </div>
               </div>
 
-              {/* Actions Footer */}
-              <div className="flex justify-between items-center pt-4 border-t border-luxury-gold/10">
+            </Modal.Body>
+
+            {/* Actions Footer */}
+            <Modal.Footer>
+              <Modal.Actions>
                 <Button
                   type="button"
                   onClick={() => handleDelete(selectedMessage)}
@@ -312,12 +320,10 @@ export default function Contacts() {
                 >
                   Fermer
                 </Button>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
+              </Modal.Actions>
+            </Modal.Footer>
+          </Modal.Container>
+        </Modal>
 
     </div>
   );

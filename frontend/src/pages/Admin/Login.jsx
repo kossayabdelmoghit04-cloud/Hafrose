@@ -5,6 +5,7 @@ import api from '../../services/api';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Loader from '../../components/ui/Loader';
+import Card from '../../components/ui/Card';
 
 export default function Login() {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
@@ -47,61 +48,81 @@ export default function Login() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-luxury-charcoal text-white font-sans px-4">
-      <div className="w-full max-w-md p-8 bg-black/40 border border-luxury-gold/30 rounded-lg shadow-2xl backdrop-blur-md">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-serif text-luxury-gold tracking-wide uppercase">
-            Hafrose Admin
-          </h2>
-          <p className="text-xs text-luxury-gray tracking-widest uppercase mt-2">
-            Console de Gestion d'Entreprise
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-3 mb-6 bg-red-950/60 border border-red-800/40 text-red-300 rounded text-sm text-center">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-              Adresse email professionnelle
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@hafrose.com"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded focus:border-luxury-gold outline-none transition-all duration-300 text-white placeholder-white/20 text-sm"
-            />
+    <div className="flex items-center justify-center min-h-screen bg-luxury-charcoal font-sans px-4">
+      <Card
+        variant="admin"
+        size="lg"
+        as="div"
+        className="w-full max-w-md backdrop-blur-md"
+        animate={false}
+      >
+        {/* Logo / Titre */}
+        <Card.Body>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-serif text-luxury-gold tracking-wide uppercase">
+              Hafrose Admin
+            </h2>
+            <p className="text-xs text-luxury-gray tracking-widest uppercase mt-2">
+              Console de Gestion d'Entreprise
+            </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-              Mot de passe
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded focus:border-luxury-gold outline-none transition-all duration-300 text-white placeholder-white/20 text-sm"
-            />
-          </div>
+          {/* Alerte d'erreur */}
+          {error && (
+            <Card variant="alert" size="sm" className="mb-6" animate={false}>
+              <Card.Body>
+                <p className="text-red-300 text-sm text-center">{error}</p>
+              </Card.Body>
+            </Card>
+          )}
 
-          <Button
-            type="submit"
-            loading={loading}
-            fullWidth
-          >
-            Se connecter
-          </Button>
-        </form>
-      </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="admin-email"
+                className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2"
+              >
+                Adresse email professionnelle
+              </label>
+              <input
+                id="admin-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@hafrose.com"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded focus:border-luxury-gold outline-none transition-all duration-300 text-white placeholder-white/20 text-sm"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="admin-password"
+                className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2"
+              >
+                Mot de passe
+              </label>
+              <input
+                id="admin-password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded focus:border-luxury-gold outline-none transition-all duration-300 text-white placeholder-white/20 text-sm"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              loading={loading}
+              fullWidth
+            >
+              Se connecter
+            </Button>
+          </form>
+        </Card.Body>
+      </Card>
     </div>
   );
 }

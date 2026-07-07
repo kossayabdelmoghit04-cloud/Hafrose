@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import Card from '../ui/Card';
 
 export default function MaisonPresentation() {
   return (
@@ -38,7 +39,10 @@ export default function MaisonPresentation() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="md:col-span-5 relative"
         >
-          <div className="aspect-[4/5] bg-luxury-charcoal flex flex-col justify-between p-8 md:p-12 text-luxury-cream border border-luxury-gold/20 shadow-xl">
+          <Card
+            variant="flat"
+            className="aspect-[4/5] bg-luxury-charcoal flex flex-col justify-between p-8 md:p-12 text-luxury-cream border border-luxury-gold/20 shadow-card-floating"
+          >
             <div className="text-[9px] tracking-[0.5em] uppercase text-luxury-gold font-sans font-semibold">
               Maison Fondée en 2026
             </div>
@@ -53,7 +57,7 @@ export default function MaisonPresentation() {
             <div className="text-[10px] tracking-widest uppercase text-luxury-cream/40 font-sans">
               Hafrose Ateliers, Paris
             </div>
-          </div>
+          </Card>
           {/* Accent gold corner lines */}
           <div className="absolute -top-3 -right-3 w-12 h-12 border-t border-r border-luxury-gold/45 pointer-events-none" />
           <div className="absolute -bottom-3 -left-3 w-12 h-12 border-b border-l border-luxury-gold/45 pointer-events-none" />

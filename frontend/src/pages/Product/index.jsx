@@ -14,6 +14,7 @@ import { useCart } from '../../context/CartContext';
 import { getProductGallery } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import Card from '../../components/ui/Card';
 
 export default function Product() {
   const { slug } = useParams();
@@ -195,23 +196,25 @@ export default function Product() {
               <p className="text-xs text-luxury-gray font-sans font-light">Aucun avis n'a encore été déposé. Partagez votre expérience avec cette création.</p>
             ) : (
               product.reviews.map((rev) => (
-                <div key={rev.id} className="border-b border-luxury-charcoal/5 pb-4 space-y-2">
+                <Card key={rev.id} variant="review" className="border-b border-luxury-charcoal/5 pb-4 p-0 shadow-none gap-2 text-left bg-transparent border-0">
                   <div className="flex items-center justify-between">
-                    <span className="font-sans text-xs font-medium text-luxury-charcoal">{rev.customer_name}</span>
+                    <Card.Title as="span" className="text-xs font-medium text-luxury-charcoal">{rev.customer_name}</Card.Title>
                     <div className="flex text-luxury-gold">
                       {[...Array(5)].map((_, i) => <FiStar key={i} className={`w-3 h-3 ${i < rev.rating ? 'fill-luxury-gold' : ''}`} />)}
                     </div>
                   </div>
-                  <p className="text-xs font-sans font-light text-luxury-gray leading-relaxed">{rev.comment}</p>
-                </div>
+                  <Card.Description className="text-xs font-sans font-light text-luxury-gray leading-relaxed">{rev.comment}</Card.Description>
+                </Card>
               ))
             )}
           </div>
         </div>
 
         {/* Review Form */}
-        <div className="lg:col-span-5 bg-white border border-luxury-charcoal/5 p-6 space-y-4">
-          <h3 className="font-serif text-lg font-light text-luxury-charcoal">Partager votre avis</h3>
+        <Card variant="panel" className="lg:col-span-5 p-6 gap-4">
+          <Card.Header className="border-b-0 pb-0 mb-0">
+            <Card.Title as="h3" className="text-lg font-light text-luxury-charcoal">Partager votre avis</Card.Title>
+          </Card.Header>
           <form onSubmit={handleReviewSubmit} className="space-y-4">
             <Input label="Votre Nom" value={revName} onChange={(e) => setRevName(e.target.value)} required />
             <div className="flex flex-col space-y-1.5">
@@ -232,7 +235,7 @@ export default function Product() {
               {isSubmittingReview ? 'Transmission...' : 'Soumettre mon avis'}
             </Button>
           </form>
-        </div>
+        </Card>
       </div>
 
       {/* Similar Products Recommendation */}

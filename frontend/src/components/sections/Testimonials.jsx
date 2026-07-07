@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import Card from '../ui/Card';
 
 export default function Testimonials() {
   const reviews = [
@@ -40,8 +40,9 @@ export default function Testimonials() {
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {reviews.map((rev, idx) => (
-            <motion.div
+            <Card
               key={rev.author}
+              variant="review"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
@@ -54,25 +55,25 @@ export default function Testimonials() {
               </div>
 
               {/* Quote */}
-              <p className="text-sm font-sans font-light italic leading-relaxed text-luxury-gray mb-8">
+              <Card.Description className="italic leading-relaxed mb-8">
                 "{rev.comment}"
-              </p>
+              </Card.Description>
 
               {/* Author Info */}
-              <div className="border-t border-luxury-charcoal/5 pt-4">
-                <h4 className="font-serif text-sm font-medium text-luxury-charcoal">
+              <Card.Footer className="border-t border-luxury-charcoal/5 pt-4 flex-col items-start gap-1 justify-start">
+                <Card.Title as="h4" className="text-sm font-medium text-luxury-charcoal">
                   {rev.author}
-                </h4>
-                <p className="text-[10px] tracking-wider uppercase text-luxury-gold font-sans font-light">
+                </Card.Title>
+                <Card.Meta className="text-luxury-gold">
                   {rev.city}
-                </p>
-              </div>
+                </Card.Meta>
+              </Card.Footer>
 
               {/* Subtle top quotation mark decorator */}
               <span className="absolute top-4 right-6 text-7xl font-serif text-luxury-gold/5 font-extralight pointer-events-none select-none">
                 ”
               </span>
-            </motion.div>
+            </Card>
           ))}
         </div>
 

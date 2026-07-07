@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Card from '../ui/Card';
 
 // Handle absolute or relative images outside component definition to avoid function re-creation
 const getImageUrl = (img) => {
@@ -10,49 +10,51 @@ const getImageUrl = (img) => {
 };
 
 /**
- * Premium Category Card
+ * Premium Category Card — Luxury Card System
  * Memoized to prevent redundant renders when parent elements trigger state changes.
  */
 function CategoryCard({ category }) {
   return (
-    <motion.div
+    <Card
+      as={Link}
+      to={`/shop?category=${category.slug}`}
+      variant="category"
+      className="aspect-[4/5] w-full"
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
-      className="group relative aspect-[4/5] bg-luxury-light-gray overflow-hidden cursor-pointer border border-luxury-charcoal/5"
     >
-      <Link to={`/shop?category=${category.slug}`} className="w-full h-full block">
+      <Card.Media ratio="auto" className="w-full h-full">
         {/* Background Image */}
-        <img
+        <Card.Image
           src={getImageUrl(category.image)}
           alt={category.name}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000 ease-out"
-          loading="lazy"
+          zoom={true}
         />
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-luxury-charcoal/70 via-luxury-charcoal/20 to-transparent transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card-color-title/70 via-card-color-title/20 to-transparent transition-opacity duration-500" />
 
         {/* Text Details Overlay */}
         <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-8 text-white space-y-2">
-          <span className="text-[9px] tracking-[0.4em] uppercase text-luxury-gold font-sans font-semibold">
+          <Card.Badge variant="featured" position="static">
             Collection
-          </span>
-          <h3 className="font-serif text-xl md:text-2xl font-light tracking-wide">
+          </Card.Badge>
+          <Card.Title as="h3" className="text-white text-xl md:text-2xl font-light tracking-wide">
             {category.name}
-          </h3>
+          </Card.Title>
           {category.description && (
-            <p className="text-[10px] text-white/70 font-sans font-light line-clamp-2 max-w-xs transition-opacity duration-500 opacity-0 group-hover:opacity-100">
+            <Card.Description className="text-[10px] text-white/70 font-sans font-light line-clamp-2 max-w-xs transition-opacity duration-500 opacity-0 group-hover:opacity-100">
               {category.description}
-            </p>
+            </Card.Description>
           )}
           
           {/* Subtle line indicator */}
-          <div className="w-8 h-[1px] bg-luxury-gold group-hover:w-16 transition-all duration-500 mt-2" />
+          <div className="w-8 h-[1px] bg-card-color-accent group-hover:w-16 transition-all duration-500 mt-2" />
         </div>
-      </Link>
-    </motion.div>
+      </Card.Media>
+    </Card>
   );
 }
 

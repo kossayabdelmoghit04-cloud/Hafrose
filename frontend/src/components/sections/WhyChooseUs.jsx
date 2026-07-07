@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
 import { FiCompass, FiTruck, FiAward, FiMessageCircle } from 'react-icons/fi';
+import Card from '../ui/Card';
 
 export default function WhyChooseUs() {
   const assets = [
@@ -43,24 +43,25 @@ export default function WhyChooseUs() {
         {/* Assets Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
           {assets.map((item, idx) => (
-            <motion.div
+            <Card
               key={item.title}
+              variant="flat"
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="space-y-4 text-center group"
+              className="space-y-4 text-center group bg-transparent text-luxury-cream shadow-none border-0 p-0"
             >
               <div className="w-16 h-16 rounded-full border border-luxury-gold/20 flex items-center justify-center mx-auto group-hover:border-luxury-gold/50 transition-colors duration-500">
                 {item.icon}
               </div>
-              <h3 className="font-serif text-lg text-white font-light">
+              <Card.Title as="h3" className="text-white text-lg font-light">
                 {item.title}
-              </h3>
-              <p className="text-xs text-luxury-cream/60 leading-relaxed font-sans font-light max-w-xs mx-auto">
+              </Card.Title>
+              <Card.Description className="text-xs text-luxury-cream/60 leading-relaxed max-w-xs mx-auto">
                 {item.desc}
-              </p>
-            </motion.div>
+              </Card.Description>
+            </Card>
           ))}
         </div>
 

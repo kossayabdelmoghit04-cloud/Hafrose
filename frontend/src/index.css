@@ -211,6 +211,80 @@ h1, h2, h3, h4, h5, h6, .font-serif {
   --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-luxury-position: cubic-bezier(0.25, 1, 0.5, 1);
 
+  /* ==========================================================================
+     Luxury Card System Design Tokens
+     ========================================================================== */
+  /* Card Colors */
+  --color-card-bg-primary: var(--color-off-white);
+  --color-card-bg-secondary: var(--color-blush);
+  --color-card-bg-editorial: var(--color-blush);
+  --color-card-bg-admin: var(--color-off-white);
+  --color-card-bg-admin-alt: var(--color-blush);
+  --color-card-bg-overlay-light: rgba(17, 17, 17, 0.08);
+  --color-card-bg-overlay-dark: rgba(17, 17, 17, 0.65);
+  --color-card-bg-modal-backdrop: rgba(17, 17, 17, 0.60);
+
+  --color-card-border-editorial: var(--color-border);
+  --color-card-border-admin: rgba(181, 130, 140, 0.10);
+  --color-card-border-featured: rgba(181, 130, 140, 0.30);
+  --color-card-border-accent: var(--color-rose-gold);
+  --color-card-border-dashed: rgba(181, 130, 140, 0.25);
+  --color-card-border-hover: var(--color-rose-gold);
+
+  --color-card-color-title: var(--color-anthracite);
+  --color-card-color-subtitle: var(--color-anthracite);
+  --color-card-color-body: var(--color-warm-gray);
+  --color-card-color-meta: var(--color-warm-gray);
+  --color-card-color-price: var(--color-rose-gold-dark);
+  --color-card-color-accent: var(--color-rose-gold);
+  --color-card-color-label: var(--color-warm-gold);
+
+  /* Card Radius */
+  --radius-card-editorial: 0px;
+  --radius-card-admin: 8px;
+  --radius-card-modal: 8px;
+  --radius-card-badge: 0px;
+
+  /* Card Shadows */
+  --shadow-card-none: none;
+  --shadow-card-sm: 0 1px 3px 0 rgba(17, 17, 17, 0.03);
+  --shadow-card-md: 0 4px 20px -2px rgba(17, 17, 17, 0.05);
+  --shadow-card-lg: 0 20px 40px -10px rgba(17, 17, 17, 0.08);
+  --shadow-card-luxury: 0 8px 32px -4px rgba(17, 17, 17, 0.08);
+  --shadow-card-floating: 0 20px 60px -10px rgba(17, 17, 17, 0.12);
+  --shadow-card-modal: 0 32px 80px -12px rgba(17, 17, 17, 0.20);
+
+  /* Card Spacings */
+  --spacing-card-xs: 8px;
+  --spacing-card-sm: 12px;
+  --spacing-card-md: 20px;
+  --spacing-card-lg: 24px;
+  --spacing-card-xl: 32px;
+
+  /* ==========================================================================
+     Luxury Modal System Design Tokens
+     ========================================================================== */
+  --color-modal-bg-default: var(--color-surface);
+  --color-modal-bg-confirmation: var(--color-surface);
+  --color-modal-bg-danger: var(--color-surface);
+  --color-modal-bg-success: var(--color-surface);
+  --color-modal-bg-admin: var(--color-surface);
+  --color-modal-backdrop: rgba(17, 17, 17, 0.60);
+
+  --color-modal-border-default: var(--color-border);
+  --color-modal-border-admin: rgba(181, 130, 140, 0.10);
+  --color-modal-border-danger: rgba(220, 38, 38, 0.20);
+  --color-modal-border-success: rgba(16, 185, 129, 0.20);
+
+  --radius-modal-default: 0px;
+  --radius-modal-admin: 8px;
+
+  --shadow-modal-default: 0 32px 80px -12px rgba(17, 17, 17, 0.20);
+  --shadow-modal-floating: 0 40px 96px -16px rgba(17, 17, 17, 0.25);
+
+  --z-index-modal-backdrop: 100;
+  --z-index-modal-container: 101;
+
   /* Compatibility Layer Aliases */
   --color-luxury-gold: var(--color-primary);
   --color-luxury-gold-hover: var(--color-primary-hover);
@@ -730,5 +804,58 @@ html {
 
 .btn-shake {
   animation: btn-error-shake 0.4s var(--ease-luxury) forwards;
+}
+
+/* ==========================================================================
+   Luxury Card System
+   ========================================================================== */
+.gap-card-xs { gap: 4px; }
+.gap-card-sm { gap: 8px; }
+.gap-card-md { gap: 12px; }
+.gap-card-lg { gap: 16px; }
+.gap-card-xl { gap: 24px; }
+
+/* Custom paddings with asymmetric options matching Blueprint */
+.p-card-xs { padding: 8px; }
+.p-card-sm { padding: 12px; }
+.p-card-md { padding: 20px 20px 24px; }
+.p-card-lg { padding: 24px; }
+.p-card-xl { padding: 32px; }
+
+/* Transitions */
+.transition-luxury {
+  transition: all 300ms var(--ease-luxury);
+}
+.transition-luxury-slow {
+  transition: all 500ms var(--ease-luxury);
+}
+
+/* Image effects and transitions */
+.ease-luxury {
+  transition-timing-function: var(--ease-luxury);
+}
+.duration-1800 {
+  transition-duration: 1800ms;
+}
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-card-border-editorial) 0%,
+    var(--color-card-bg-secondary) 50%,
+    var(--color-card-border-editorial) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease infinite;
 }
 

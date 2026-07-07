@@ -11,6 +11,8 @@ import {
   FiMessageSquare 
 } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
 
 
 export default function Reviews() {
@@ -92,7 +94,11 @@ export default function Reviews() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const reviewsList = reviewsData?.data || [];
   const meta = reviewsData?.meta || { current_page: 1, last_page: 1 };
@@ -108,80 +114,82 @@ export default function Reviews() {
       {/* Grid of Reviews */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reviewsList.map((review) => (
-          <div 
-            key={review.id} 
-            className={`p-6 bg-white border rounded-lg flex flex-col justify-between shadow-sm hover:shadow transition-all duration-300 ${
-              !review.is_approved ? 'border-amber-300 bg-amber-50/20' : 'border-luxury-gold/10'
-            }`}
+          <Card
+            key={review.id}
+            variant="review"
+            size="md"
+            hoverable
+            animate={false}
+            className={!review.is_approved ? 'border-amber-300 bg-amber-50/20' : ''}
           >
-            <div className="space-y-4">
-              {/* Product and Rating info */}
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-semibold text-sm text-luxury-charcoal truncate max-w-[170px]" title={review.product?.name}>
-                    {review.product?.name || 'Produit supprimé'}
-                  </h4>
-                  <span className="text-[10px] text-luxury-gray block">Par {review.customer_name}</span>
+            <Card.Body>
+              <div className="space-y-4">
+                {/* Product and Rating info */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <Card.Title as="h4" className="text-sm truncate max-w-[170px]" title={review.product?.name}>
+                      {review.product?.name || 'Produit supprimé'}
+                    </Card.Title>
+                    <Card.Meta>Par {review.customer_name}</Card.Meta>
+                  </div>
+                  <div className="flex gap-1 text-luxury-gold">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <FiStar 
+                        key={i} 
+                        className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-luxury-gold' : 'text-luxury-light-gray'}`} 
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-1 text-luxury-gold">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <FiStar 
-                      key={i} 
-                      className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-luxury-gold' : 'text-luxury-light-gray'}`} 
-                    />
-                  ))}
-                </div>
-              </div>
 
-              {/* Review Text */}
-              <div className="p-3 bg-luxury-light-gray/40 rounded text-xs text-luxury-gray flex gap-2">
-                <FiMessageSquare className="w-4 h-4 shrink-0 text-luxury-gold mt-0.5" />
-                <p className="italic line-clamp-4">"{review.comment}"</p>
+                {/* Review Text */}
+                <div className="p-3 bg-luxury-light-gray/40 rounded text-xs text-luxury-gray flex gap-2">
+                  <FiMessageSquare className="w-4 h-4 shrink-0 text-luxury-gold mt-0.5" />
+                  <p className="italic line-clamp-4">"{review.comment}"</p>
+                </div>
               </div>
-            </div>
+            </Card.Body>
 
             {/* Moderation Controls */}
-            <div className="flex items-center justify-between border-t border-luxury-light-gray mt-6 pt-4">
+            <Card.Footer>
               <span className={`text-[10px] font-bold uppercase tracking-wider ${
                 review.is_approved ? 'text-emerald-600' : 'text-amber-600'
               }`}>
                 {review.is_approved ? 'Approuvé' : 'En attente'}
               </span>
 
-              <div className="flex gap-2">
+              <Card.Actions>
                 {review.is_approved ? (
-                  <button
+                  <AdminActionButton
+                    action="reject"
                     onClick={() => handleReject(review.id)}
-                    className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 rounded transition-all duration-200"
                     title="Désapprouver / Retirer du site"
-                  >
-                    <FiX className="w-4 h-4" />
-                  </button>
+                  />
                 ) : (
-                  <button
+                  <AdminActionButton
+                    action="approve"
                     onClick={() => handleApprove(review.id)}
-                    className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded transition-all duration-200"
                     title="Approuver et publier"
-                  >
-                    <FiCheck className="w-4 h-4" />
-                  </button>
+                  />
                 )}
-                <button
+                <AdminActionButton
+                  action="delete"
                   onClick={() => handleDelete(review)}
-                  className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 rounded transition-all duration-200"
                   title="Supprimer définitivement"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
+                />
+              </Card.Actions>
+            </Card.Footer>
+          </Card>
         ))}
 
         {reviewsList.length === 0 && (
-          <div className="col-span-full text-center py-10 text-luxury-gray bg-white border border-dashed border-luxury-gold/20 rounded-lg">
-            Aucun avis client soumis pour le moment.
-          </div>
+          <Card variant="empty" size="lg" animate={false} className="col-span-full">
+            <Card.Body>
+              <div className="text-center py-10 text-luxury-gray">
+                Aucun avis client soumis pour le moment.
+              </div>
+            </Card.Body>
+          </Card>
         )}
       </div>
 

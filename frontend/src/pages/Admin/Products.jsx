@@ -16,6 +16,9 @@ import {
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 
 export default function Products() {
   const queryClient = useQueryClient();
@@ -232,11 +235,7 @@ export default function Products() {
   };
 
   const removeNewGalleryImage = (index) => {
-    // Vérifier si c'est un fichier ou un chemin réutilisé
     setNewGalleryPreviews(prev => prev.filter((_, i) => i !== index));
-    
-    // Pour simplifier, nous filtrons à la fois les fichiers et les chemins à cet index
-    // Note: cette implémentation simple suppose que l'index correspond
     setNewGalleryFiles(prev => prev.filter((_, i) => i !== index));
     setNewGalleryPaths(prev => prev.filter((_, i) => i !== index));
   };
@@ -268,17 +267,14 @@ export default function Products() {
       formData.append('image_path', selectedMainMediaPath);
     }
 
-    // Nouveaux uploads de galerie
     newGalleryFiles.forEach((file) => {
       formData.append('galleries[]', file);
     });
 
-    // Nouveaux chemins de galerie réutilisés
     newGalleryPaths.forEach((path, i) => {
       formData.append(`galleries_paths[${i}]`, path);
     });
 
-    // Anciens ID à supprimer (pour la mise à jour)
     deletedGalleryIds.forEach((id, i) => {
       formData.append(`deleted_gallery_ids[${i}]`, id);
     });
@@ -308,7 +304,11 @@ export default function Products() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const productsList = productsData?.data || [];
   const meta = productsData?.meta || { current_page: 1, last_page: 1, total: 0 };
@@ -330,53 +330,55 @@ export default function Products() {
         </Button>
       </div>
 
-      {/* Filters & Search Row */}
-      <div className="flex flex-wrap bg-white p-4 rounded border border-luxury-gold/10 gap-4 items-center shadow-sm">
-        
-        {/* Search */}
-        <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-          <FiSearch className="text-luxury-gray" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Rechercher par nom, marque..."
-            className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-          />
-        </div>
+      {/* Filters & Search Row — Card variant="flat" comme panneau de filtres */}
+      <Card variant="flat" size="sm" animate={false}>
+        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
+          
+          {/* Search */}
+          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
+            <FiSearch className="text-luxury-gray" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Rechercher par nom, marque..."
+              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
+            />
+          </div>
 
-        {/* Category Filter */}
-        <div className="flex items-center gap-2">
-          <FiFilter className="text-luxury-gold w-4 h-4" />
+          {/* Category Filter */}
+          <div className="flex items-center gap-2">
+            <FiFilter className="text-luxury-gold w-4 h-4" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+              className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
+            >
+              <option value="">Toutes les catégories</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Featured Filter */}
           <select
-            value={categoryFilter}
-            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+            value={featuredFilter}
+            onChange={(e) => { setFeaturedFilter(e.target.value); setPage(1); }}
             className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
           >
-            <option value="">Toutes les catégories</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            <option value="">Tous les produits</option>
+            <option value="true">Vedettes uniquement</option>
           </select>
-        </div>
 
-        {/* Featured Filter */}
-        <select
-          value={featuredFilter}
-          onChange={(e) => { setFeaturedFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-        >
-          <option value="">Tous les produits</option>
-          <option value="true">Vedettes uniquement</option>
-        </select>
+          <div className="ml-auto text-xs text-luxury-gray font-semibold">
+            {meta.total} produit(s) trouvé(s)
+          </div>
+        </Card.Content>
+      </Card>
 
-        <div className="ml-auto text-xs text-luxury-gray font-semibold">
-          {meta.total} produit(s) trouvé(s)
-        </div>
-      </div>
-
-      {/* Products Table */}
-      <div className="bg-white border border-luxury-gold/10 rounded-lg shadow-sm overflow-hidden">
+      {/* Products Table — Card variant="admin" comme panneau contenant le tableau */}
+      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
@@ -430,20 +432,16 @@ export default function Products() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button
+                      <AdminActionButton
+                        action="edit"
                         onClick={() => openModal(product)}
-                        className="p-2 hover:bg-luxury-gold/10 text-luxury-charcoal hover:text-luxury-gold rounded transition-all duration-200"
                         title="Modifier"
-                      >
-                        <FiEdit className="w-4 h-4" />
-                      </button>
-                      <button
+                      />
+                      <AdminActionButton
+                        action="delete"
                         onClick={() => handleDelete(product)}
-                        className="p-2 hover:bg-red-50 text-red-500 hover:text-red-700 rounded transition-all duration-200"
                         title="Supprimer"
-                      >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                      />
                     </div>
                   </td>
                 </tr>
@@ -483,320 +481,312 @@ export default function Products() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Modal - Create/Edit Product */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-4xl bg-luxury-cream border border-luxury-gold/30 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
-            
-            {/* Modal Header */}
-            <div className="flex justify-between items-center px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
-              <h3 className="font-serif text-lg text-luxury-gold">
-                {editingProduct ? 'Modifier le Produit' : 'Créer un Produit'}
-              </h3>
-              <button onClick={closeModal} className="p-1 text-luxury-gray hover:text-white rounded">
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Modal - Create/Edit Product — Card variant="admin" */}
+      <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="xl">
+        <Modal.Backdrop />
+        <Modal.Container className="max-h-[90vh] flex flex-col overflow-hidden">
+          {/* Modal Header */}
+          <Modal.Header className="bg-luxury-charcoal text-white border-b border-luxury-gold/20">
+            <Modal.Title className="text-luxury-gold">
+              {editingProduct ? 'Modifier le Produit' : 'Créer un Produit'}
+            </Modal.Title>
+            <Modal.CloseButton className="text-luxury-gray hover:text-white" />
+          </Modal.Header>
 
-            {/* Modal Body / Scrollable Form */}
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-grow">
+          {/* Modal Body / Scrollable Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+            <Modal.Body className="overflow-y-auto space-y-6 flex-grow">
               
-              {/* Row 1: Name, Slug, Category */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Nom du produit
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={handleNameChange}
-                    placeholder="Vase d'Argile Dorée"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="vase-d-argile-doree"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Catégorie
-                  </label>
-                  <select
-                    required
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm cursor-pointer"
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Row 2: Price, Stock, Color, Material, Brand */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Prix (€)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="49.00"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Stock
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    placeholder="10"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Couleur
-                  </label>
-                  <input
-                    type="text"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    placeholder="Or / Noir"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Matière
-                  </label>
-                  <input
-                    type="text"
-                    value={material}
-                    onChange={(e) => setMaterial(e.target.value)}
-                    placeholder="Argile"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Marque
-                  </label>
-                  <input
-                    type="text"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    placeholder="Hafrose Paris"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Row 3: Short Description & Featured checkbox */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                <div className="md:col-span-3">
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Description Courte
-                  </label>
-                  <input
-                    type="text"
-                    value={shortDescription}
-                    onChange={(e) => setShortDescription(e.target.value)}
-                    placeholder="Présentation rapide en une phrase..."
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-                
-                <div className="flex items-center gap-3 py-3 px-4 border border-luxury-gold/15 bg-white rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="is_featured"
-                    checked={isFeatured}
-                    onChange={(e) => setIsFeatured(e.target.checked)}
-                    className="accent-luxury-gold w-4 h-4 cursor-pointer"
-                  />
-                  <label htmlFor="is_featured" className="text-xs font-semibold text-luxury-charcoal cursor-pointer">
-                    Produit Vedette
-                  </label>
-                </div>
-              </div>
-
-              {/* Row 4: Long Description */}
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Description Complète
-                </label>
-                <textarea
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Histoire, processus artisanal et caractéristiques du produit..."
-                  rows="4"
-                  className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
-                />
-              </div>
-
-              {/* Row 5: Main Image Upload/Picker */}
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Image Principale du Produit
-                </label>
-                <div className="flex gap-4 items-center">
-                  <div className="relative w-24 h-24 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Aperçu principal" className="w-full h-full object-cover" />
-                    ) : (
-                      <FiImage className="w-8 h-8 text-luxury-light-gray" />
-                    )}
+                {/* Row 1: Name, Slug, Category */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Nom du produit
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={handleNameChange}
+                      placeholder="Vase d'Argile Dorée"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
                   </div>
-                  <div className="flex flex-col gap-2">
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Slug
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      placeholder="vase-d-argile-doree"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Catégorie
+                    </label>
+                    <select
+                      required
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm cursor-pointer"
+                    >
+                      <option value="">Sélectionner une catégorie</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 2: Price, Stock, Color, Material, Brand */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Prix (€)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="49.00"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Stock</label>
+                    <input
+                      type="number"
+                      required
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value)}
+                      placeholder="10"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Couleur</label>
+                    <input
+                      type="text"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      placeholder="Or / Noir"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Matière</label>
+                    <input
+                      type="text"
+                      value={material}
+                      onChange={(e) => setMaterial(e.target.value)}
+                      placeholder="Argile"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Marque</label>
+                    <input
+                      type="text"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      placeholder="Hafrose Paris"
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Short Description & Featured checkbox */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                  <div className="md:col-span-3">
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Description Courte
+                    </label>
+                    <input
+                      type="text"
+                      value={shortDescription}
+                      onChange={(e) => setShortDescription(e.target.value)}
+                      placeholder="Présentation rapide en une phrase..."
+                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-3 py-3 px-4 border border-luxury-gold/15 bg-white rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="is_featured"
+                      checked={isFeatured}
+                      onChange={(e) => setIsFeatured(e.target.checked)}
+                      className="accent-luxury-gold w-4 h-4 cursor-pointer"
+                    />
+                    <label htmlFor="is_featured" className="text-xs font-semibold text-luxury-charcoal cursor-pointer">
+                      Produit Vedette
+                    </label>
+                  </div>
+                </div>
+
+                {/* Row 4: Long Description */}
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Description Complète
+                  </label>
+                  <textarea
+                    required
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Histoire, processus artisanal et caractéristiques du produit..."
+                    rows="4"
+                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                  />
+                </div>
+
+                {/* Row 5: Main Image Upload/Picker */}
+                <div>
+                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                    Image Principale du Produit
+                  </label>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative w-24 h-24 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Aperçu principal" className="w-full h-full object-cover" />
+                      ) : (
+                        <FiImage className="w-8 h-8 text-luxury-light-gray" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold">
+                          <FiUpload />
+                          <span>Téléverser</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleMainImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <Button
+                          type="button"
+                          onClick={() => handleOpenMediaPicker('main')}
+                          variant="primary"
+                          size="sm"
+                          icon={<FiImage />}
+                        >
+                          Médiathèque
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 6: Galleries Multiple Select/Upload */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider">
+                      Galerie d'Images (Upload multiple)
+                    </label>
                     <div className="flex gap-2">
-                      <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold">
+                      <label className="flex items-center gap-2 px-2.5 py-1.5 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-[10px] uppercase font-bold cursor-pointer text-luxury-charcoal">
                         <FiUpload />
-                        <span>Téléverser</span>
+                        <span>Ajouter des fichiers</span>
                         <input
                           type="file"
+                          multiple
                           accept="image/*"
-                          onChange={handleMainImageChange}
+                          onChange={handleGalleryImagesChange}
                           className="hidden"
                         />
                       </label>
                       <Button
                         type="button"
-                        onClick={() => handleOpenMediaPicker('main')}
+                        onClick={() => handleOpenMediaPicker('gallery')}
                         variant="primary"
-                        size="sm"
+                        size="xs"
                         icon={<FiImage />}
                       >
-                        Médiathèque
+                        Ajouter de la médiathèque
                       </Button>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Row 6: Galleries Multiple Select/Upload */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider">
-                    Galerie d'Images (Upload multiple)
-                  </label>
-                  <div className="flex gap-2">
-                    <label className="flex items-center gap-2 px-2.5 py-1.5 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-[10px] uppercase font-bold cursor-pointer text-luxury-charcoal">
-                      <FiUpload />
-                      <span>Ajouter des fichiers</span>
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleGalleryImagesChange}
-                        className="hidden"
-                      />
-                    </label>
-                    <Button
-                      type="button"
-                      onClick={() => handleOpenMediaPicker('gallery')}
-                      variant="primary"
-                      size="xs"
-                      icon={<FiImage />}
-                    >
-                      Ajouter de la médiathèque
-                    </Button>
-                  </div>
-                </div>
+                  <Card variant="flat" size="sm" animate={false} className="!p-0">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
+                      
+                      {/* Existing Images (for edit mode) */}
+                      {existingGalleries.map((img) => (
+                        <div key={img.id} className="relative aspect-square rounded border border-luxury-gold/10 overflow-hidden group">
+                          <img src={img.image} alt="galerie" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeExistingGalleryImage(img.id)}
+                            className="absolute inset-0 bg-red-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all duration-200"
+                          >
+                            <FiTrash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
 
-                <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-4 p-4 bg-white border border-luxury-gold/15 rounded">
-                  
-                  {/* Existing Images (for edit mode) */}
-                  {existingGalleries.map((img) => (
-                    <div key={img.id} className="relative aspect-square rounded border border-luxury-gold/10 overflow-hidden group">
-                      <img src={img.image} alt="galerie" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeExistingGalleryImage(img.id)}
-                        className="absolute inset-0 bg-red-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all duration-200"
-                      >
-                        <FiTrash2 className="w-5 h-5" />
-                      </button>
+                      {/* New previews (to be uploaded/linked) */}
+                      {newGalleryPreviews.map((url, index) => (
+                        <div key={index} className="relative aspect-square rounded border border-luxury-gold/30 overflow-hidden group">
+                          <img src={url} alt="nouveau aperçu" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeNewGalleryImage(index)}
+                            className="absolute inset-0 bg-red-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all duration-200"
+                          >
+                            <FiX className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {existingGalleries.length === 0 && newGalleryPreviews.length === 0 && (
+                        <div className="col-span-full py-4 text-center text-xs text-luxury-gray">
+                          Aucune image dans la galerie.
+                        </div>
+                      )}
                     </div>
-                  ))}
-
-                  {/* New previews (to be uploaded/linked) */}
-                  {newGalleryPreviews.map((url, index) => (
-                    <div key={index} className="relative aspect-square rounded border border-luxury-gold/30 overflow-hidden group">
-                      <img src={url} alt="nouveau aperçu" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeNewGalleryImage(index)}
-                        className="absolute inset-0 bg-red-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-all duration-200"
-                      >
-                        <FiX className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {existingGalleries.length === 0 && newGalleryPreviews.length === 0 && (
-                    <div className="col-span-full py-4 text-center text-xs text-luxury-gray">
-                      Aucune image dans la galerie.
-                    </div>
-                  )}
+                  </Card>
                 </div>
-              </div>
+
+            </Modal.Body>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-luxury-gold/10">
-                <Button
-                  type="button"
-                  onClick={closeModal}
-                  variant="secondary"
-                  size="sm"
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  loading={createMutation.isPending || updateMutation.isPending}
-                >
-                  Enregistrer
-                </Button>
-              </div>
-
+              <Modal.Footer>
+                <Modal.Actions>
+                  <Button
+                    type="button"
+                    onClick={closeModal}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    loading={createMutation.isPending || updateMutation.isPending}
+                  >
+                    Enregistrer
+                  </Button>
+                </Modal.Actions>
+              </Modal.Footer>
             </form>
-          </div>
-        </div>
-      )}
+          </Modal.Container>
+        </Modal>
 
       {/* Media Library Picker Modal */}
       {isMediaPickerOpen && (
@@ -805,7 +795,6 @@ export default function Products() {
           onSelect={handleMediaSelected} 
         />
       )}
-
     </div>
   );
 }

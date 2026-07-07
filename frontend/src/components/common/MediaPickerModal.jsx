@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import Button from '../ui/Button';
 import Loader from '../../components/ui/Loader';
-import { FiX, FiUpload, FiCheck } from 'react-icons/fi';
+import { FiUpload, FiCheck, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import Modal from '../ui/Modal';
 
 export default function MediaPickerModal({ onClose, onSelect }) {
   const queryClient = useQueryClient();
@@ -45,39 +47,60 @@ export default function MediaPickerModal({ onClose, onSelect }) {
     }
   };
 
-  if (error) return <div className="text-red-500 p-4">Erreur: {error.message}</div>;
+  if (error) {
+    return (
+      <Modal isOpen={true} onClose={onClose} variant="alert" size="sm">
+        <Modal.Backdrop />
+        <Modal.Container>
+          <Modal.Header>
+            <Modal.Title className="text-red-500">Erreur de chargement</Modal.Title>
+            <Modal.CloseButton />
+          </Modal.Header>
+          <Modal.Body>
+            <p className="text-red-400 text-center font-sans text-sm">Erreur: {error.message}</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Actions>
+              <Button onClick={onClose} variant="secondary" size="sm">Fermer</Button>
+            </Modal.Actions>
+          </Modal.Footer>
+        </Modal.Container>
+      </Modal>
+    );
+  }
 
   const mediaList = data?.data || [];
   const meta = data?.meta || { current_page: 1, last_page: 1 };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-4xl bg-luxury-cream border border-luxury-gold/30 rounded-lg shadow-2xl overflow-hidden flex flex-col h-[85vh] animate-fade-in-up">
+    <Modal isOpen={true} onClose={onClose} variant="confirmation" size="xl">
+      <Modal.Backdrop />
+      <Modal.Container className="h-[85vh] flex flex-col overflow-hidden">
         
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
+        <Modal.Header className="bg-luxury-charcoal text-white border-b border-luxury-gold/20">
           <div>
-            <h3 className="font-serif text-lg text-luxury-gold">Sélectionner un Média</h3>
-            <span className="text-[10px] text-luxury-gray uppercase tracking-widest block">Médiathèque Hafrose</span>
+            <Modal.Title className="text-luxury-gold">Sélectionner un Média</Modal.Title>
+            <Modal.Description className="text-[10px] text-luxury-gray uppercase tracking-widest block mt-1">
+              Médiathèque Hafrose
+            </Modal.Description>
           </div>
-          <button onClick={onClose} className="p-1 text-luxury-gray hover:text-white rounded">
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
+          <Modal.CloseButton className="text-luxury-gray hover:text-white" />
+        </Modal.Header>
 
-        {/* Content */}
-        <div className="flex-grow p-6 overflow-y-auto flex flex-col min-h-0">
+        {/* Content Body */}
+        <Modal.Body className="flex-grow overflow-y-auto flex flex-col min-h-0 gap-6">
           
-          {/* Quick upload zone */}
-          <div className="mb-6">
-            <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-luxury-gold/30 hover:border-luxury-gold bg-white hover:bg-luxury-gold/5 rounded-lg cursor-pointer transition-all duration-300">
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          {/* Quick upload zone — Card variant="flat" comme zone de dépôt */}
+          <Card variant="flat" size="sm" animate={false} className="relative w-full border-2 border-dashed border-luxury-gold/30 hover:border-luxury-gold hover:bg-luxury-gold/5 transition-all duration-300">
+            <label className="flex flex-col items-center justify-center w-full h-24 cursor-pointer">
+              <Card.Content className="flex-col items-center justify-center text-center pointer-events-none">
                 <FiUpload className="w-8 h-8 text-luxury-gold mb-2" />
                 <p className="text-xs text-luxury-charcoal font-semibold">
                   {uploading ? 'Téléversement en cours...' : 'Cliquez pour ajouter une nouvelle image à la médiathèque'}
                 </p>
                 <p className="text-[10px] text-luxury-gray mt-1">PNG, JPG, WEBP, SVG (max 10 Mo)</p>
-              </div>
+              </Card.Content>
               <input
                 type="file"
                 accept="image/*"
@@ -86,7 +109,7 @@ export default function MediaPickerModal({ onClose, onSelect }) {
                 className="hidden"
               />
             </label>
-          </div>
+          </Card>
 
           {/* Grid display */}
           <div className="flex-grow min-h-0">
@@ -95,47 +118,55 @@ export default function MediaPickerModal({ onClose, onSelect }) {
                 <Loader />
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 overflow-y-auto h-full max-h-[40vh] p-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 overflow-y-auto max-h-[40vh] p-1">
                 {mediaList.map((media) => (
-                  <div
+                  <Card
                     key={media.id}
+                    variant="media"
+                    size="xs"
+                    animate={false}
                     onClick={() => onSelect(media)}
-                    className="group relative aspect-square bg-white border border-luxury-gold/10 rounded overflow-hidden cursor-pointer hover:border-luxury-gold shadow-sm hover:shadow transition-all duration-300"
+                    className="group relative aspect-square overflow-hidden cursor-pointer"
                   >
-                    <img
+                    <Card.Image
                       src={media.url}
                       alt={media.filename}
                       className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
                     />
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-luxury-charcoal/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-200">
+                    <Card.Overlay className="items-center justify-center">
                       <div className="w-8 h-8 rounded-full bg-luxury-gold flex items-center justify-center text-luxury-charcoal">
                         <FiCheck className="w-5 h-5 font-bold" />
                       </div>
-                    </div>
-                  </div>
+                    </Card.Overlay>
+                  </Card>
                 ))}
                 {mediaList.length === 0 && (
-                  <div className="col-span-full text-center py-10 text-luxury-gray">
-                    Aucun média dans la bibliothèque. Ajoutez-en un ci-dessus !
-                  </div>
+                  <Card variant="empty" animate={false} className="col-span-full">
+                    <Card.Body>
+                      <p className="text-center py-10 text-luxury-gray text-sm">
+                        Aucun média dans la bibliothèque. Ajoutez-en un ci-dessus !
+                      </p>
+                    </Card.Body>
+                  </Card>
                 )}
               </div>
             )}
           </div>
-        </div>
+        </Modal.Body>
 
         {/* Footer with pagination */}
-        <div className="px-6 py-4 bg-luxury-light-gray/40 border-t border-luxury-gold/10 flex justify-between items-center">
+        <Modal.Footer className="bg-luxury-light-gray/40 border-t border-luxury-gold/10">
           <div className="text-xs text-luxury-gray">
             Page {meta.current_page} sur {meta.last_page}
           </div>
-          <div className="flex gap-2">
+          <Modal.Actions>
             <Button
               onClick={() => setPage(p => Math.max(p - 1, 1))}
               disabled={page === 1}
               variant="secondary"
               size="sm"
+              icon={<FiChevronLeft />}
             >
               Précédent
             </Button>
@@ -144,13 +175,14 @@ export default function MediaPickerModal({ onClose, onSelect }) {
               disabled={page === meta.last_page}
               variant="secondary"
               size="sm"
+              icon={<FiChevronRight />}
             >
               Suivant
             </Button>
-          </div>
-        </div>
+          </Modal.Actions>
+        </Modal.Footer>
 
-      </div>
-    </div>
+      </Modal.Container>
+    </Modal>
   );
 }

@@ -16,6 +16,9 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
 
 export default function Orders() {
   const queryClient = useQueryClient();
@@ -53,7 +56,6 @@ export default function Orders() {
       if (res.success) {
         Swal.fire('Mis à jour !', 'Le statut de la commande a été modifié.', 'success');
         queryClient.invalidateQueries({ queryKey: ['adminOrders'] });
-        // Mettre à jour l'ordre ouvert s'il y en a un
         if (selectedOrder && selectedOrder.id === res.data.id) {
           setSelectedOrder(res.data);
         }
@@ -70,7 +72,6 @@ export default function Orders() {
     try {
       const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
       
-      // Appel direct fetch/axios avec responseType blob pour porter le token
       const response = await fetch(`${baseURL}/admin/orders/${orderId}/pdf`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -115,7 +116,11 @@ export default function Orders() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const ordersList = ordersData?.data || [];
   const meta = ordersData?.meta || { current_page: 1, last_page: 1, total: 0 };
@@ -133,51 +138,53 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Filter Row */}
-      <div className="flex flex-wrap bg-white p-4 rounded border border-luxury-gold/10 gap-4 items-center shadow-sm print:hidden">
-        
-        {/* Search */}
-        <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-          <FiSearch className="text-luxury-gray" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Rechercher par n° de commande, client..."
-            className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-          />
-        </div>
+      {/* Filter Row — Card variant="flat" comme panneau de filtres */}
+      <Card variant="flat" size="sm" animate={false} className="print:hidden">
+        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
+          
+          {/* Search */}
+          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
+            <FiSearch className="text-luxury-gray" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Rechercher par n° de commande, client..."
+              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
+            />
+          </div>
 
-        {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-        >
-          <option value="">Tous les statuts</option>
-          {statuses.map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
+          >
+            <option value="">Tous les statuts</option>
+            {statuses.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
 
-        {/* Date Filter */}
-        <div className="flex items-center gap-2">
-          <FiCalendar className="text-luxury-gold" />
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
-            className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-          />
-        </div>
+          {/* Date Filter */}
+          <div className="flex items-center gap-2">
+            <FiCalendar className="text-luxury-gold" />
+            <input
+              type="date"
+              value={dateFilter}
+              onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+              className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
+            />
+          </div>
 
-        <div className="ml-auto text-xs text-luxury-gray font-semibold">
-          {meta.total} commande(s) trouvée(s)
-        </div>
-      </div>
+          <div className="ml-auto text-xs text-luxury-gray font-semibold">
+            {meta.total} commande(s) trouvée(s)
+          </div>
+        </Card.Content>
+      </Card>
 
-      {/* Orders Table */}
-      <div className="bg-white border border-luxury-gold/10 rounded-lg shadow-sm overflow-hidden print:hidden">
+      {/* Orders Table — Card variant="admin" comme panneau contenant le tableau */}
+      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden print:hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
@@ -222,21 +229,17 @@ export default function Orders() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button
+                      <AdminActionButton
+                        action="view"
                         onClick={() => openDetails(order)}
-                        className="p-2 hover:bg-luxury-gold/10 text-luxury-charcoal hover:text-luxury-gold rounded transition-all duration-200"
                         title="Consulter"
-                      >
-                        <FiEye className="w-4 h-4" />
-                      </button>
-                      <button
+                      />
+                      <AdminActionButton
+                        action="download"
                         onClick={() => downloadInvoice(order.id)}
-                        disabled={downloadingPdfId === order.id}
-                        className="p-2 hover:bg-luxury-gold/10 text-luxury-charcoal hover:text-luxury-gold rounded transition-all duration-200 disabled:opacity-50"
+                        loading={downloadingPdfId === order.id}
                         title="Télécharger la facture PDF"
-                      >
-                        <FiDownload className="w-4 h-4" />
-                      </button>
+                      />
                     </div>
                   </td>
                 </tr>
@@ -276,23 +279,22 @@ export default function Orders() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Modal - Order Details (Print Optimized) */}
-      {isDetailOpen && selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto print:relative print:inset-auto print:bg-white print:p-0 print:z-auto">
-          <div className="w-full max-w-3xl bg-luxury-cream border border-luxury-gold/30 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] print:border-none print:shadow-none print:max-h-none print:w-full">
-            
-            {/* Modal Header */}
-            <div className="flex justify-between items-center px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20 print:hidden">
-              <h3 className="font-serif text-lg text-luxury-gold">Détail de la Commande N° {selectedOrder.id}</h3>
-              <button onClick={closeDetails} className="p-1 text-luxury-gray hover:text-white rounded">
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Modal - Order Details — Card variant="confirmation" */}
+      <Modal isOpen={isDetailOpen} onClose={closeDetails} variant="confirmation" size="xl">
+        <Modal.Backdrop className="print:hidden" />
+        <Modal.Container className="w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] print:border-none print:shadow-none print:max-h-none print:w-full print:relative print:inset-auto print:bg-white print:p-0 print:z-auto">
+          {/* Modal Header */}
+          <Modal.Header className="px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20 print:hidden">
+            <Modal.Title className="text-luxury-gold">
+              Détail de la Commande N° {selectedOrder.id}
+            </Modal.Title>
+            <Modal.CloseButton className="text-luxury-gray hover:text-white" />
+          </Modal.Header>
 
-            {/* Modal Body (This is the print content area) */}
-            <div className="p-8 overflow-y-auto space-y-6 flex-grow print:p-0 print:overflow-visible">
+          {/* Modal Body (This is the print content area) */}
+          <Modal.Body className="overflow-y-auto space-y-6 flex-grow print:p-0 print:overflow-visible">
               
               {/* Printed Logo block (visible only when printing) */}
               <div className="hidden print:flex justify-between items-center pb-6 border-b border-luxury-gold/20 mb-6">
@@ -308,27 +310,31 @@ export default function Orders() {
 
               {/* Client & Shipping address panels */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:grid-cols-2">
-                <div className="p-4 bg-white border border-luxury-gold/10 rounded shadow-sm print:shadow-none">
-                  <div className="flex items-center gap-2 font-serif text-sm text-luxury-gold mb-3 font-semibold uppercase tracking-wider">
-                    <FiUser />
-                    <span>Facturé à</span>
-                  </div>
-                  <div className="text-sm font-semibold text-luxury-charcoal">{selectedOrder.customer_name}</div>
-                  <div className="text-xs text-luxury-gray mt-1">Téléphone : {selectedOrder.phone}</div>
-                </div>
+                <Card variant="flat" size="sm" animate={false} className="print:shadow-none">
+                  <Card.Content className="flex-col gap-2">
+                    <div className="flex items-center gap-2 font-serif text-sm text-luxury-gold mb-3 font-semibold uppercase tracking-wider">
+                      <FiUser />
+                      <span>Facturé à</span>
+                    </div>
+                    <Card.Title as="div" className="text-sm font-semibold">{selectedOrder.customer_name}</Card.Title>
+                    <Card.Meta>Téléphone : {selectedOrder.phone}</Card.Meta>
+                  </Card.Content>
+                </Card>
 
-                <div className="p-4 bg-white border border-luxury-gold/10 rounded shadow-sm print:shadow-none">
-                  <div className="flex items-center gap-2 font-serif text-sm text-luxury-gold mb-3 font-semibold uppercase tracking-wider">
-                    <FiMapPin />
-                    <span>Adresse de Livraison</span>
-                  </div>
-                  <div className="text-sm text-luxury-charcoal whitespace-pre-line">{selectedOrder.address}</div>
-                  <div className="text-sm font-semibold text-luxury-charcoal mt-2">{selectedOrder.city}</div>
-                </div>
+                <Card variant="flat" size="sm" animate={false} className="print:shadow-none">
+                  <Card.Content className="flex-col gap-2">
+                    <div className="flex items-center gap-2 font-serif text-sm text-luxury-gold mb-3 font-semibold uppercase tracking-wider">
+                      <FiMapPin />
+                      <span>Adresse de Livraison</span>
+                    </div>
+                    <Card.Description className="text-sm whitespace-pre-line">{selectedOrder.address}</Card.Description>
+                    <Card.Title as="div" className="text-sm font-semibold mt-2">{selectedOrder.city}</Card.Title>
+                  </Card.Content>
+                </Card>
               </div>
 
-              {/* Ordered Items */}
-              <div className="bg-white border border-luxury-gold/10 rounded shadow-sm print:shadow-none">
+              {/* Ordered Items — Card variant="admin" comme panneau du tableau */}
+              <Card variant="admin" size="sm" animate={false} className="!p-0 print:shadow-none">
                 <table className="w-full text-sm text-left">
                   <thead>
                     <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
@@ -357,7 +363,7 @@ export default function Orders() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </Card>
 
               {/* Calculations Block */}
               <div className="flex justify-end">
@@ -379,46 +385,45 @@ export default function Orders() {
                 </table>
               </div>
 
-              {/* Actions & Print tools */}
-              <div className="flex flex-wrap justify-between items-center gap-4 pt-6 border-t border-luxury-gold/15 print:hidden">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-luxury-gray font-semibold uppercase">Modifier statut :</span>
-                  <select
-                    value={selectedOrder.status}
-                    onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-                    className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-xs outline-none cursor-pointer uppercase font-bold"
-                  >
-                    {statuses.map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handlePrint}
-                    variant="secondary"
-                    size="sm"
-                    icon={<FiPrinter />}
-                  >
-                    Imprimer
-                  </Button>
-                  <Button
-                    onClick={() => downloadInvoice(selectedOrder.id)}
-                    loading={downloadingPdfId === selectedOrder.id}
-                    variant="primary"
-                    size="sm"
-                    icon={<FiDownload />}
-                  >
-                    Facture PDF
-                  </Button>
-                </div>
-              </div>
+          </Modal.Body>
 
-            </div>
-          </div>
-        </div>
-      )}
+            {/* Actions & Print tools */}
+            <Modal.Footer className="print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-luxury-gray font-semibold uppercase">Modifier statut :</span>
+                <select
+                  value={selectedOrder.status}
+                  onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
+                  className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-xs outline-none cursor-pointer uppercase font-bold"
+                >
+                  {statuses.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <Modal.Actions>
+                <Button
+                  onClick={handlePrint}
+                  variant="secondary"
+                  size="sm"
+                  icon={<FiPrinter />}
+                >
+                  Imprimer
+                </Button>
+                <Button
+                  onClick={() => downloadInvoice(selectedOrder.id)}
+                  loading={downloadingPdfId === selectedOrder.id}
+                  variant="primary"
+                  size="sm"
+                  icon={<FiDownload />}
+                >
+                  Facture PDF
+                </Button>
+              </Modal.Actions>
+            </Modal.Footer>
+          </Modal.Container>
+        </Modal>
 
     </div>
   );

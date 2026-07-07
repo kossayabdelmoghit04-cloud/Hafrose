@@ -4,6 +4,8 @@ import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
 import Button from '../../components/ui/Button';
+import AdminActionButton from '../../components/ui/AdminActionButton';
+import Card from '../../components/ui/Card';
 import { FiUpload, FiTrash2, FiImage, FiX, FiGrid } from 'react-icons/fi';
 
 export default function Media() {
@@ -114,7 +116,11 @@ export default function Media() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const mediaList = mediaData?.data || [];
   const meta = mediaData?.meta || { current_page: 1, last_page: 1, total: 0 };
@@ -133,23 +139,28 @@ export default function Media() {
         </div>
       </div>
 
-      {/* Drop Zone */}
-      <div
+      {/* Drop Zone — Card variant="flat" comme zone de dépôt */}
+      <Card
+        variant="flat"
+        size="md"
+        animate={false}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`relative flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300 ${
+        className={`relative flex flex-col items-center justify-center w-full h-44 border-2 border-dashed cursor-pointer transition-all duration-300 ${
           isDragging
             ? 'border-luxury-gold bg-luxury-gold/10 scale-[1.01]'
             : 'border-luxury-gold/30 bg-white hover:border-luxury-gold hover:bg-luxury-gold/5'
         }`}
       >
-        <FiUpload className={`w-10 h-10 mb-3 transition-all duration-300 ${isDragging ? 'text-luxury-gold scale-110' : 'text-luxury-gray'}`} />
-        <p className="text-sm font-semibold text-luxury-charcoal">
-          {uploading ? 'Téléversement en cours...' : 'Glissez-déposez vos fichiers ici'}
-        </p>
-        <p className="text-xs text-luxury-gray mt-1">ou cliquez pour sélectionner des fichiers</p>
-        <p className="text-[10px] text-luxury-gray mt-2">PNG, JPG, WEBP, SVG, GIF (max 10 Mo par fichier)</p>
+        <Card.Content className="flex-col items-center justify-center text-center pointer-events-none">
+          <FiUpload className={`w-10 h-10 mb-3 transition-all duration-300 ${isDragging ? 'text-luxury-gold scale-110' : 'text-luxury-gray'}`} />
+          <p className="text-sm font-semibold text-luxury-charcoal">
+            {uploading ? 'Téléversement en cours...' : 'Glissez-déposez vos fichiers ici'}
+          </p>
+          <p className="text-xs text-luxury-gray mt-1">ou cliquez pour sélectionner des fichiers</p>
+          <p className="text-[10px] text-luxury-gray mt-2">PNG, JPG, WEBP, SVG, GIF (max 10 Mo par fichier)</p>
+        </Card.Content>
         <label className="absolute inset-0 cursor-pointer">
           <input
             type="file"
@@ -159,43 +170,46 @@ export default function Media() {
             className="hidden"
           />
         </label>
-      </div>
+      </Card>
 
       {/* Media Grid */}
       {mediaList.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-4">
           {mediaList.map((media) => (
-            <div
+            <Card
               key={media.id}
-              className="group relative aspect-square bg-white border border-luxury-gold/10 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+              variant="media"
+              size="xs"
+              animate={false}
+              className="group relative aspect-square overflow-hidden"
             >
               {/* Image thumbnail */}
-              <img
+              <Card.Image
                 src={media.url}
                 alt={media.filename}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
 
               {/* Hover overlay */}
-              <div className="absolute inset-0 bg-luxury-charcoal/70 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-all duration-200 p-2">
+              <Card.Overlay className="flex-col gap-2 p-2">
                 {/* Copy URL button */}
-                <button
+                <AdminActionButton
+                  action="custom"
+                  variant="primary"
+                  className="!w-8 !h-8 !rounded-full !p-0 text-luxury-charcoal flex items-center justify-center hover:scale-110 transition-transform duration-200"
                   onClick={() => copyToClipboard(media.url)}
                   title="Copier l'URL"
-                  className="w-8 h-8 rounded-full bg-luxury-gold text-luxury-charcoal flex items-center justify-center hover:scale-110 transition-transform duration-200"
-                >
-                  <FiImage className="w-4 h-4" />
-                </button>
+                  icon={<FiImage className="w-4 h-4" />}
+                />
 
                 {/* Delete button */}
-                <button
+                <AdminActionButton
+                  action="delete"
+                  className="!w-8 !h-8 !rounded-full !p-0 flex items-center justify-center hover:scale-110 transition-transform duration-200"
                   onClick={() => handleDelete(media)}
                   title="Supprimer"
-                  className="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition-transform duration-200"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
-              </div>
+                />
+              </Card.Overlay>
 
               {/* File info on bottom */}
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -204,40 +218,46 @@ export default function Media() {
                   {(media.size / 1024).toFixed(0)} Ko
                 </p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-luxury-gold/20 rounded-lg text-luxury-gray">
-          <FiGrid className="w-12 h-12 mb-4 text-luxury-light-gray" />
-          <p className="font-semibold">La médiathèque est vide.</p>
-          <p className="text-sm mt-1">Glissez-déposez des fichiers ou utilisez la zone ci-dessus.</p>
-        </div>
+        <Card variant="empty" size="xl" animate={false}>
+          <Card.Body>
+            <div className="flex flex-col items-center justify-center py-20 text-luxury-gray">
+              <FiGrid className="w-12 h-12 mb-4 text-luxury-light-gray" />
+              <p className="font-semibold">La médiathèque est vide.</p>
+              <p className="text-sm mt-1">Glissez-déposez des fichiers ou utilisez la zone ci-dessus.</p>
+            </div>
+          </Card.Body>
+        </Card>
       )}
 
       {/* Pagination */}
       {meta.last_page > 1 && (
-        <div className="flex justify-between items-center pt-4 border-t border-luxury-gold/10">
-          <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setPage(p => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              variant="secondary"
-              size="sm"
-            >
-              Précédent
-            </Button>
-            <Button
-              onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
-              disabled={page === meta.last_page}
-              variant="secondary"
-              size="sm"
-            >
-              Suivant
-            </Button>
-          </div>
-        </div>
+        <Card variant="flat" size="sm" animate={false}>
+          <Card.Content className="flex-row justify-between items-center px-4 py-3">
+            <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setPage(p => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                variant="secondary"
+                size="sm"
+              >
+                Précédent
+              </Button>
+              <Button
+                onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
+                disabled={page === meta.last_page}
+                variant="secondary"
+                size="sm"
+              >
+                Suivant
+              </Button>
+            </div>
+          </Card.Content>
+        </Card>
       )}
 
     </div>

@@ -3,6 +3,7 @@ import { FiAward, FiHeart, FiShield, FiStar } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import Card from '../../components/ui/Card';
 
 const VALUES = [
   { icon: FiAward, title: 'Excellence Artisanale', desc: 'Chaque pièce est façonnée à la main dans nos ateliers parisiens par des maîtres artisans héritiers d\'un savoir-faire séculaire.' },
@@ -100,11 +101,21 @@ export default function About() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {VALUES.map((val, i) => (
-              <motion.div key={val.title} {...fadeUp} transition={{ duration: 0.6, delay: i * 0.1 }} className="text-center space-y-4 p-6 border border-luxury-charcoal/5 hover:border-luxury-gold/20 transition-colors duration-500">
+              <Card
+                key={val.title}
+                variant="editorial"
+                size="sm"
+                initial="initial"
+                whileInView="whileInView"
+                viewport={{ once: true }}
+                variants={fadeUp}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="text-center space-y-4 p-6 hover:border-card-border-hover transition-colors duration-500 bg-transparent border-card-border-editorial"
+              >
                 <val.icon className="mx-auto text-luxury-gold" size={28} />
-                <h3 className="font-serif text-sm font-light text-luxury-charcoal">{val.title}</h3>
-                <p className="text-[11px] font-sans font-light text-luxury-gray leading-relaxed">{val.desc}</p>
-              </motion.div>
+                <Card.Title className="text-sm font-light text-card-color-title">{val.title}</Card.Title>
+                <Card.Description className="text-[11px] leading-relaxed">{val.desc}</Card.Description>
+              </Card>
             ))}
           </div>
         </div>

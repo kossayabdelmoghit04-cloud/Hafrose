@@ -19,6 +19,7 @@ import Loader from '../components/ui/Loader';
 import { Suspense } from 'react';
 
 import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -99,59 +100,52 @@ export default function AdminLayout() {
       </aside>
 
       {/* Sidebar Mobile Drawer */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden bg-black/60 backdrop-blur-sm">
-          <aside className="w-64 bg-luxury-charcoal text-white flex flex-col p-4">
-            <div className="flex justify-between items-center pb-4 mb-4 border-b border-luxury-gold/10">
-              <div>
-                <div className="text-lg font-serif font-bold text-luxury-gold uppercase">Hafrose Admin</div>
-                <span className="text-[10px] text-luxury-gray uppercase tracking-wider block">Entreprise</span>
-              </div>
-              <button 
-                onClick={() => setSidebarOpen(false)}
-                className="p-1 rounded hover:bg-white/10 text-luxury-gold"
-              >
-                <FiX className="w-6 h-6" />
-              </button>
+      <Modal isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} variant="drawer-left">
+        <Modal.Backdrop className="md:hidden" />
+        <Modal.Container className="md:hidden w-64 bg-luxury-charcoal text-white flex flex-col p-4">
+          <div className="flex justify-between items-center pb-4 mb-4 border-b border-luxury-gold/10">
+            <div>
+              <div className="text-lg font-serif font-bold text-luxury-gold uppercase">Hafrose Admin</div>
+              <span className="text-[10px] text-luxury-gray uppercase tracking-wider block">Entreprise</span>
             </div>
+            <Modal.CloseButton className="static text-luxury-gold hover:bg-white/10 hover:text-luxury-gold" />
+          </div>
 
-            <nav className="flex-grow space-y-1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded text-sm transition-all duration-300 ${
-                        isActive
-                          ? 'bg-luxury-gold text-luxury-charcoal font-semibold'
-                          : 'text-luxury-gray hover:text-white hover:bg-white/5'
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.name}
-                  </NavLink>
-                );
-              })}
-            </nav>
+          <nav className="flex-grow space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded text-sm transition-all duration-300 ${
+                      isActive
+                        ? 'bg-luxury-gold text-luxury-charcoal font-semibold'
+                        : 'text-luxury-gray hover:text-white hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <Icon className="w-5 h-5" />
+                  {item.name}
+                </NavLink>
+              );
+            })}
+          </nav>
 
-            <div className="pt-4 border-t border-luxury-gold/10">
-              <Button
-                onClick={handleLogout}
-                variant="danger"
-                fullWidth
-                icon={<FiLogOut className="w-4 h-4" />}
-              >
-                Se déconnecter
-              </Button>
-            </div>
-          </aside>
-          <div className="flex-grow" onClick={() => setSidebarOpen(false)}></div>
-        </div>
-      )}
+          <div className="pt-4 border-t border-luxury-gold/10">
+            <Button
+              onClick={handleLogout}
+              variant="danger"
+              fullWidth
+              icon={<FiLogOut className="w-4 h-4" />}
+            >
+              Se déconnecter
+            </Button>
+          </div>
+        </Modal.Container>
+      </Modal>
 
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col min-w-0">

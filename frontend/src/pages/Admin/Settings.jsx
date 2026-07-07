@@ -4,6 +4,7 @@ import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import { 
   FiSettings, 
   FiInfo, 
@@ -125,7 +126,11 @@ export default function Settings() {
   };
 
   if (isLoading) return <Loader fullPage />;
-  if (error) return <div className="text-red-500">Erreur : {error.message}</div>;
+  if (error) return (
+    <Card variant="alert" animate={false}>
+      <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
+    </Card>
+  );
 
   const tabs = [
     { id: 'general', name: 'Général & Design', icon: FiSettings },
@@ -144,8 +149,8 @@ export default function Settings() {
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
         
-        {/* Navigation Tabs */}
-        <aside className="w-full md:w-64 bg-white border border-luxury-gold/10 rounded-lg shadow-sm overflow-hidden shrink-0">
+        {/* Navigation Tabs — Card variant="admin" comme panneau de navigation */}
+        <Card variant="admin" size="sm" animate={false} className="w-full md:w-64 !p-0 overflow-hidden shrink-0">
           <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -165,233 +170,252 @@ export default function Settings() {
               );
             })}
           </nav>
-        </aside>
+        </Card>
 
-        {/* Form Panel */}
-        <form onSubmit={handleSubmit} className="flex-grow w-full bg-white border border-luxury-gold/10 rounded-lg shadow-sm p-6 space-y-8">
-          
-          {/* TAB 1: General & Design */}
-          {activeTab === 'general' && (
-            <div className="space-y-6">
-              <h3 className="font-serif text-lg text-luxury-charcoal pb-3 border-b border-luxury-light-gray">Général & Identité</h3>
+        {/* Form Panel — Card variant="admin" comme panneau de formulaire */}
+        <Card variant="admin" size="lg" animate={false} className="flex-grow w-full">
+          <form onSubmit={handleSubmit}>
+            <Card.Body className="space-y-8">
               
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Nom de l'enseigne
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={siteName}
-                  onChange={(e) => setSiteName(e.target.value)}
-                  placeholder="Hafrose"
-                  className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                />
-              </div>
+              {/* TAB 1: General & Design */}
+              {activeTab === 'general' && (
+                <div className="space-y-6">
+                  <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
+                    Général & Identité
+                  </Card.Title>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Nom de l'enseigne
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={siteName}
+                      onChange={(e) => setSiteName(e.target.value)}
+                      placeholder="Hafrose"
+                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
 
-              {/* Logo Upload */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 bg-luxury-cream/10 border border-luxury-gold/10 rounded space-y-4">
-                  <span className="block text-xs font-bold text-luxury-gray uppercase tracking-wider">Logo Officiel</span>
-                  <div className="flex gap-4 items-center">
-                    <div className="w-20 h-20 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="Aperçu Logo" className="w-full h-full object-contain" />
-                      ) : (
-                        <FiImage className="w-8 h-8 text-luxury-light-gray" />
-                      )}
-                    </div>
+                  {/* Logo Upload */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card variant="flat" size="sm" animate={false} className="space-y-4">
+                      <Card.Content className="flex-col gap-4">
+                        <Card.Subtitle className="uppercase tracking-wider">Logo Officiel</Card.Subtitle>
+                        <div className="flex gap-4 items-center">
+                          <div className="w-20 h-20 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
+                            {logoPreview ? (
+                              <img src={logoPreview} alt="Aperçu Logo" className="w-full h-full object-contain" />
+                            ) : (
+                              <FiImage className="w-8 h-8 text-luxury-light-gray" />
+                            )}
+                          </div>
+                          <div>
+                            <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold w-fit">
+                              <FiUpload />
+                              <span>Changer le logo</span>
+                              <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                            </label>
+                            <Card.Meta className="block mt-2">Recommandé : PNG, SVG (max 5 Mo)</Card.Meta>
+                          </div>
+                        </div>
+                      </Card.Content>
+                    </Card>
+
+                    {/* Favicon Upload */}
+                    <Card variant="flat" size="sm" animate={false} className="space-y-4">
+                      <Card.Content className="flex-col gap-4">
+                        <Card.Subtitle className="uppercase tracking-wider">Favicon Navigateur</Card.Subtitle>
+                        <div className="flex gap-4 items-center">
+                          <div className="w-12 h-12 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
+                            {faviconPreview ? (
+                              <img src={faviconPreview} alt="Aperçu Favicon" className="w-full h-full object-contain" />
+                            ) : (
+                              <FiImage className="w-6 h-6 text-luxury-light-gray" />
+                            )}
+                          </div>
+                          <div>
+                            <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold w-fit">
+                              <FiUpload />
+                              <span>Changer le favicon</span>
+                              <input type="file" accept="image/*" onChange={handleFaviconChange} className="hidden" />
+                            </label>
+                            <Card.Meta className="block mt-2">Recommandé : ICO, PNG (max 2 Mo)</Card.Meta>
+                          </div>
+                        </div>
+                      </Card.Content>
+                    </Card>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: Contact & Hours */}
+              {activeTab === 'contact' && (
+                <div className="space-y-6">
+                  <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
+                    Coordonnées & Ouverture
+                  </Card.Title>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold w-fit">
-                        <FiUpload />
-                        <span>Changer le logo</span>
-                        <input type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                        Téléphone de contact
                       </label>
-                      <span className="text-[10px] text-luxury-gray block mt-2">Recommandé : PNG, SVG (max 5 Mo)</span>
+                      <input
+                        type="text"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+33 1 23 45 67 89"
+                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                        Email de contact
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="contact@hafrose.com"
+                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Adresse postale
+                    </label>
+                    <textarea
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="123 Rue de l'Artisanat, 75001 Paris"
+                      rows="2"
+                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Horaires d'ouverture
+                    </label>
+                    <textarea
+                      value={hours}
+                      onChange={(e) => setHours(e.target.value)}
+                      placeholder="Lundi - Vendredi : 10h00 - 19h00&#10;Samedi : 11h00 - 18h00"
+                      rows="3"
+                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: Social Networks */}
+              {activeTab === 'socials' && (
+                <div className="space-y-6">
+                  <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
+                    Réseaux Sociaux & Messageries
+                  </Card.Title>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                        Lien Facebook
+                      </label>
+                      <input
+                        type="text"
+                        value={facebook}
+                        onChange={(e) => setFacebook(e.target.value)}
+                        placeholder="https://facebook.com/hafrose"
+                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                        Lien Instagram
+                      </label>
+                      <input
+                        type="text"
+                        value={instagram}
+                        onChange={(e) => setInstagram(e.target.value)}
+                        placeholder="https://instagram.com/hafrose"
+                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                        Numéro WhatsApp Business
+                      </label>
+                      <input
+                        type="text"
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value)}
+                        placeholder="+33612345678"
+                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      />
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Favicon Upload */}
-                <div className="p-4 bg-luxury-cream/10 border border-luxury-gold/10 rounded space-y-4">
-                  <span className="block text-xs font-bold text-luxury-gray uppercase tracking-wider">Favicon Navigateur</span>
-                  <div className="flex gap-4 items-center">
-                    <div className="w-12 h-12 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
-                      {faviconPreview ? (
-                        <img src={faviconPreview} alt="Aperçu Favicon" className="w-full h-full object-contain" />
-                      ) : (
-                        <FiImage className="w-6 h-6 text-luxury-light-gray" />
-                      )}
-                    </div>
-                    <div>
-                      <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold w-fit">
-                        <FiUpload />
-                        <span>Changer le favicon</span>
-                        <input type="file" accept="image/*" onChange={handleFaviconChange} className="hidden" />
-                      </label>
-                      <span className="text-[10px] text-luxury-gray block mt-2">Recommandé : ICO, PNG (max 2 Mo)</span>
-                    </div>
+              {/* TAB 4: SEO Metadata */}
+              {activeTab === 'seo' && (
+                <div className="space-y-6">
+                  <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
+                    SEO & Optimisation pour les Moteurs de Recherche
+                  </Card.Title>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Meta Title par défaut
+                    </label>
+                    <input
+                      type="text"
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                      placeholder="Hafrose - Boutique Artisanale d'Exception"
+                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
+                      Meta Description par défaut
+                    </label>
+                    <textarea
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      placeholder="Boutique d'articles artisanaux de luxe façonnés à la main..."
+                      rows="4"
+                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                    />
                   </div>
                 </div>
+              )}
+
+            </Card.Body>
+
+            {/* Action buttons */}
+            <Card.Footer>
+              <div className="ml-auto">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={updateMutation.isPending}
+                  icon={<FiSave />}
+                >
+                  Sauvegarder les modifications
+                </Button>
               </div>
-            </div>
-          )}
+            </Card.Footer>
+          </form>
+        </Card>
 
-          {/* TAB 2: Contact & Hours */}
-          {activeTab === 'contact' && (
-            <div className="space-y-6">
-              <h3 className="font-serif text-lg text-luxury-charcoal pb-3 border-b border-luxury-light-gray">Coordonnées & Ouverture</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Téléphone de contact
-                  </label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+33 1 23 45 67 89"
-                    className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Email de contact
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="contact@hafrose.com"
-                    className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Adresse postale
-                </label>
-                <textarea
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 Rue de l'Artisanat, 75001 Paris"
-                  rows="2"
-                  className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Horaires d'ouverture
-                </label>
-                <textarea
-                  value={hours}
-                  onChange={(e) => setHours(e.target.value)}
-                  placeholder="Lundi - Vendredi : 10h00 - 19h00&#10;Samedi : 11h00 - 18h00"
-                  rows="3"
-                  className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: Social Networks */}
-          {activeTab === 'socials' && (
-            <div className="space-y-6">
-              <h3 className="font-serif text-lg text-luxury-charcoal pb-3 border-b border-luxury-light-gray">Réseaux Sociaux & Messageries</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Lien Facebook
-                  </label>
-                  <input
-                    type="text"
-                    value={facebook}
-                    onChange={(e) => setFacebook(e.target.value)}
-                    placeholder="https://facebook.com/hafrose"
-                    className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Lien Instagram
-                  </label>
-                  <input
-                    type="text"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    placeholder="https://instagram.com/hafrose"
-                    className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Numéro WhatsApp Business
-                  </label>
-                  <input
-                    type="text"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="+33612345678"
-                    className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: SEO Metadata */}
-          {activeTab === 'seo' && (
-            <div className="space-y-6">
-              <h3 className="font-serif text-lg text-luxury-charcoal pb-3 border-b border-luxury-light-gray">SEO & Optimisation pour les Moteurs de Recherche</h3>
-              
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Meta Title par défaut
-                </label>
-                <input
-                  type="text"
-                  value={metaTitle}
-                  onChange={(e) => setMetaTitle(e.target.value)}
-                  placeholder="Hafrose - Boutique Artisanale d'Exception"
-                  className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                  Meta Description par défaut
-                </label>
-                <textarea
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
-                  placeholder="Boutique d'articles artisanaux de luxe façonnés à la main..."
-                  rows="4"
-                  className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div className="flex justify-end pt-6 border-t border-luxury-gold/10">
-            <Button
-              type="submit"
-              variant="primary"
-              loading={updateMutation.isPending}
-              icon={<FiSave />}
-            >
-              Sauvegarder les modifications
-            </Button>
-          </div>
-
-        </form>
       </div>
 
     </div>

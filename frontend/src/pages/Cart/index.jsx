@@ -11,6 +11,7 @@ import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import { formatPrice } from '../../utils/format';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import Card from '../../components/ui/Card';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -97,7 +98,6 @@ export default function Cart() {
 
     try {
       const res = await orderService.create(orderData);
-      // Backend returns structure like { success: true, message: "...", data: { ...orderDetails } }
       if (res?.success) {
         const orderDetails = res.data;
         clearCart();
@@ -154,42 +154,44 @@ export default function Cart() {
 
       <AnimatePresence mode="wait">
         {cart.length === 0 ? (
-          <motion.div
+          <Card
             key="empty-cart"
+            variant="empty"
+            className="flex flex-col items-center justify-center py-20 text-center gap-6 select-none bg-card-bg-primary"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-center space-y-6"
           >
             <FiShoppingBag className="text-luxury-gray/30" size={64} />
-            <h2 className="font-serif text-2xl text-luxury-charcoal font-light">Votre Panier est Vide</h2>
-            <p className="text-sm text-luxury-gray font-sans font-light leading-relaxed max-w-sm">
+            <Card.Title as="h2" className="text-2xl font-light">Votre Panier est Vide</Card.Title>
+            <Card.Description className="max-w-sm mx-auto leading-relaxed">
               Vous n'avez sélectionné aucune pièce d'exception pour le moment. Explorez nos collections de maroquinerie, joaillerie et horlogerie.
-            </p>
+            </Card.Description>
             <Button
               to="/shop"
               variant="primary"
-              className="mt-4"
+              className="mt-4 mx-auto"
             >
               Explorer la Boutique
             </Button>
-          </motion.div>
+          </Card>
         ) : (
-          <motion.div
-            key="cart-checkout"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-12 text-left"
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 text-left">
             {/* Left Column: Cart items and Delivery details form */}
             <div className="lg:col-span-7 space-y-10">
               
               {/* Form Section */}
-              <motion.div {...fadeUp} className="bg-white border border-luxury-charcoal/5 p-8 md:p-10">
-                <div className="flex items-center space-x-3 mb-8">
+              <Card
+                variant="panel"
+                className="p-8 md:p-10"
+                initial="initial"
+                animate="animate"
+                variants={fadeUp}
+              >
+                <Card.Header className="flex items-center space-x-3 mb-8 border-b-0 pb-0">
                   <FiCreditCard className="text-luxury-gold" size={20} />
-                  <h2 className="font-serif text-xl font-light text-luxury-charcoal">Adresse de Livraison</h2>
-                </div>
+                  <Card.Title as="h2" className="text-xl font-light">Adresse de Livraison</Card.Title>
+                </Card.Header>
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <Input
@@ -245,45 +247,54 @@ export default function Cart() {
                     </Button>
                   </div>
                 </form>
-              </motion.div>
+              </Card>
             </div>
 
             {/* Right Column: Order Summary */}
             <div className="lg:col-span-5">
-              <motion.div
-                {...fadeUp}
+              <Card
+                variant="panel"
+                className="sticky top-28 p-6 md:p-8"
+                initial="initial"
+                animate="animate"
+                variants={fadeUp}
                 transition={{ duration: 0.6, delay: 0.15 }}
-                className="bg-white border border-luxury-charcoal/5 p-6 md:p-8 sticky top-28 space-y-6"
               >
-                <h2 className="font-serif text-lg font-light text-luxury-charcoal pb-4 border-b border-luxury-charcoal/5">
-                  Récapitulatif ({cartCount} {cartCount > 1 ? 'articles' : 'article'})
-                </h2>
+                <Card.Header className="border-b border-luxury-charcoal/5 pb-4 mb-0">
+                  <Card.Title as="h2" className="text-lg font-light">
+                    Récapitulatif ({cartCount} {cartCount > 1 ? 'articles' : 'article'})
+                  </Card.Title>
+                </Card.Header>
 
                 {/* Cart Items List */}
                 <div className="max-h-[350px] overflow-y-auto divide-y divide-luxury-charcoal/5 pr-1">
                   {cart.map((item) => (
-                    <div key={item.product.id} className="py-4 flex gap-4 first:pt-0 last:pb-0">
+                    <Card
+                      key={item.product.id}
+                      variant="flat"
+                      className="py-4 flex gap-4 first:pt-0 last:pb-0 p-0 border-0 shadow-none text-left"
+                    >
                       {/* Product Thumbnail */}
-                      <div className="w-16 h-20 bg-luxury-light-gray flex-shrink-0 border border-luxury-charcoal/5 overflow-hidden">
-                        <img
+                      <Card.Media ratio="3/4" className="w-16 h-20 flex-shrink-0 border border-luxury-charcoal/5">
+                        <Card.Image
                           src={getProductImage(item.product)}
                           alt={item.product.name}
-                          className="w-full h-full object-cover object-center"
+                          zoom={false}
                         />
-                      </div>
+                      </Card.Media>
 
                       {/* Info & Quantity controls */}
-                      <div className="flex-grow flex flex-col justify-between py-0.5">
-                        <div>
-                          <h4 className="font-serif text-xs font-light text-luxury-charcoal leading-tight">
+                      <Card.Body className="flex-grow flex flex-col justify-between py-0.5 p-0 bg-transparent gap-1">
+                        <Card.Content className="gap-1 p-0">
+                          <Card.Title as="h4" className="text-xs font-light text-luxury-charcoal leading-tight">
                             {item.product.name}
-                          </h4>
+                          </Card.Title>
                           {item.product.material && (
-                            <p className="text-[9px] tracking-wider uppercase text-luxury-gray font-sans font-light mt-1">
+                            <Card.Meta className="mt-0.5">
                               {item.product.material}
-                            </p>
+                            </Card.Meta>
                           )}
-                        </div>
+                        </Card.Content>
 
                         <div className="flex items-center justify-between">
                           <div className="flex items-center border border-luxury-charcoal/10 scale-90 -ml-1">
@@ -306,11 +317,11 @@ export default function Cart() {
                             </button>
                           </div>
 
-                          <span className="text-xs font-sans text-luxury-gold font-medium">
+                          <Card.Price className="text-xs">
                             {formatPrice(item.product.price * item.quantity)}
-                          </span>
+                          </Card.Price>
                         </div>
-                      </div>
+                      </Card.Body>
 
                       {/* Remove Button */}
                       <div className="flex-shrink-0 flex items-start">
@@ -323,7 +334,7 @@ export default function Cart() {
                           <FiTrash2 size={12} />
                         </button>
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
 
@@ -354,17 +365,17 @@ export default function Cart() {
                 </div>
 
                 {/* Service Details */}
-                <div className="bg-luxury-cream p-4 border border-luxury-charcoal/5 space-y-2">
+                <Card variant="service" className="bg-card-bg-editorial p-4 border border-card-border-editorial text-left gap-1">
                   <p className="text-[9px] tracking-wider uppercase text-luxury-gold font-sans font-semibold">
                     Services de la Maison
                   </p>
                   <p className="text-[10px] text-luxury-gray font-sans font-light leading-relaxed">
                     Livraison sécurisée contre signature, emballage cadeau raffiné signature de la Maison Hafrose, et retours offerts sous 30 jours.
                   </p>
-                </div>
-              </motion.div>
+                </Card>
+              </Card>
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

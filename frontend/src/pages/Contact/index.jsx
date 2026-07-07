@@ -7,6 +7,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import Card from '../../components/ui/Card';
 
 const SUBJECTS = [
   'Renseignement sur un produit',
@@ -95,8 +96,17 @@ export default function Contact() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 text-left">
         {/* Contact Form */}
-        <motion.div {...fadeUp} className="lg:col-span-7 bg-white border border-luxury-charcoal/5 p-8 md:p-10">
-          <h2 className="font-serif text-xl font-light text-luxury-charcoal mb-8">Votre Message</h2>
+        <Card
+          variant="panel"
+          className="lg:col-span-7 p-8 md:p-10"
+          initial="initial"
+          whileInView="whileInView"
+          viewport={{ once: true }}
+          variants={fadeUp}
+        >
+          <Card.Header className="border-b-0 pb-0 mb-8">
+            <Card.Title as="h2" className="text-xl font-light text-luxury-charcoal">Votre Message</Card.Title>
+          </Card.Header>
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Honeypot anti-spam field - hidden from users */}
             <input type="text" name="website" value={form.website} onChange={handleChange} className="hidden" tabIndex="-1" autoComplete="off" aria-hidden="true" />
@@ -156,50 +166,50 @@ export default function Contact() {
               {isSubmitting ? 'Envoi en cours...' : 'Envoyer votre message'}
             </Button>
           </form>
-        </motion.div>
+        </Card>
 
         {/* Contact Info Sidebar */}
         <motion.div {...fadeUp} transition={{ duration: 0.7, delay: 0.15 }} className="lg:col-span-5 space-y-10">
           {/* Salon */}
-          <div className="bg-luxury-charcoal text-white p-8 space-y-6">
-            <h3 className="font-serif text-lg font-light tracking-wide">La Maison Hafrose</h3>
+          <Card variant="flat" className="bg-luxury-charcoal text-white p-8 space-y-6">
+            <Card.Title as="h3" className="text-lg font-light tracking-wide text-white">La Maison Hafrose</Card.Title>
             <div className="space-y-4">
               <div className="flex items-start space-x-4">
                 <FiMapPin className="text-luxury-gold mt-1 flex-shrink-0" size={16} />
-                <div className="text-xs font-sans font-light leading-relaxed">
+                <div className="text-xs font-sans font-light leading-relaxed text-luxury-cream/80">
                   <p>12, Avenue Montaigne</p>
                   <p>75008 Paris, France</p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <FiPhone className="text-luxury-gold flex-shrink-0" size={16} />
-                <span className="text-xs font-sans font-light">+33 (0)1 42 56 78 90</span>
+                <span className="text-xs font-sans font-light text-luxury-cream/80">+33 (0)1 42 56 78 90</span>
               </div>
               <div className="flex items-center space-x-4">
                 <FiMail className="text-luxury-gold flex-shrink-0" size={16} />
-                <span className="text-xs font-sans font-light">concierge@hafrose.com</span>
+                <span className="text-xs font-sans font-light text-luxury-cream/80">concierge@hafrose.com</span>
               </div>
               <div className="flex items-start space-x-4">
                 <FiClock className="text-luxury-gold mt-1 flex-shrink-0" size={16} />
-                <div className="text-xs font-sans font-light leading-relaxed">
+                <div className="text-xs font-sans font-light leading-relaxed text-luxury-cream/80">
                   <p>Lundi — Samedi : 10h00 — 19h00</p>
                   <p>Dimanche : Sur rendez-vous</p>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Values */}
-          <div className="border border-luxury-charcoal/5 p-8 space-y-4">
-            <h3 className="font-serif text-lg font-light text-luxury-charcoal">Notre Engagement</h3>
-            <p className="text-xs font-sans font-light text-luxury-gray leading-relaxed">
+          <Card variant="service" className="p-8 border border-card-border-editorial space-y-4">
+            <Card.Title as="h3" className="text-lg font-light text-luxury-charcoal">Notre Engagement</Card.Title>
+            <Card.Description className="text-xs font-sans font-light text-luxury-gray leading-relaxed">
               Chaque demande reçoit l'attention personnelle qu'elle mérite. Notre équipe de conciergerie s'engage à vous répondre sous 24 heures ouvrées avec la discrétion et l'excellence qui caractérisent la Maison Hafrose.
-            </p>
-            <div className="w-8 h-[1px] bg-luxury-gold" />
-            <p className="text-[9px] tracking-widest uppercase text-luxury-gold font-sans font-semibold">
+            </Card.Description>
+            <Card.Divider className="w-8 h-[1px] bg-luxury-gold border-t-0" />
+            <Card.Meta className="text-luxury-gold font-semibold">
               Réponse garantie sous 24h
-            </p>
-          </div>
+            </Card.Meta>
+          </Card>
         </motion.div>
       </div>
     </div>
