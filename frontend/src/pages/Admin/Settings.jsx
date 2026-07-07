@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
+import Button from '../../components/ui/Button';
 import { 
   FiSettings, 
   FiInfo, 
@@ -380,14 +381,14 @@ export default function Settings() {
 
           {/* Action buttons */}
           <div className="flex justify-end pt-6 border-t border-luxury-gold/10">
-            <button
+            <Button
               type="submit"
-              disabled={updateMutation.isPending}
-              className="flex items-center gap-2 px-6 py-2.5 bg-luxury-charcoal hover:bg-luxury-gold text-white hover:text-luxury-charcoal rounded text-sm transition-all duration-300 font-semibold uppercase tracking-wider text-xs"
+              variant="primary"
+              loading={updateMutation.isPending}
+              icon={<FiSave />}
             >
-              <FiSave />
-              <span>{updateMutation.isPending ? 'Enregistrement...' : 'Sauvegarder les modifications'}</span>
-            </button>
+              Sauvegarder les modifications
+            </Button>
           </div>
 
         </form>
