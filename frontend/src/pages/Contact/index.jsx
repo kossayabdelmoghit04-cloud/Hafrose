@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiSend } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -8,6 +8,7 @@ import Breadcrumb from '../../components/ui/Breadcrumb';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import Card from '../../components/ui/Card';
 import { Form, Input, EmailField, Select, Textarea } from '../../components/ui/form';
+import Turnstile from '../../components/ui/Turnstile';
 
 const SUBJECTS = [
   'Renseignement sur un produit',
@@ -25,6 +26,8 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', website: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const turnstileRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,11 +54,22 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+
+    if (!captchaToken) {
+      errs.captcha = 'Veuillez valider le CAPTCHA.';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const res = await contactService.submit(form);
+      const res = await contactService.submit({
+        ...form,
+        'cf-turnstile-response': captchaToken
+      });
       if (res?.success) {
         Swal.fire({
           title: 'Message transmis',
@@ -64,8 +78,12 @@ export default function Contact() {
           confirmButtonColor: '#111111'
         });
         setForm({ name: '', email: '', phone: '', subject: '', message: '', website: '' });
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
       }
     } catch (err) {
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
       if (err.status === 429) {
         Swal.fire({ icon: 'warning', title: 'Veuillez patienter', text: 'Trop de requêtes. Réessayez dans quelques instants.', confirmButtonColor: '#111111' });
       } else if (err.errors) {
@@ -184,6 +202,21 @@ export default function Contact() {
                 <Form.Counter current={form.message.length} max={5000} />
                 <Form.Error />
               </Form.Field>
+
+              <div className="flex flex-col items-center justify-center my-4">
+                <Turnstile
+                  ref={turnstileRef}
+                  onVerify={(token) => {
+                    setCaptchaToken(token);
+                    setErrors((prev) => ({ ...prev, captcha: null }));
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                />
+                {errors.captcha && (
+                  <p className="text-red-500 text-xs font-sans mt-1">{errors.captcha}</p>
+                )}
+              </div>
             </Form.Section>
 
             <Form.Footer className="border-t-0 pt-2 mt-6">

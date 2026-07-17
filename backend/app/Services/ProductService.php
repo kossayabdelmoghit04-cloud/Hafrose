@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductService
@@ -188,5 +189,38 @@ class ProductService
         if (\Illuminate\Support\Facades\Storage::disk('public')->exists($relativePath)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($relativePath);
         }
+    }
+
+    /**
+     * Obtenir les données de filtres pour la boutique.
+     */
+    public function getFiltersData(): array
+    {
+        return $this->productRepository->getFiltersData();
+    }
+
+    /**
+     * Obtenir les produits similaires à un produit donné.
+     * Le nombre de résultats est configurable (défaut : 4).
+     *
+     * @param  \App\Models\Product  $product
+     * @param  int                  $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getRelatedProducts(Product $product, int $limit = 4): Collection
+    {
+        return $this->productRepository->getRelatedProducts($product, $limit);
+    }
+
+    /**
+     * Obtenir les produits les plus populaires.
+     * Le nombre de résultats est configurable (défaut : 8).
+     *
+     * @param  int  $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getPopularProducts(int $limit = 8): Collection
+    {
+        return $this->productRepository->getPopularProducts($limit);
     }
 }

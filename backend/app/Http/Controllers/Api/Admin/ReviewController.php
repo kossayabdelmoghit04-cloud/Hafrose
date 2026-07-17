@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdminReviewIndexRequest;
 use App\Http\Resources\ReviewResource;
 use App\Services\ReviewService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
@@ -23,9 +23,9 @@ class ReviewController extends Controller
     /**
      * Obtenir la liste paginée de tous les avis.
      */
-    public function index(Request $request): JsonResponse
+    public function index(AdminReviewIndexRequest $request): JsonResponse
     {
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) ($request->validated()['per_page'] ?? 15);
         $reviews = $this->reviewService->getPaginatedReviews($perPage);
 
         return response()->json([
@@ -47,7 +47,7 @@ class ReviewController extends Controller
      */
     public function approve(int $id): JsonResponse
     {
-        $review = $this->reviewService->getReviewById($id);
+        $review  = $this->reviewService->getReviewById($id);
         $updated = $this->reviewService->approveReview($review);
 
         return $this->successResponse(
@@ -61,7 +61,7 @@ class ReviewController extends Controller
      */
     public function reject(int $id): JsonResponse
     {
-        $review = $this->reviewService->getReviewById($id);
+        $review  = $this->reviewService->getReviewById($id);
         $updated = $this->reviewService->rejectReview($review);
 
         return $this->successResponse(

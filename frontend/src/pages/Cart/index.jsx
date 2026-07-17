@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiCreditCard } from 'react-icons/fi';
@@ -13,6 +13,7 @@ import useDocumentTitle from '../../hooks/useDocumentTitle';
 import Card from '../../components/ui/Card';
 import { Form, Input } from '../../components/ui/form';
 import EmptyState from '../../components/ui/EmptyState';
+import Turnstile from '../../components/ui/Turnstile';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -24,11 +25,14 @@ export default function Cart() {
     customer: '',
     phone: '',
     address: '',
-    city: ''
+    city: '',
+    website: ''
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const turnstileRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,6 +82,11 @@ export default function Cart() {
     }
 
     const errs = validate();
+
+    if (!captchaToken) {
+      errs.captcha = 'Veuillez valider le CAPTCHA.';
+    }
+
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -85,12 +94,13 @@ export default function Cart() {
 
     setIsSubmitting(true);
 
-    // Format payload matching StoreOrderRequest validation constraints
     const orderData = {
       customer: form.customer.trim(),
       phone: form.phone.trim(),
       address: form.address.trim(),
       city: form.city.trim(),
+      website: form.website,
+      'cf-turnstile-response': captchaToken,
       items: cart.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity
@@ -102,6 +112,8 @@ export default function Cart() {
       if (res?.success) {
         const orderDetails = res.data;
         clearCart();
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
 
         Swal.fire({
           title: 'Commande validée !',
@@ -113,6 +125,8 @@ export default function Cart() {
         });
       }
     } catch (err) {
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
       if (err.errors) {
         setErrors(err.errors);
         Swal.fire({
@@ -192,6 +206,17 @@ export default function Cart() {
                 </Card.Header>
 
                 <Form onSubmit={handleSubmit}>
+                  {/* Honeypot anti-spam field - hidden from users */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={form.website}
+                    onChange={handleChange}
+                    className="hidden"
+                    tabIndex="-1"
+                    autoComplete="off"
+                    aria-hidden="true"
+                  />
                   <Form.Section>
                     {/* Nom complet — full width */}
                     <Form.Field name="customer" error={errors.customer}>
@@ -250,6 +275,21 @@ export default function Cart() {
                       />
                       <Form.Error />
                     </Form.Field>
+
+                    <div className="flex flex-col items-center justify-center my-4">
+                      <Turnstile
+                        ref={turnstileRef}
+                        onVerify={(token) => {
+                          setCaptchaToken(token);
+                          setErrors((prev) => ({ ...prev, captcha: null }));
+                        }}
+                        onExpire={() => setCaptchaToken(null)}
+                        onError={() => setCaptchaToken(null)}
+                      />
+                      {errors.captcha && (
+                        <p className="text-red-500 text-xs font-sans mt-1">{errors.captcha}</p>
+                      )}
+                    </div>
                   </Form.Section>
 
                   <Form.Footer>

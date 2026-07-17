@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdminContactIndexRequest;
 use App\Http\Resources\ContactResource;
 use App\Services\ContactService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
@@ -23,11 +23,15 @@ class ContactController extends Controller
     /**
      * Obtenir la liste paginée de tous les messages de contact avec filtres facultatifs.
      */
-    public function index(Request $request): JsonResponse
+    public function index(AdminContactIndexRequest $request): JsonResponse
     {
-        $filters = $request->only(['search', 'is_read']);
-        $perPage = (int) $request->input('per_page', 15);
+        $validated = $request->validated();
+        $filters   = array_filter([
+            'search'  => $validated['search']  ?? null,
+            'is_read' => $validated['is_read'] ?? null,
+        ], fn ($v) => $v !== null);
 
+        $perPage  = (int) ($validated['per_page'] ?? 15);
         $messages = $this->contactService->getPaginatedContacts($filters, $perPage);
 
         return response()->json([

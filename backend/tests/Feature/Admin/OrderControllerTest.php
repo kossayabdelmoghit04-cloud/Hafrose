@@ -37,12 +37,14 @@ class OrderControllerTest extends TestCase
         Order::factory()->create(['status' => Order::STATUS_PENDING]);
         Order::factory()->create(['status' => Order::STATUS_SHIPPED]);
 
-        $response = $this->withToken($token)->getJson('/api/admin/orders?status=pending');
+        $statusQuery = urlencode(Order::STATUS_PENDING);
+        $response = $this->withToken($token)->getJson("/api/admin/orders?status={$statusQuery}");
 
         $response->assertOk();
         $orders = $response->json('data');
+        $this->assertNotEmpty($orders);
         foreach ($orders as $order) {
-            $this->assertEquals('pending', $order['status']);
+            $this->assertEquals(Order::STATUS_PENDING, $order['status']);
         }
     }
 

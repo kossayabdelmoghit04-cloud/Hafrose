@@ -169,4 +169,44 @@ class OrderApiTest extends TestCase
                      'message' => 'Validation failed',
                  ]);
     }
+
+    /**
+     * Test de la protection anti-spam Honeypot sur le formulaire de commande.
+     * Le middleware retourne une fausse réponse de succès HTTP 201 (shadow block).
+     * Aucune commande ne doit être créée et aucun stock ne doit être décrémenté.
+     */
+    public function test_order_honeypot_blocks_submission(): void
+    {
+        $product = Product::factory()->create(['stock' => 10, 'price' => 100.00]);
+
+        $payload = [
+            'customer' => 'Bot Spammer',
+            'phone'    => '0600000000',
+            'address'  => '1 Rue du Spam',
+            'city'     => 'Spamville',
+            'website'  => 'http://spam-link.com', // Remplir ce champ simule un robot
+            'items'    => [
+                [
+                    'product_id' => $product->id,
+                    'quantity'   => 2,
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/api/orders', $payload);
+
+        // Le middleware retourne une fausse réponse de succès pour ne pas alerter le robot
+        $response->assertStatus(201)
+                 ->assertJson([
+                     'success' => true,
+                 ]);
+
+        // Aucune commande ne doit être créée
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseCount('order_items', 0);
+
+        // Le stock ne doit pas avoir bougé
+        $product->refresh();
+        $this->assertEquals(10, $product->stock);
+    }
 }

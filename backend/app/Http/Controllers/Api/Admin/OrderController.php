@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdminOrderIndexRequest;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
-use App\Models\Order;
+use App\Models\AdminLog;
+use App\Services\AdminLogService;
 use App\Services\OrderService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -14,20 +17,23 @@ class OrderController extends Controller
 {
     use HttpResponses;
 
-    protected OrderService $orderService;
-
-    public function __construct(OrderService $orderService)
-    {
-        $this->orderService = $orderService;
-    }
+    public function __construct(
+        protected OrderService     $orderService,
+        protected AdminLogService  $adminLogService,
+    ) {}
 
     /**
      * Obtenir la liste paginée des commandes avec filtres.
      */
-    public function index(Request $request): JsonResponse
+    public function index(AdminOrderIndexRequest $request): JsonResponse
     {
-        $filters = $request->only(['search', 'status', 'date']);
-        $perPage = (int) $request->input('per_page', 10);
+        $validated = $request->validated();
+        $filters   = array_filter([
+            'search' => $validated['search'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'date'   => $validated['date']   ?? null,
+        ], fn ($v) => $v !== null);
+        $perPage = (int) ($validated['per_page'] ?? 10);
 
         $orders = $this->orderService->getPaginatedOrders($filters, $perPage);
 
@@ -57,20 +63,22 @@ class OrderController extends Controller
     /**
      * Mettre à jour le statut d'une commande.
      */
-    public function updateStatus(Request $request, int $id): JsonResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, int $id): JsonResponse
     {
-        $request->validate([
-            'status' => 'required|string|in:' . implode(',', [
-                Order::STATUS_PENDING,
-                Order::STATUS_CONFIRMED,
-                Order::STATUS_SHIPPED,
-                Order::STATUS_DELIVERED,
-                Order::STATUS_CANCELLED,
-            ]),
-        ]);
+        $order     = $this->orderService->getOrderById($id);
+        $oldStatus = $order->status;
+        $newStatus = $request->validated()['status'];
 
-        $order = $this->orderService->getOrderById($id);
-        $updated = $this->orderService->updateOrderStatus($order, $request->input('status'));
+        $updated = $this->orderService->updateOrderStatus($order, $newStatus);
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_STATUS_CHANGE,
+            resource:   AdminLog::RESOURCE_ORDER,
+            resourceId: $order->id,
+            oldValues:  ['status' => $oldStatus],
+            newValues:  ['status' => $newStatus],
+        );
 
         return $this->successResponse(
             new OrderResource($updated),
@@ -81,9 +89,17 @@ class OrderController extends Controller
     /**
      * Exporter une commande au format PDF (facture).
      */
-    public function exportPdf(int $id): \Illuminate\Http\Response
+    public function exportPdf(Request $request, int $id): \Illuminate\Http\Response
     {
         $order = $this->orderService->getOrderById($id);
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_EXPORT,
+            resource:   AdminLog::RESOURCE_ORDER,
+            resourceId: $order->id,
+            newValues:  ['format' => 'pdf'],
+        );
 
         $html = view('pdf.invoice', ['order' => $order])->render();
 

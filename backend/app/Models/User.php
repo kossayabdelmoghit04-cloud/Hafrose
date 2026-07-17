@@ -54,4 +54,12 @@ class User extends Authenticatable
             'role' => 'string',
         ];
     }
+
+    /**
+     * Relation : Un utilisateur possède plusieurs favoris.
+     */
+    public function wishlistItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WishlistItem::class);
+    }
 }

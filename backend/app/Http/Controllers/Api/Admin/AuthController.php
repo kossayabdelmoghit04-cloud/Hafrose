@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Models\AdminLog;
+use App\Services\AdminLogService;
 use App\Services\AuthService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -13,12 +15,10 @@ class AuthController extends Controller
 {
     use HttpResponses;
 
-    protected AuthService $authService;
-
-    public function __construct(AuthService $authService)
-    {
-        $this->authService = $authService;
-    }
+    public function __construct(
+        protected AuthService    $authService,
+        protected AdminLogService $adminLogService,
+    ) {}
 
     /**
      * Authentifier un administrateur et générer le token.
@@ -27,7 +27,15 @@ class AuthController extends Controller
     {
         try {
             $credentials = $request->validated();
-            $result = $this->authService->login($credentials);
+            $result      = $this->authService->login($credentials);
+
+            $this->adminLogService->log(
+                request:    $request,
+                action:     AdminLog::ACTION_LOGIN,
+                resource:   AdminLog::RESOURCE_AUTH,
+                resourceId: $result['user']->id,
+                newValues:  ['email' => $result['user']->email],
+            );
 
             return $this->successResponse([
                 'token' => $result['token'],
@@ -36,7 +44,7 @@ class AuthController extends Controller
                     'name'  => $result['user']->name,
                     'email' => $result['user']->email,
                     'role'  => $result['user']->role,
-                ]
+                ],
             ], 'Connexion réussie.');
         } catch (\Illuminate\Auth\AuthenticationException $e) {
             return $this->errorResponse($e->getMessage(), 401);
@@ -48,7 +56,17 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request->user());
+        $user = $request->user();
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_LOGOUT,
+            resource:   AdminLog::RESOURCE_AUTH,
+            resourceId: $user->id,
+        );
+
+        $this->authService->logout($user);
+
         return $this->successResponse(null, 'Déconnexion réussie.');
     }
 

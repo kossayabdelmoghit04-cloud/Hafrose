@@ -2,12 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Traits\HasJsonValidation;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
 class LoginRequest extends FormRequest
 {
+    use HasJsonValidation;
+
     /**
      * Déterminer si l'utilisateur est autorisé à faire cette requête.
      */
@@ -17,7 +18,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Règles de validation pour la connexion.
+     * Règles de validation pour la connexion administrateur.
      */
     public function rules(): array
     {
@@ -35,21 +36,10 @@ class LoginRequest extends FormRequest
         return [
             'email.required'    => 'L\'adresse email est obligatoire.',
             'email.email'       => 'L\'adresse email doit être valide.',
+            'email.max'         => 'L\'adresse email ne doit pas dépasser 255 caractères.',
             'password.required' => 'Le mot de passe est obligatoire.',
+            'password.string'   => 'Le mot de passe doit être une chaîne de caractères.',
             'password.min'      => 'Le mot de passe doit contenir au moins 6 caractères.',
         ];
-    }
-
-    /**
-     * Gérer l'échec de la validation.
-     */
-    protected function failedValidation(Validator $validator): void
-    {
-        throw new HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Validation failed',
-            'errors'  => $validator->errors(),
-            'data'    => null,
-        ], 422));
     }
 }

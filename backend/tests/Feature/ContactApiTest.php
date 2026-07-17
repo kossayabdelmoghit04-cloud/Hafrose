@@ -44,7 +44,9 @@ class ContactApiTest extends TestCase
     }
 
     /**
-     * Test de la protection anti-spam Honeypot (le champ website doit être vide).
+     * Test de la protection anti-spam Honeypot (le champ website rempli simule un robot).
+     * Le middleware retourne une fausse réponse de succès HTTP 201 (shadow block).
+     * Aucune donnée ne doit être écrite en base de données.
      */
     public function test_contact_honeypot_blocks_submission(): void
     {
@@ -58,12 +60,14 @@ class ContactApiTest extends TestCase
 
         $response = $this->postJson('/api/contact', $payload);
 
-        $response->assertStatus(422)
+        // Le middleware retourne une fausse réponse de succès pour ne pas alerter le robot
+        $response->assertStatus(201)
                  ->assertJson([
-                     'success' => false,
-                     'message' => 'Validation failed',
-                 ])
-                 ->assertJsonValidationErrors(['website']);
+                     'success' => true,
+                 ]);
+
+        // Aucun message ne doit être écrit en base de données
+        $this->assertDatabaseCount('contacts', 0);
     }
 
     /**

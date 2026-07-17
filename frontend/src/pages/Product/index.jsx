@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { FiMinus, FiPlus, FiShoppingBag, FiStar } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import productService from '../../services/productService';
 import reviewService from '../../services/reviewService';
+import Turnstile from '../../components/ui/Turnstile';
 import ProductCard from '../../components/cards/ProductCard';
 import Loader from '../../components/ui/Loader';
 import Skeleton from '../../components/ui/Skeleton';
@@ -58,7 +59,11 @@ export default function Product() {
   const [revName, setRevName] = useState('');
   const [revRating, setRevRating] = useState(5);
   const [revComment, setRevComment] = useState('');
+  const [revWebsite, setRevWebsite] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const turnstileRef = useRef(null);
+  const [reviewErrors, setReviewErrors] = useState({});
 
   const fetchProductData = useCallback(async () => {
     setIsLoading(true);
@@ -109,20 +114,54 @@ export default function Product() {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!revName.trim() || revComment.trim().length < 10) {
-      Swal.fire({ icon: 'error', title: 'Erreur', text: 'Le nom est requis et le commentaire doit contenir au moins 10 caractères.', confirmButtonColor: '#111111' });
+    const errs = {};
+    if (!revName.trim()) {
+      errs.customer_name = 'Le nom est requis.';
+    }
+    if (revComment.trim().length < 10) {
+      errs.comment = 'Le commentaire doit contenir au moins 10 caractères.';
+    }
+    if (!captchaToken) {
+      errs.captcha = 'Veuillez valider le CAPTCHA.';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setReviewErrors(errs);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur de validation',
+        text: errs.captcha || 'Le nom est requis et le commentaire doit contenir au moins 10 caractères.',
+        confirmButtonColor: '#111111'
+      });
       return;
     }
+
     setIsSubmittingReview(true);
     try {
-      const res = await reviewService.create({ product_id: product.id, customer_name: revName, rating: revRating, comment: revComment });
+      const res = await reviewService.create({
+        product_id: product.id,
+        customer_name: revName,
+        rating: revRating,
+        comment: revComment,
+        website: revWebsite,
+        'cf-turnstile-response': captchaToken
+      });
       if (res?.success) {
         Swal.fire({ title: 'Merci', text: "Votre avis a été soumis et sera publié après validation par notre Maison.", icon: 'success', confirmButtonColor: '#111111' });
         setRevName('');
         setRevComment('');
         setRevRating(5);
+        setRevWebsite('');
+        setCaptchaToken(null);
+        setReviewErrors({});
+        turnstileRef.current?.reset();
       }
     } catch (err) {
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
+      if (err.errors) {
+        setReviewErrors(err.errors);
+      }
       Swal.fire({ icon: 'error', title: 'Erreur', text: err.message || 'Soumission impossible.', confirmButtonColor: '#111111' });
     } finally {
       setIsSubmittingReview(false);
@@ -232,6 +271,17 @@ export default function Product() {
           </Card.Header>
 
           <Form onSubmit={handleReviewSubmit}>
+            {/* Honeypot anti-spam field - hidden from users */}
+            <input
+              type="text"
+              name="website"
+              value={revWebsite}
+              onChange={(e) => setRevWebsite(e.target.value)}
+              className="hidden"
+              tabIndex="-1"
+              autoComplete="off"
+              aria-hidden="true"
+            />
             <Form.Section>
               {/* Nom */}
               <Form.Field name="revName">
@@ -290,6 +340,21 @@ export default function Product() {
                 <Form.Counter current={revComment.length} />
                 <Form.Error />
               </Form.Field>
+
+              <div className="flex flex-col items-center justify-center my-4">
+                <Turnstile
+                  ref={turnstileRef}
+                  onVerify={(token) => {
+                    setCaptchaToken(token);
+                    setReviewErrors((prev) => ({ ...prev, captcha: null }));
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                />
+                {reviewErrors.captcha && (
+                  <p className="text-red-500 text-xs font-sans mt-1">{reviewErrors.captcha}</p>
+                )}
+              </div>
             </Form.Section>
 
             <Form.Footer>

@@ -92,4 +92,33 @@ class ReviewApiTest extends TestCase
                      'data',
                  ]);
     }
+
+    /**
+     * Test de la protection anti-spam Honeypot sur le formulaire d'avis.
+     * Le middleware retourne une fausse réponse de succès HTTP 201 (shadow block).
+     * Aucun avis ne doit être écrit en base de données.
+     */
+    public function test_review_honeypot_blocks_submission(): void
+    {
+        $product = Product::factory()->create();
+
+        $payload = [
+            'product_id'    => $product->id,
+            'customer_name' => 'Bot Spammer',
+            'rating'        => 5,
+            'comment'       => 'Acheter mes produits maintenant, visitez mon site!',
+            'website'       => 'http://spam-link.com', // Remplir ce champ simule un robot
+        ];
+
+        $response = $this->postJson('/api/reviews', $payload);
+
+        // Le middleware retourne une fausse réponse de succès pour ne pas alerter le robot
+        $response->assertStatus(201)
+                 ->assertJson([
+                     'success' => true,
+                 ]);
+
+        // Aucun avis ne doit être écrit en base de données
+        $this->assertDatabaseCount('reviews', 0);
+    }
 }

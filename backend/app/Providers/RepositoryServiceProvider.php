@@ -17,6 +17,8 @@ use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Contracts\MediaRepositoryInterface;
 use App\Repositories\Eloquent\MediaRepository;
+use App\Repositories\Contracts\WishlistRepositoryInterface;
+use App\Repositories\Eloquent\WishlistRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
         $this->app->bind(MediaRepositoryInterface::class, MediaRepository::class);
+        $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
     }
 
     /**
