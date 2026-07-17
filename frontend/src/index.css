@@ -294,6 +294,176 @@ h1, h2, h3, h4, h5, h6, .font-serif {
   --color-luxury-gray: var(--color-text-secondary);
   --color-luxury-light-gray: var(--color-background);
   --color-luxury-bronze: var(--color-accent);
+
+  /* ==========================================================================
+     Luxury Table System Design Tokens
+     ========================================================================== */
+  /* Backgrounds */
+  --color-table-bg: var(--color-off-white);
+  --color-table-head-bg: rgba(242, 237, 232, 0.55);
+  --color-table-stripe-bg: rgba(242, 237, 232, 0.30);
+  --color-table-footer-bg: var(--color-off-white);
+  --color-table-empty-bg: transparent;
+
+  /* Interaction States */
+  --color-table-row-hover-bg: rgba(181, 130, 140, 0.06);
+  --color-table-row-selected-bg: rgba(181, 130, 140, 0.12);
+  --color-table-row-active-bg: rgba(181, 130, 140, 0.18);
+
+  /* Borders */
+  --color-table-border: rgba(181, 130, 140, 0.12);
+  --color-table-border-strong: rgba(181, 130, 140, 0.28);
+  --color-table-head-border: rgba(181, 130, 140, 0.15);
+  --color-table-footer-border: rgba(181, 130, 140, 0.12);
+
+  /* Typography */
+  --color-table-head-text: var(--color-warm-gray);
+  --color-table-body-text: var(--color-anthracite);
+  --color-table-secondary-text: var(--color-warm-gray);
+  --color-table-meta-text: rgba(127, 127, 127, 0.75);
+  --color-table-numeric-text: var(--color-anthracite);
+
+  /* Focus */
+  --color-table-focus-ring: var(--color-rose-gold);
+
+  /* Pagination */
+  --color-table-pagination-text: var(--color-warm-gray);
+  --color-table-pagination-btn-border: rgba(181, 130, 140, 0.20);
+  --color-table-pagination-btn-hover: var(--color-blush);
+
+  /* Skeleton */
+  --color-table-skeleton-base: rgba(242, 237, 232, 0.80);
+  --color-table-skeleton-shimmer: rgba(253, 251, 247, 0.60);
+
+  /* Empty State */
+  --color-table-empty-icon: rgba(181, 130, 140, 0.35);
+  --color-table-empty-title: var(--color-anthracite);
+  --color-table-empty-desc: var(--color-warm-gray);
+
+  /* StatusBadge Colors */
+  --color-status-pending-bg: #FEF3C7;
+  --color-status-pending-text: #92400E;
+  --color-status-pending-border: #FDE68A;
+
+  --color-status-confirmed-bg: #DBEAFE;
+  --color-status-confirmed-text: #1E40AF;
+  --color-status-confirmed-border: #BFDBFE;
+
+  --color-status-processing-bg: #EDE9FE;
+  --color-status-processing-text: #5B21B6;
+  --color-status-processing-border: #DDD6FE;
+
+  --color-status-shipped-bg: #E0F2FE;
+  --color-status-shipped-text: #0369A1;
+  --color-status-shipped-border: #BAE6FD;
+
+  --color-status-delivered-bg: #D1FAE5;
+  --color-status-delivered-text: #065F46;
+  --color-status-delivered-border: #A7F3D0;
+
+  --color-status-cancelled-bg: #FEE2E2;
+  --color-status-cancelled-text: #991B1B;
+  --color-status-cancelled-border: #FECACA;
+
+  --color-status-refunded-bg: #F3F4F6;
+  --color-status-refunded-text: #374151;
+  --color-status-refunded-border: #D1D5DB;
+
+  --color-status-draft-bg: #F3F4F6;
+  --color-status-draft-text: #374151;
+  --color-status-published-bg: #D1FAE5;
+  --color-status-published-text: #065F46;
+  --color-status-hidden-bg: #FEE2E2;
+  --color-status-hidden-text: #991B1B;
+  --color-status-active-bg: #D1FAE5;
+  --color-status-active-text: #065F46;
+  --color-status-inactive-bg: #F3F4F6;
+  --color-status-inactive-text: #6B7280;
+
+  --color-status-approved-bg: #D1FAE5;
+  --color-status-approved-text: #065F46;
+  --color-status-rejected-bg: #FEE2E2;
+  --color-status-rejected-text: #991B1B;
+
+  --color-status-success-bg: #D1FAE5;
+  --color-status-success-text: #065F46;
+  --color-status-warning-bg: #FEF3C7;
+  --color-status-warning-text: #92400E;
+  --color-status-danger-bg: #FEE2E2;
+  --color-status-danger-text: #991B1B;
+  --color-status-info-bg: #EFF6FF;
+  --color-status-info-text: #1E40AF;
+  --color-status-neutral-bg: #F3F4F6;
+  --color-status-neutral-text: #374151;
+
+  --color-status-unread-dot: var(--color-warm-gold);
+  --color-status-read-dot: transparent;
+
+  --color-status-in-stock-text: var(--color-anthracite);
+  --color-status-low-stock-bg: #FEF3C7;
+  --color-status-low-stock-text: #92400E;
+  --color-status-out-stock-bg: #FEE2E2;
+  --color-status-out-stock-text: #991B1B;
+
+  /* ImageCell */
+  --color-image-cell-placeholder-bg: var(--color-blush);
+  --color-image-cell-placeholder-icon: rgba(181, 130, 140, 0.40);
+  --color-image-cell-border: rgba(181, 130, 140, 0.15);
+
+  /* ==========================================================================
+     Luxury Form System Design Tokens — Phase 2.0.3
+     ========================================================================== */
+
+  /* Field Backgrounds */
+  --color-form-bg: var(--color-off-white);
+  --color-form-bg-admin: var(--color-off-white);
+  --color-form-bg-filled: rgba(245, 230, 232, 0.30);  /* blush/30 */
+  --color-form-bg-disabled: rgba(242, 237, 232, 0.40);
+
+  /* Borders */
+  --color-form-border: var(--color-beige);
+  --color-form-border-hover: var(--color-rose-poudre);
+  --color-form-border-focus: var(--color-rose-gold);
+  --color-form-border-error: var(--color-error);
+  --color-form-border-success: var(--color-success);
+  --color-form-border-warning: var(--color-warning);
+
+  /* Text & Indication */
+  --color-form-text: var(--color-text-primary);
+  --color-form-text-placeholder: rgba(127, 127, 127, 0.50);
+  --color-form-text-label: var(--color-text-primary);
+  --color-form-text-helper: var(--color-text-secondary);
+  --color-form-text-error: var(--color-error-text);
+  --color-form-text-success: var(--color-success-text);
+  --color-form-text-warning: var(--color-warning-text);
+
+  /* Switch */
+  --color-form-switch-track: var(--color-beige);
+  --color-form-switch-track-active: var(--color-rose-gold);
+  --color-form-switch-thumb: var(--color-off-white);
+
+  /* Checkbox / Radio */
+  --color-form-check-border: var(--color-beige);
+  --color-form-check-active: var(--color-rose-gold);
+  --color-form-check-mark: var(--color-off-white);
+
+  /* Radius & Shadow */
+  --radius-form-input: 0px;
+  --shadow-form-focus: 0 0 0 3px rgba(181, 130, 140, 0.15);
+
+  /* Spacing */
+  --spacing-form-row-gap: 24px;
+  --spacing-form-field-gap: 12px;
+
+  /* Typography */
+  --font-form-label: var(--font-body);
+  --font-form-input: var(--font-body);
+
+  /* Transitions (0.4s — "Lenteur Luxueuse") */
+  --transition-form-state: border-color 0.4s var(--ease-luxury),
+                            background-color 0.4s var(--ease-luxury),
+                            box-shadow 0.4s var(--ease-luxury),
+                            color 0.4s var(--ease-luxury);
 }
 
 :root {
@@ -859,3 +1029,69 @@ html {
   animation: shimmer 1.8s ease infinite;
 }
 
+/* ==========================================================================
+   Luxury Form System — Phase 2.0.3
+   ========================================================================== */
+
+/* Error / Success feedback — fade-in from top (6px) */
+@keyframes form-feedback-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-form-error {
+  animation: form-feedback-slide 0.4s var(--ease-luxury) forwards;
+}
+
+.animate-form-success {
+  animation: form-feedback-slide 0.4s var(--ease-luxury) forwards;
+}
+
+/* Unified field transition (border + bg + shadow + color — 0.4s "Lenteur Luxueuse") */
+.form-field-transition {
+  transition: var(--transition-form-state);
+}
+
+/* Focus ring — Rose Gold soft glow */
+.form-focus-ring:focus {
+  box-shadow: var(--shadow-form-focus);
+  outline: none;
+}
+
+.form-focus-ring:focus-visible {
+  box-shadow: var(--shadow-form-focus);
+  outline: 1px solid var(--color-form-border-focus);
+  outline-offset: 2px;
+}
+
+/* Switch track */
+.form-switch-track {
+  transition: background-color 0.4s var(--ease-luxury);
+}
+
+/* Checkbox checkmark scale-in */
+@keyframes form-check-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.animate-form-check {
+  animation: form-check-pop 0.25s var(--ease-luxury) forwards;
+}
+
+/* Drag-over highlight for UploadField (Phase 2.0.4) */
+@keyframes form-drop-pulse {
+  0%, 100% { border-color: var(--color-form-border-focus); }
+  50%       { border-color: var(--color-rose-poudre); }
+}
+
+.form-drop-active {
+  animation: form-drop-pulse 1s var(--ease-luxury) infinite;
+  background-color: rgba(181, 130, 140, 0.05);
+}

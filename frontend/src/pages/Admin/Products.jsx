@@ -19,6 +19,7 @@ import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
+import Table from '../../components/ui/Table';
 
 export default function Products() {
   const queryClient = useQueryClient();
@@ -63,7 +64,7 @@ export default function Products() {
   });
 
   // Charger les produits avec filtres
-  const { data: productsData, isLoading, error } = useQuery({
+  const { data: productsData, isLoading, error, isFetching } = useQuery({
     queryKey: ['adminProducts', page, search, categoryFilter, featuredFilter],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -315,173 +316,131 @@ export default function Products() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* Title & Add Button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Produits</h2>
-          <p className="text-sm text-luxury-gray">Gérez l'ensemble des articles en vente sur Hafrose.</p>
-        </div>
-        <Button
-          onClick={() => openModal()}
-          variant="primary"
-          icon={<FiPlus className="w-4 h-4" />}
-        >
-          Ajouter un Produit
-        </Button>
+      {/* Title */}
+      <div>
+        <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Produits</h2>
+        <p className="text-sm text-luxury-gray">Gérez l'ensemble des articles en vente sur Hafrose.</p>
       </div>
 
-      {/* Filters & Search Row — Card variant="flat" comme panneau de filtres */}
-      <Card variant="flat" size="sm" animate={false}>
-        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
-          
-          {/* Search */}
-          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-            <FiSearch className="text-luxury-gray" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Rechercher par nom, marque..."
-              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="flex items-center gap-2">
-            <FiFilter className="text-luxury-gold w-4 h-4" />
-            <select
-              value={categoryFilter}
-              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-              className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-            >
-              <option value="">Toutes les catégories</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Featured Filter */}
-          <select
+      {/* Products Table System */}
+      <Table aria-label="Liste des produits" variant="admin" density="comfortable" resetPage={() => setPage(1)}>
+        <Table.Toolbar>
+          <Table.Search
+            value={search}
+            onChange={(val) => { setSearch(val); setPage(1); }}
+            placeholder="Rechercher par nom, marque..."
+          />
+          <Table.Filter
+            label="Catégorie"
+            options={categories.map(c => ({ value: c.id, label: c.name }))}
+            value={categoryFilter}
+            onChange={(val) => { setCategoryFilter(val); setPage(1); }}
+            allLabel="Toutes les catégories"
+          />
+          <Table.Filter
+            label="Vedette"
+            options={[
+              { value: 'true', label: 'Vedettes uniquement' }
+            ]}
             value={featuredFilter}
-            onChange={(e) => { setFeaturedFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-          >
-            <option value="">Tous les produits</option>
-            <option value="true">Vedettes uniquement</option>
-          </select>
+            onChange={(val) => { setFeaturedFilter(val); setPage(1); }}
+            allLabel="Tous les produits"
+          />
+          <Table.Actions>
+            <Button
+              onClick={() => openModal()}
+              variant="primary"
+              size="sm"
+              icon={<FiPlus className="w-4 h-4" />}
+            >
+              Ajouter
+            </Button>
+          </Table.Actions>
+          <Table.ResultCount count={meta.total} label="produit(s)" />
+        </Table.Toolbar>
 
-          <div className="ml-auto text-xs text-luxury-gray font-semibold">
-            {meta.total} produit(s) trouvé(s)
-          </div>
-        </Card.Content>
-      </Card>
+        <Table.Container>
+          <Table.Head>
+            <Table.HeadRow>
+              <Table.HeadCell width="w-20" hideBelow="sm">Image</Table.HeadCell>
+              <Table.HeadCell>Nom / Catégorie</Table.HeadCell>
+              <Table.HeadCell align="right">Prix</Table.HeadCell>
+              <Table.HeadCell align="center" hideBelow="md">Stock</Table.HeadCell>
+              <Table.HeadCell hideBelow="lg">Marque</Table.HeadCell>
+              <Table.HeadCell align="center" hideBelow="sm">Vedette</Table.HeadCell>
+              <Table.HeadCell align="right">Actions</Table.HeadCell>
+            </Table.HeadRow>
+          </Table.Head>
 
-      {/* Products Table — Card variant="admin" comme panneau contenant le tableau */}
-      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
-                <th className="px-6 py-4 w-20">Image</th>
-                <th className="px-6 py-4">Nom / Catégorie</th>
-                <th className="px-6 py-4">Prix</th>
-                <th className="px-6 py-4">Stock</th>
-                <th className="px-6 py-4">Marque / Modèle</th>
-                <th className="px-6 py-4">Vedette</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productsList.map((product) => (
-                <tr key={product.id} className="border-b border-luxury-light-gray last:border-b-0 hover:bg-luxury-light-gray/20 transition-all duration-200">
-                  <td className="px-6 py-4">
-                    {product.image ? (
-                      <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        className="w-12 h-12 rounded object-cover border border-luxury-gold/10"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-luxury-light-gray flex items-center justify-center text-luxury-gray rounded border border-dashed border-luxury-gray/30">
-                        <FiImage className="w-5 h-5" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-luxury-charcoal">{product.name}</div>
-                    <div className="text-xs text-luxury-gray">{product.category?.name || 'Sans catégorie'}</div>
-                  </td>
-                  <td className="px-6 py-4 font-medium text-luxury-charcoal">
-                    {parseFloat(product.price).toFixed(2)} €
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`font-semibold ${product.stock <= 2 ? 'text-red-500' : 'text-luxury-charcoal'}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-luxury-gray">
-                    {product.brand || '-'} <span className="text-xs block">{product.material || '-'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {product.is_featured ? (
-                      <FiStar className="w-5 h-5 fill-luxury-gold text-luxury-gold" />
-                    ) : (
-                      <span className="text-luxury-light-gray">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <AdminActionButton
-                        action="edit"
-                        onClick={() => openModal(product)}
-                        title="Modifier"
-                      />
-                      <AdminActionButton
-                        action="delete"
-                        onClick={() => handleDelete(product)}
-                        title="Supprimer"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {productsList.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="text-center py-10 text-luxury-gray">
-                    Aucun produit trouvé.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+          <Table.Body loading={isLoading} skeletonRows={8} skeletonColumns={7} isFetching={isFetching}>
+            {productsList.map((product) => (
+              <Table.Row key={product.id}>
+                <Table.Cell hideBelow="sm">
+                  <Table.ImageCell src={product.image} alt={product.name} size="md" />
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.PrimaryText>{product.name}</Table.PrimaryText>
+                  <Table.SecondaryText>{product.category?.name || 'Sans catégorie'}</Table.SecondaryText>
+                </Table.Cell>
+                <Table.Cell align="right" numeric>
+                  {parseFloat(product.price).toFixed(2)} €
+                </Table.Cell>
+                <Table.Cell align="center" hideBelow="md">
+                  <Table.StockIndicator value={product.stock} threshold={2} />
+                </Table.Cell>
+                <Table.Cell hideBelow="lg" truncate>
+                  {product.brand || '-'}
+                  <Table.SecondaryText>{product.material || '-'}</Table.SecondaryText>
+                </Table.Cell>
+                <Table.Cell align="center" hideBelow="sm">
+                  {product.is_featured ? (
+                    <FiStar className="w-4 h-4 fill-luxury-gold text-luxury-gold mx-auto" aria-label="Vedette" />
+                  ) : (
+                    <span className="text-luxury-light-gray" aria-label="Non vedette">—</span>
+                  )}
+                </Table.Cell>
+                <Table.Cell align="right">
+                  <Table.RowActions>
+                    <AdminActionButton
+                      action="edit"
+                      onClick={() => openModal(product)}
+                      title="Modifier"
+                    />
+                    <AdminActionButton
+                      action="delete"
+                      onClick={() => handleDelete(product)}
+                      title="Supprimer"
+                    />
+                  </Table.RowActions>
+                </Table.Cell>
+              </Table.Row>
+            ))}
 
-        {/* Pagination footer */}
-        {meta.last_page > 1 && (
-          <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center">
-            <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setPage(p => Math.max(p - 1, 1))}
-                disabled={page === 1}
-                variant="secondary"
-                size="sm"
-              >
-                Précédent
-              </Button>
-              <Button
-                onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
-                disabled={page === meta.last_page}
-                variant="secondary"
-                size="sm"
-              >
-                Suivant
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+            <Table.Empty
+              visible={productsList.length === 0 && !isLoading}
+              colSpan={7}
+              icon={<FiBox />}
+              title="Aucun produit trouvé"
+              description="Modifiez vos critères de recherche ou ajoutez un nouveau produit."
+              action={
+                <Button variant="primary" size="sm" onClick={() => openModal()}>
+                  Ajouter un produit
+                </Button>
+              }
+            />
+          </Table.Body>
+        </Table.Container>
+
+        <Table.Footer>
+          <Table.Pagination
+            currentPage={meta.current_page}
+            lastPage={meta.last_page}
+            total={meta.total}
+            onPrev={() => setPage(p => Math.max(p - 1, 1))}
+            onNext={() => setPage(p => Math.min(p + 1, meta.last_page))}
+          />
+        </Table.Footer>
+      </Table>
 
       {/* Modal - Create/Edit Product — Card variant="admin" */}
       <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="xl">

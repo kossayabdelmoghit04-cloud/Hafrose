@@ -13,6 +13,7 @@ import {
   FiCalendar
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import Table from '../../components/ui/Table';
 
 export default function Dashboard() {
   // Récupérer toutes les données du tableau de bord
@@ -244,43 +245,42 @@ export default function Dashboard() {
             </Link>
           </Card.Header>
           <Card.Body className="!p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead>
-                  <tr className="border-b border-luxury-light-gray text-xs text-luxury-gray uppercase tracking-wider">
-                    <th className="py-3 px-5">Client</th>
-                    <th className="py-3 px-5">Ville</th>
-                    <th className="py-3 px-5">Montant</th>
-                    <th className="py-3 px-5">Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <Table aria-label="Dernières commandes" variant="dashboard" density="comfortable">
+              <Table.Container>
+                <Table.Head>
+                  <Table.HeadRow>
+                    <Table.HeadCell>Client</Table.HeadCell>
+                    <Table.HeadCell hideBelow="lg">Ville</Table.HeadCell>
+                    <Table.HeadCell align="right">Montant</Table.HeadCell>
+                    <Table.HeadCell>Statut</Table.HeadCell>
+                  </Table.HeadRow>
+                </Table.Head>
+                <Table.Body>
                   {latest_orders.map((order) => (
-                    <tr key={order.id} className="border-b border-luxury-light-gray last:border-0 hover:bg-luxury-light-gray/20 transition-all duration-200">
-                      <td className="py-3 px-5 font-semibold">{order.customer_name}</td>
-                      <td className="py-3 px-5 text-luxury-gray">{order.city}</td>
-                      <td className="py-3 px-5 font-medium text-luxury-charcoal">{parseFloat(order.total_price).toFixed(2)} €</td>
-                      <td className="py-3 px-5">
-                        <span className={`text-[10px] px-2 py-1 rounded font-semibold uppercase tracking-wider ${
-                          order.status === 'En attente' ? 'bg-amber-100 text-amber-700' :
-                          order.status === 'Confirmée' ? 'bg-blue-100 text-blue-700' :
-                          order.status === 'Expédiée' ? 'bg-sky-100 text-sky-700' :
-                          order.status === 'Livrée' ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
+                    <Table.Row key={order.id}>
+                      <Table.Cell>
+                        <Table.PrimaryText>{order.customer_name}</Table.PrimaryText>
+                      </Table.Cell>
+                      <Table.Cell hideBelow="lg">
+                        {order.city}
+                      </Table.Cell>
+                      <Table.Cell align="right" numeric>
+                        {parseFloat(order.total_price).toFixed(2)} €
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Table.StatusBadge status={order.status} />
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
-                  {latest_orders.length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="text-center py-6 text-luxury-gray">Aucune commande récente.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  <Table.Empty
+                    visible={latest_orders.length === 0}
+                    colSpan={4}
+                    icon={<FiShoppingCart />}
+                    title="Aucune commande récente"
+                  />
+                </Table.Body>
+              </Table.Container>
+            </Table>
           </Card.Body>
         </Card>
 

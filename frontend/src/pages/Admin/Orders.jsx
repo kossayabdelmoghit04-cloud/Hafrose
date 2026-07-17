@@ -19,6 +19,7 @@ import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
+import Table from '../../components/ui/Table';
 
 export default function Orders() {
   const queryClient = useQueryClient();
@@ -34,7 +35,7 @@ export default function Orders() {
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
 
   // Charger les commandes
-  const { data: ordersData, isLoading, error } = useQuery({
+  const { data: ordersData, isLoading, error, isFetching } = useQuery({
     queryKey: ['adminOrders', page, search, statusFilter, dateFilter],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -138,148 +139,100 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* Filter Row — Card variant="flat" comme panneau de filtres */}
-      <Card variant="flat" size="sm" animate={false} className="print:hidden">
-        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
-          
-          {/* Search */}
-          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-            <FiSearch className="text-luxury-gray" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Rechercher par n° de commande, client..."
-              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <select
+      {/* Orders Table System */}
+      <Table aria-label="Liste des commandes" variant="admin" density="comfortable" resetPage={() => setPage(1)} className="print:hidden">
+        <Table.Toolbar>
+          <Table.Search
+            value={search}
+            onChange={(val) => { setSearch(val); setPage(1); }}
+            placeholder="Rechercher par n° de commande, client..."
+          />
+          <Table.Filter
+            label="Statut"
+            options={statuses.map(s => ({ value: s, label: s }))}
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-          >
-            <option value="">Tous les statuts</option>
-            {statuses.map(s => (
-              <option key={s} value={s}>{s}</option>
+            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+            allLabel="Tous les statuts"
+          />
+          <Table.DateFilter
+            label="Date"
+            value={dateFilter}
+            onChange={(val) => { setDateFilter(val); setPage(1); }}
+          />
+          <Table.ResultCount count={meta.total} label="commande(s)" />
+        </Table.Toolbar>
+
+        <Table.Container>
+          <Table.Head>
+            <Table.HeadRow>
+              <Table.HeadCell>Commande</Table.HeadCell>
+              <Table.HeadCell>Client</Table.HeadCell>
+              <Table.HeadCell hideBelow="sm">Date</Table.HeadCell>
+              <Table.HeadCell hideBelow="lg">Ville</Table.HeadCell>
+              <Table.HeadCell align="right">Montant</Table.HeadCell>
+              <Table.HeadCell>Statut</Table.HeadCell>
+              <Table.HeadCell align="right">Actions</Table.HeadCell>
+            </Table.HeadRow>
+          </Table.Head>
+
+          <Table.Body loading={isLoading} skeletonRows={10} skeletonColumns={7} isFetching={isFetching}>
+            {ordersList.map((order) => (
+              <Table.Row key={order.id}>
+                <Table.Cell className="font-mono text-xs font-semibold">N° {order.id}</Table.Cell>
+                <Table.Cell>
+                  <Table.PrimaryText>{order.customer_name}</Table.PrimaryText>
+                </Table.Cell>
+                <Table.Cell hideBelow="sm" className="text-luxury-gray">
+                  {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                  })}
+                </Table.Cell>
+                <Table.Cell hideBelow="lg" className="text-luxury-gray">{order.city}</Table.Cell>
+                <Table.Cell align="right" numeric>
+                  {parseFloat(order.total_price).toFixed(2)} €
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.StatusBadge status={order.status} />
+                </Table.Cell>
+                <Table.Cell align="right">
+                  <Table.RowActions>
+                    <AdminActionButton
+                      action="view"
+                      onClick={() => openDetails(order)}
+                      title="Consulter"
+                    />
+                    <AdminActionButton
+                      action="download"
+                      onClick={() => downloadInvoice(order.id)}
+                      loading={downloadingPdfId === order.id}
+                      title="Télécharger la facture PDF"
+                    />
+                  </Table.RowActions>
+                </Table.Cell>
+              </Table.Row>
             ))}
-          </select>
 
-          {/* Date Filter */}
-          <div className="flex items-center gap-2">
-            <FiCalendar className="text-luxury-gold" />
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
-              className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
+            <Table.Empty
+              visible={ordersList.length === 0 && !isLoading}
+              colSpan={7}
+              icon={<FiShoppingCart />}
+              title="Aucune commande trouvée"
+              description="Les commandes des clients apparaîtront ici."
             />
-          </div>
+          </Table.Body>
+        </Table.Container>
 
-          <div className="ml-auto text-xs text-luxury-gray font-semibold">
-            {meta.total} commande(s) trouvée(s)
-          </div>
-        </Card.Content>
-      </Card>
-
-      {/* Orders Table — Card variant="admin" comme panneau contenant le tableau */}
-      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden print:hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
-                <th className="px-6 py-4">Commande</th>
-                <th className="px-6 py-4">Client</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Ville</th>
-                <th className="px-6 py-4">Montant</th>
-                <th className="px-6 py-4">Statut</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ordersList.map((order) => (
-                <tr key={order.id} className="border-b border-luxury-light-gray last:border-b-0 hover:bg-luxury-light-gray/20 transition-all duration-200">
-                  <td className="px-6 py-4 font-mono text-xs font-semibold">N° {order.id}</td>
-                  <td className="px-6 py-4 font-semibold text-luxury-charcoal">{order.customer_name}</td>
-                  <td className="px-6 py-4 text-luxury-gray">
-                    {new Date(order.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                  <td className="px-6 py-4 text-luxury-gray">{order.city}</td>
-                  <td className="px-6 py-4 font-semibold text-luxury-charcoal">
-                    {parseFloat(order.total_price).toFixed(2)} €
-                  </td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                      className={`text-xs px-2 py-1 rounded font-bold uppercase cursor-pointer outline-none border border-transparent focus:border-luxury-gold ${
-                        order.status === 'En attente' ? 'bg-amber-100 text-amber-700' :
-                        order.status === 'Confirmée' ? 'bg-blue-100 text-blue-700' :
-                        order.status === 'Expédiée' ? 'bg-sky-100 text-sky-700' :
-                        order.status === 'Livrée' ? 'bg-emerald-100 text-emerald-700' :
-                        'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {statuses.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <AdminActionButton
-                        action="view"
-                        onClick={() => openDetails(order)}
-                        title="Consulter"
-                      />
-                      <AdminActionButton
-                        action="download"
-                        onClick={() => downloadInvoice(order.id)}
-                        loading={downloadingPdfId === order.id}
-                        title="Télécharger la facture PDF"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {ordersList.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="text-center py-10 text-luxury-gray">
-                    Aucune commande trouvée.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination footer */}
-        {meta.last_page > 1 && (
-          <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center print:hidden">
-            <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setPage(p => Math.max(p - 1, 1))}
-                disabled={page === 1}
-                variant="secondary"
-                size="sm"
-              >
-                Précédent
-              </Button>
-              <Button
-                onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
-                disabled={page === meta.last_page}
-                variant="secondary"
-                size="sm"
-              >
-                Suivant
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+        <Table.Footer>
+          <Table.Pagination
+            currentPage={meta.current_page}
+            lastPage={meta.last_page}
+            total={meta.total}
+            onPrev={() => setPage(p => Math.max(p - 1, 1))}
+            onNext={() => setPage(p => Math.min(p + 1, meta.last_page))}
+          />
+        </Table.Footer>
+      </Table>
 
       {/* Modal - Order Details — Card variant="confirmation" */}
       <Modal isOpen={isDetailOpen} onClose={closeDetails} variant="confirmation" size="xl">
@@ -333,56 +286,64 @@ export default function Orders() {
                 </Card>
               </div>
 
-              {/* Ordered Items — Card variant="admin" comme panneau du tableau */}
-              <Card variant="admin" size="sm" animate={false} className="!p-0 print:shadow-none">
-                <table className="w-full text-sm text-left">
-                  <thead>
-                    <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
-                      <th className="px-4 py-3">Produit</th>
-                      <th className="px-4 py-3 text-right">Prix</th>
-                      <th className="px-4 py-3 text-center">Qté</th>
-                      <th className="px-4 py-3 text-right">Sous-total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              {/* Ordered Items Table */}
+              <Table aria-label="Articles de la commande" variant="modal" density="compact" className="print:shadow-none">
+                <Table.Container>
+                  <Table.Head>
+                    <Table.HeadRow>
+                      <Table.HeadCell>Produit</Table.HeadCell>
+                      <Table.HeadCell align="right">Prix</Table.HeadCell>
+                      <Table.HeadCell align="center">Qté</Table.HeadCell>
+                      <Table.HeadCell align="right">Sous-total</Table.HeadCell>
+                    </Table.HeadRow>
+                  </Table.Head>
+                  <Table.Body>
                     {selectedOrder.order_items?.map((item) => (
-                      <tr key={item.id} className="border-b border-luxury-light-gray last:border-b-0">
-                        <td className="px-4 py-3 font-semibold text-luxury-charcoal">
-                          {item.product?.name || 'Produit supprimé'}
-                        </td>
-                        <td className="px-4 py-3 text-right text-luxury-gray">
+                      <Table.Row key={item.id} hoverable={false}>
+                        <Table.Cell>
+                          <Table.PrimaryText>{item.product?.name || 'Produit supprimé'}</Table.PrimaryText>
+                        </Table.Cell>
+                        <Table.Cell align="right" numeric>
                           {parseFloat(item.unit_price).toFixed(2)} €
-                        </td>
-                        <td className="px-4 py-3 text-center text-luxury-charcoal">
+                        </Table.Cell>
+                        <Table.Cell align="center">
                           {item.quantity}
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-luxury-charcoal">
+                        </Table.Cell>
+                        <Table.Cell align="right" numeric className="font-semibold">
                           {parseFloat(item.subtotal).toFixed(2)} €
-                        </td>
-                      </tr>
+                        </Table.Cell>
+                      </Table.Row>
                     ))}
-                  </tbody>
-                </table>
-              </Card>
+                  </Table.Body>
+                </Table.Container>
+              </Table>
 
               {/* Calculations Block */}
               <div className="flex justify-end">
-                <table className="w-64 text-sm">
-                  <tbody>
-                    <tr>
-                      <td className="py-2 text-luxury-gray font-semibold text-right">Sous-total HT :</td>
-                      <td className="py-2 text-right font-medium">{(selectedOrder.total_price / 1.20).toFixed(2)} €</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 text-luxury-gray font-semibold text-right">TVA (20%) :</td>
-                      <td className="py-2 text-right font-medium">{(selectedOrder.total_price - (selectedOrder.total_price / 1.20)).toFixed(2)} €</td>
-                    </tr>
-                    <tr className="border-t border-luxury-gold/30 font-bold text-base">
-                      <td className="py-3 text-luxury-charcoal text-right">Total TTC :</td>
-                      <td className="py-3 text-right text-luxury-gold">{parseFloat(selectedOrder.total_price).toFixed(2)} €</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <Table aria-label="Récapitulatif financier" variant="summary" density="compact" className="w-64">
+                  <Table.Container>
+                    <Table.Body>
+                      <Table.Row hoverable={false}>
+                        <Table.Cell className="text-luxury-gray font-semibold" align="right">Sous-total HT :</Table.Cell>
+                        <Table.Cell align="right" numeric className="font-medium">
+                          {(selectedOrder.total_price / 1.20).toFixed(2)} €
+                        </Table.Cell>
+                      </Table.Row>
+                      <Table.Row hoverable={false}>
+                        <Table.Cell className="text-luxury-gray font-semibold" align="right">TVA (20%) :</Table.Cell>
+                        <Table.Cell align="right" numeric className="font-medium">
+                          {(selectedOrder.total_price - (selectedOrder.total_price / 1.20)).toFixed(2)} €
+                        </Table.Cell>
+                      </Table.Row>
+                      <Table.Row hoverable={false} className="border-t border-luxury-gold/30 font-bold text-base">
+                        <Table.Cell className="text-luxury-charcoal" align="right">Total TTC :</Table.Cell>
+                        <Table.Cell align="right" numeric className="text-luxury-gold font-bold">
+                          {parseFloat(selectedOrder.total_price).toFixed(2)} €
+                        </Table.Cell>
+                      </Table.Row>
+                    </Table.Body>
+                  </Table.Container>
+                </Table>
               </div>
 
           </Modal.Body>

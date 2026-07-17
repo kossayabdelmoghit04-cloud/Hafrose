@@ -17,9 +17,11 @@ import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
+import Table from '../../components/ui/Table';
 
 export default function Categories() {
   const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
@@ -187,10 +189,13 @@ export default function Categories() {
     });
   };
 
+  const perPage = 10;
   const filteredCategories = categories.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.slug.toLowerCase().includes(search.toLowerCase())
   );
+  const paginatedCategories = filteredCategories.slice((page - 1) * perPage, page * perPage);
+  const lastPage = Math.ceil(filteredCategories.length / perPage) || 1;
 
   if (isLoading) return <Loader fullPage />;
   if (error) return (
@@ -201,94 +206,101 @@ export default function Categories() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* Page Title & Add Button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Catégories</h2>
-          <p className="text-sm text-luxury-gray">Organisez et gérez le catalogue de produits Hafrose.</p>
-        </div>
-        <Button
-          onClick={() => openModal()}
-          variant="primary"
-          icon={<FiPlus className="w-4 h-4" />}
-        >
-          Ajouter
-        </Button>
+      {/* Page Title */}
+      <div>
+        <h2 className="text-3xl font-serif text-luxury-charcoal">Gestion des Catégories</h2>
+        <p className="text-sm text-luxury-gray">Organisez et gérez le catalogue de produits Hafrose.</p>
       </div>
 
-      {/* Search Bar — Card variant="flat" */}
-      <Card variant="flat" size="xs" animate={false} className="max-w-md">
-        <Card.Content className="flex-row items-center gap-3 py-2 px-4">
-          <FiSearch className="text-luxury-gray shrink-0" />
-          <input
-            type="text"
+      {/* Categories Table System */}
+      <Table aria-label="Liste des catégories" variant="admin" density="comfortable" resetPage={() => setPage(1)}>
+        <Table.Toolbar>
+          <Table.Search
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(val) => { setSearch(val); setPage(1); }}
             placeholder="Rechercher une catégorie par nom ou slug..."
-            className="w-full bg-transparent border-none outline-none text-sm text-luxury-charcoal"
           />
-        </Card.Content>
-      </Card>
+          <Table.Actions>
+            <Button
+              onClick={() => openModal()}
+              variant="primary"
+              size="sm"
+              icon={<FiPlus className="w-4 h-4" />}
+            >
+              Ajouter
+            </Button>
+          </Table.Actions>
+          <Table.ResultCount count={filteredCategories.length} label="catégorie(s)" />
+        </Table.Toolbar>
 
-      {/* Categories Table — Card variant="admin" comme panneau contenant le tableau */}
-      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
-                <th className="px-6 py-4 w-24">Image</th>
-                <th className="px-6 py-4">Nom</th>
-                <th className="px-6 py-4">Slug</th>
-                <th className="px-6 py-4">Description</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategories.map((category) => (
-                <tr key={category.id} className="border-b border-luxury-light-gray last:border-b-0 hover:bg-luxury-light-gray/20 transition-all duration-200">
-                  <td className="px-6 py-4">
-                    {category.image ? (
-                      <img 
-                        src={category.image} 
-                        alt={category.name} 
-                        className="w-12 h-12 rounded object-cover border border-luxury-gold/10"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-luxury-light-gray flex items-center justify-center text-luxury-gray rounded border border-dashed border-luxury-gray/30">
-                        <FiImage className="w-5 h-5" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-luxury-charcoal">{category.name}</td>
-                  <td className="px-6 py-4 text-luxury-gray font-mono text-xs">{category.slug}</td>
-                  <td className="px-6 py-4 text-luxury-gray max-w-xs truncate">{category.description || '-'}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <AdminActionButton
-                        action="edit"
-                        onClick={() => openModal(category)}
-                        title="Modifier"
-                      />
-                      <AdminActionButton
-                        action="delete"
-                        onClick={() => handleDelete(category)}
-                        title="Supprimer"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredCategories.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-10 text-luxury-gray">
-                    Aucune catégorie trouvée.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+        <Table.Container>
+          <Table.Head>
+            <Table.HeadRow>
+              <Table.HeadCell width="w-24">Image</Table.HeadCell>
+              <Table.HeadCell>Nom</Table.HeadCell>
+              <Table.HeadCell>Slug</Table.HeadCell>
+              <Table.HeadCell hideBelow="md">Description</Table.HeadCell>
+              <Table.HeadCell align="right">Actions</Table.HeadCell>
+            </Table.HeadRow>
+          </Table.Head>
+
+          <Table.Body loading={isLoading} skeletonRows={5} skeletonColumns={5}>
+            {paginatedCategories.map((category) => (
+              <Table.Row key={category.id}>
+                <Table.Cell>
+                  <Table.ImageCell src={category.image} alt={category.name} size="md" rounded />
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.PrimaryText>{category.name}</Table.PrimaryText>
+                </Table.Cell>
+                <Table.Cell>
+                  <span className="font-mono text-xs text-luxury-gray">{category.slug}</span>
+                </Table.Cell>
+                <Table.Cell hideBelow="md" truncate>
+                  {category.description || '-'}
+                </Table.Cell>
+                <Table.Cell align="right">
+                  <Table.RowActions>
+                    <AdminActionButton
+                      action="edit"
+                      onClick={() => openModal(category)}
+                      title="Modifier"
+                    />
+                    <AdminActionButton
+                      action="delete"
+                      onClick={() => handleDelete(category)}
+                      title="Supprimer"
+                    />
+                  </Table.RowActions>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+
+            <Table.Empty
+              visible={filteredCategories.length === 0 && !isLoading}
+              colSpan={5}
+              icon={<FiInbox />}
+              title="Aucune catégorie trouvée"
+              description="Modifiez vos critères de recherche ou ajoutez une nouvelle catégorie."
+              action={
+                <Button variant="primary" size="sm" onClick={() => openModal()}>
+                  Ajouter une catégorie
+                </Button>
+              }
+            />
+          </Table.Body>
+        </Table.Container>
+
+        <Table.Footer>
+          <Table.Pagination
+            currentPage={page}
+            lastPage={lastPage}
+            total={filteredCategories.length}
+            onPrev={() => setPage(p => Math.max(p - 1, 1))}
+            onNext={() => setPage(p => Math.min(p + 1, lastPage))}
+          />
+        </Table.Footer>
+      </Table>
 
       {/* Modal - Create/Edit Category — Card variant="admin" */}
       <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="lg">

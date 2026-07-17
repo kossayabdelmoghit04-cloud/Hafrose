@@ -16,6 +16,7 @@ import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
+import Table from '../../components/ui/Table';
 
 
 export default function Contacts() {
@@ -122,128 +123,98 @@ export default function Contacts() {
         <p className="text-sm text-luxury-gray">Consultez et répondez aux messages laissés par les utilisateurs.</p>
       </div>
 
-      {/* Filter Row — Card variant="flat" comme panneau de filtres */}
-      <Card variant="flat" size="sm" animate={false}>
-        <Card.Content className="flex-wrap flex-row gap-4 items-center py-3 px-4">
-          
-          {/* Search */}
-          <div className="flex bg-luxury-light-gray/40 items-center gap-3 px-3 py-2 rounded border border-luxury-gold/10 w-full sm:max-w-xs">
-            <FiSearch className="text-luxury-gray" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Rechercher par nom, email, sujet..."
-              className="bg-transparent border-none outline-none text-sm text-luxury-charcoal w-full"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <select
+      {/* Messages Table System */}
+      <Table aria-label="Messages de contact" variant="admin" density="comfortable" resetPage={() => setPage(1)}>
+        <Table.Toolbar>
+          <Table.Search
+            value={search}
+            onChange={(val) => { setSearch(val); setPage(1); }}
+            placeholder="Rechercher par nom, email, sujet..."
+          />
+          <Table.Filter
+            label="Statut"
+            options={[
+              { value: '0', label: 'Non lus' },
+              { value: '1', label: 'Lus' }
+            ]}
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer"
-          >
-            <option value="">Tous les messages</option>
-            <option value="0">Non lus</option>
-            <option value="1">Lus</option>
-          </select>
+            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+            allLabel="Tous les messages"
+          />
+          <Table.ResultCount count={meta.total} label="message(s)" />
+        </Table.Toolbar>
 
-          <div className="ml-auto text-xs text-luxury-gray font-semibold">
-            {meta.total} message(s) trouvé(s)
-          </div>
-        </Card.Content>
-      </Card>
+        <Table.Container>
+          <Table.Head>
+            <Table.HeadRow>
+              <Table.HeadCell width="w-12">État</Table.HeadCell>
+              <Table.HeadCell>Expéditeur</Table.HeadCell>
+              <Table.HeadCell>Sujet</Table.HeadCell>
+              <Table.HeadCell hideBelow="md">Date</Table.HeadCell>
+              <Table.HeadCell align="right">Actions</Table.HeadCell>
+            </Table.HeadRow>
+          </Table.Head>
 
-      {/* Messages List / Table — Card variant="admin" comme panneau contenant le tableau */}
-      <Card variant="admin" size="md" animate={false} className="!p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="bg-luxury-light-gray/40 border-b border-luxury-gold/10 text-xs text-luxury-gray uppercase tracking-wider">
-                <th className="px-6 py-4 w-12">État</th>
-                <th className="px-6 py-4">Expéditeur</th>
-                <th className="px-6 py-4">Sujet</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contactsList.map((msg) => (
-                <tr 
-                  key={msg.id} 
-                  className={`border-b border-luxury-light-gray last:border-b-0 hover:bg-luxury-light-gray/25 transition-all duration-200 cursor-pointer ${
-                    !msg.is_read ? 'bg-luxury-gold/5 font-semibold text-luxury-charcoal' : 'text-luxury-gray'
-                  }`}
-                  onClick={() => openDetails(msg)}
-                >
-                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                    {!msg.is_read ? (
-                      <span className="w-2.5 h-2.5 bg-luxury-gold rounded-full block" title="Non lu"></span>
-                    ) : (
-                      <span className="w-2.5 h-2.5 bg-transparent rounded-full block"></span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-luxury-charcoal">{msg.name}</div>
-                    <div className="text-xs font-normal text-luxury-gray">{msg.email}</div>
-                  </td>
-                  <td className="px-6 py-4 truncate max-w-xs">{msg.subject}</td>
-                  <td className="px-6 py-4 font-normal text-xs">
-                    {new Date(msg.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                  <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-end gap-2">
-                      <AdminActionButton
-                        action="view"
-                        onClick={() => openDetails(msg)}
-                        title="Consulter"
-                      />
-                      <AdminActionButton
-                        action="delete"
-                        onClick={() => handleDelete(msg)}
-                        title="Supprimer"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {contactsList.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-10 text-luxury-gray">
-                    Aucun message reçu.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination footer */}
-        {meta.last_page > 1 && (
-          <div className="px-6 py-4 border-t border-luxury-gold/10 flex justify-between items-center">
-            <span className="text-xs text-luxury-gray">Page {meta.current_page} sur {meta.last_page}</span>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setPage(p => Math.max(p - 1, 1))}
-                disabled={page === 1}
-                variant="secondary"
-                size="sm"
+          <Table.Body loading={isLoading} skeletonRows={10} skeletonColumns={5}>
+            {contactsList.map((msg) => (
+              <Table.Row
+                key={msg.id}
+                clickable
+                onClick={() => openDetails(msg)}
+                selected={selectedMessage?.id === msg.id}
+                className={!msg.is_read ? 'bg-luxury-gold/5 font-semibold text-luxury-charcoal' : 'text-luxury-gray'}
               >
-                Précédent
-              </Button>
-              <Button
-                onClick={() => setPage(p => Math.min(p + 1, meta.last_page))}
-                disabled={page === meta.last_page}
-                variant="secondary"
-                size="sm"
-              >
-                Suivant
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
+                <Table.Cell onClick={(e) => e.stopPropagation()}>
+                  <Table.StatusBadge status={msg.is_read ? 'read' : 'unread'} dot />
+                </Table.Cell>
+                <Table.Cell>
+                  <Table.PrimaryText>{msg.name}</Table.PrimaryText>
+                  <Table.SecondaryText>{msg.email}</Table.SecondaryText>
+                </Table.Cell>
+                <Table.Cell truncate>{msg.subject}</Table.Cell>
+                <Table.Cell hideBelow="md" numeric>
+                  {new Date(msg.created_at).toLocaleDateString('fr-FR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                  })}
+                </Table.Cell>
+                <Table.Cell align="right" onClick={(e) => e.stopPropagation()}>
+                  <Table.RowActions>
+                    <AdminActionButton
+                      action="view"
+                      onClick={() => openDetails(msg)}
+                      title="Consulter"
+                    />
+                    <AdminActionButton
+                      action="delete"
+                      onClick={() => handleDelete(msg)}
+                      title="Supprimer"
+                    />
+                  </Table.RowActions>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+
+            <Table.Empty
+              visible={contactsList.length === 0 && !isLoading}
+              colSpan={5}
+              icon={<FiMail />}
+              title="Aucun message reçu"
+              description="Les messages envoyés par les visiteurs du site apparaîtront ici."
+            />
+          </Table.Body>
+        </Table.Container>
+
+        <Table.Footer>
+          <Table.Pagination
+            currentPage={meta.current_page}
+            lastPage={meta.last_page}
+            total={meta.total}
+            onPrev={() => setPage(p => Math.max(p - 1, 1))}
+            onNext={() => setPage(p => Math.min(p + 1, meta.last_page))}
+          />
+        </Table.Footer>
+      </Table>
 
       {/* Modal - Message Details — Card variant="confirmation" */}
       <Modal isOpen={isDetailOpen} onClose={closeDetails} variant="confirmation" size="lg">
