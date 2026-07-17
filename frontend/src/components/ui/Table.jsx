@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 const clsx = (...classes) => classes.filter(Boolean).join(' ');
 import Button from './Button';
+import EmptyState from './EmptyState';
 
 // ----------------------------------------------------------------------
 // TableContext
@@ -805,7 +806,6 @@ export const TableEmpty = memo(({
   title = 'Aucun résultat',
   description,
   action,
-  variant = 'empty',
   className = '',
   ...props
 }) => {
@@ -814,20 +814,14 @@ export const TableEmpty = memo(({
   return (
     <tr aria-live="polite" className={className} {...props}>
       <td colSpan={colSpan}>
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-          <div className="w-12 h-12 text-[--color-table-empty-icon] flex items-center justify-center text-4xl shrink-0">
-            {icon}
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-[--color-table-empty-title]">{title}</p>
-            {description && (
-              <p className="text-xs text-[--color-table-empty-desc] max-w-xs mx-auto leading-relaxed">{description}</p>
-            )}
-          </div>
-          {action && (
-            <div className="pt-2">{action}</div>
-          )}
-        </div>
+        <EmptyState
+          variant="flat"
+          compact
+          icon={icon}
+          title={title}
+          description={description}
+          action={action}
+        />
       </td>
     </tr>
   );

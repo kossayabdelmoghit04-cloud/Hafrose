@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
+import Skeleton from '../../components/ui/Skeleton';
 import Swal from 'sweetalert2';
 import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
@@ -115,7 +116,6 @@ export default function Media() {
     });
   };
 
-  if (isLoading) return <Loader fullPage />;
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
@@ -172,8 +172,13 @@ export default function Media() {
         </label>
       </Card>
 
-      {/* Media Grid */}
-      {mediaList.length > 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-4">
+          {Array.from({ length: 18 }).map((_, idx) => (
+            <div key={idx} className="aspect-square skeleton-shimmer border border-card-border-admin bg-card-bg-admin rounded-card-admin" />
+          ))}
+        </div>
+      ) : mediaList.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-4">
           {mediaList.map((media) => (
             <Card

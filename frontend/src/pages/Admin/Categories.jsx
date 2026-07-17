@@ -3,14 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
-import { 
-  FiPlus, 
-  FiEdit, 
-  FiTrash2, 
-  FiSearch, 
-  FiX, 
-  FiUpload, 
-  FiImage 
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiUpload,
+  FiImage
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
 import Button from '../../components/ui/Button';
@@ -18,6 +17,7 @@ import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
+import { Form, Input, Textarea } from '../../components/ui/form';
 
 export default function Categories() {
   const queryClient = useQueryClient();
@@ -26,7 +26,7 @@ export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  
+
   // États du formulaire
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -137,9 +137,7 @@ export default function Categories() {
       setImageFile(file);
       setSelectedMediaPath('');
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => { setImagePreview(reader.result); };
       reader.readAsDataURL(file);
     }
   };
@@ -157,13 +155,8 @@ export default function Categories() {
     formData.append('name', name);
     formData.append('slug', slug);
     formData.append('description', description);
-    
-    if (imageFile) {
-      formData.append('image', imageFile);
-    }
-    if (selectedMediaPath) {
-      formData.append('image_path', selectedMediaPath);
-    }
+    if (imageFile) formData.append('image', imageFile);
+    if (selectedMediaPath) formData.append('image_path', selectedMediaPath);
 
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, formData });
@@ -183,21 +176,18 @@ export default function Categories() {
       confirmButtonText: 'Oui, supprimer !',
       cancelButtonText: 'Annuler'
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteMutation.mutate(category.id);
-      }
+      if (result.isConfirmed) { deleteMutation.mutate(category.id); }
     });
   };
 
   const perPage = 10;
-  const filteredCategories = categories.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredCategories = categories.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.slug.toLowerCase().includes(search.toLowerCase())
   );
   const paginatedCategories = filteredCategories.slice((page - 1) * perPage, page * perPage);
   const lastPage = Math.ceil(filteredCategories.length / perPage) || 1;
 
-  if (isLoading) return <Loader fullPage />;
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
@@ -261,16 +251,8 @@ export default function Categories() {
                 </Table.Cell>
                 <Table.Cell align="right">
                   <Table.RowActions>
-                    <AdminActionButton
-                      action="edit"
-                      onClick={() => openModal(category)}
-                      title="Modifier"
-                    />
-                    <AdminActionButton
-                      action="delete"
-                      onClick={() => handleDelete(category)}
-                      title="Supprimer"
-                    />
+                    <AdminActionButton action="edit" onClick={() => openModal(category)} title="Modifier" />
+                    <AdminActionButton action="delete" onClick={() => handleDelete(category)} title="Supprimer" />
                   </Table.RowActions>
                 </Table.Cell>
               </Table.Row>
@@ -279,7 +261,7 @@ export default function Categories() {
             <Table.Empty
               visible={filteredCategories.length === 0 && !isLoading}
               colSpan={5}
-              icon={<FiInbox />}
+              icon={<FiImage />}
               title="Aucune catégorie trouvée"
               description="Modifiez vos critères de recherche ou ajoutez une nouvelle catégorie."
               action={
@@ -302,11 +284,10 @@ export default function Categories() {
         </Table.Footer>
       </Table>
 
-      {/* Modal - Create/Edit Category — Card variant="admin" */}
+      {/* Modal - Create/Edit Category */}
       <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="lg">
         <Modal.Backdrop />
         <Modal.Container>
-          {/* Modal Header */}
           <Modal.Header className="px-6 py-4 bg-luxury-charcoal text-white border-b border-luxury-gold/20">
             <Modal.Title className="text-luxury-gold">
               {editingCategory ? 'Modifier la catégorie' : 'Créer une catégorie'}
@@ -314,56 +295,55 @@ export default function Categories() {
             <Modal.CloseButton className="text-luxury-gray hover:text-white" />
           </Modal.Header>
 
-          <form onSubmit={handleSubmit}>
-            <Modal.Body className="space-y-6">
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Nom de la catégorie
-                  </label>
-                  <input
-                    type="text"
-                    required
+          <Form onSubmit={handleSubmit}>
+            <Modal.Body>
+              <Form.Section>
+
+                <Form.Field name="cat-name">
+                  <Form.Label required>Nom de la catégorie</Form.Label>
+                  <Input
+                    variant="admin"
                     value={name}
                     onChange={handleNameChange}
                     placeholder="ex: Arts de la Table"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm transition-all duration-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Slug (généré automatiquement)
-                  </label>
-                  <input
-                    type="text"
                     required
+                    autoComplete="off"
+                  />
+                  <Form.Error />
+                </Form.Field>
+
+                <Form.Field name="cat-slug">
+                  <Form.Label required>Slug (généré automatiquement)</Form.Label>
+                  <Input
+                    variant="admin"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="ex: arts-de-la-table"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs transition-all duration-300"
+                    required
+                    className="font-mono"
+                    autoComplete="off"
                   />
-                </div>
+                  <Form.Helper>Modifiable manuellement si nécessaire</Form.Helper>
+                  <Form.Error />
+                </Form.Field>
 
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Description
-                  </label>
-                  <textarea
+                <Form.Field name="cat-description">
+                  <Form.Label>Description</Form.Label>
+                  <Textarea
+                    variant="admin"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Brève description de la catégorie..."
-                    rows="3"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none transition-all duration-300"
+                    rows={3}
                   />
-                </div>
+                  <Form.Counter current={description.length} />
+                </Form.Field>
 
                 {/* Image upload & preview */}
                 <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Image de la catégorie
-                  </label>
+                  <p className="text-label text-anthracite/70 mb-3">Image de la catégorie</p>
                   <div className="flex gap-4 items-center">
-                    <div className="relative w-20 h-20 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-20 h-20 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {imagePreview ? (
                         <img src={imagePreview} alt="Aperçu" className="w-full h-full object-cover" />
                       ) : (
@@ -375,12 +355,7 @@ export default function Categories() {
                         <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold transition-all duration-300">
                           <FiUpload />
                           <span>Téléverser</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                          />
+                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                         </label>
                         <Button
                           type="button"
@@ -396,38 +371,34 @@ export default function Categories() {
                     </div>
                   </div>
                 </div>
+
+              </Form.Section>
             </Modal.Body>
 
-              {/* Actions buttons */}
-              <Modal.Footer>
-                <Modal.Actions>
-                  <Button
-                    type="button"
-                    onClick={closeModal}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    loading={createMutation.isPending || updateMutation.isPending}
-                  >
-                    Enregistrer
-                  </Button>
-                </Modal.Actions>
-              </Modal.Footer>
-            </form>
-          </Modal.Container>
-        </Modal>
+            <Modal.Footer>
+              <Modal.Actions>
+                <Button type="button" onClick={closeModal} variant="secondary" size="sm">
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  loading={createMutation.isPending || updateMutation.isPending}
+                >
+                  Enregistrer
+                </Button>
+              </Modal.Actions>
+            </Modal.Footer>
+          </Form>
+        </Modal.Container>
+      </Modal>
 
       {/* Modal - Media Library Picker */}
       {isMediaPickerOpen && (
-        <MediaPickerModal 
-          onClose={() => setIsMediaPickerOpen(false)} 
-          onSelect={handleMediaSelected} 
+        <MediaPickerModal
+          onClose={() => setIsMediaPickerOpen(false)}
+          onSelect={handleMediaSelected}
         />
       )}
     </div>

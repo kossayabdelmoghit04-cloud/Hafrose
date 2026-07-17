@@ -105,7 +105,6 @@ export default function Contacts() {
     });
   };
 
-  if (isLoading) return <Loader fullPage />;
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>

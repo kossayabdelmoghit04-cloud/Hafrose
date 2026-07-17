@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
+import { Form, EmailField } from '../ui/form';
+import Button from '../ui/Button';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -18,7 +20,7 @@ export default function Newsletter() {
   return (
     <section className="py-24 bg-luxury-light-gray/30 border-t border-luxury-charcoal/5">
       <div className="max-w-3xl mx-auto px-6 md:px-12 text-center">
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -48,25 +50,40 @@ export default function Newsletter() {
               </div>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-4 mt-8 max-w-md mx-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Votre adresse email"
-                required
-                className="w-full bg-transparent border-b border-luxury-charcoal/15 text-sm py-3 focus:outline-none focus:border-luxury-gold text-luxury-charcoal placeholder-luxury-gray/50 tracking-wider font-sans transition-all duration-300"
-              />
-              <motion.button
-                type="submit"
+            <Form
+              onSubmit={handleSubmit}
+              className="flex flex-col sm:flex-row items-center gap-4 mt-8 max-w-md mx-auto"
+            >
+              <Form.Field name="newsletter-email" className="flex-grow w-full sm:w-auto space-y-0">
+                <Form.Label className="sr-only">Votre adresse email</Form.Label>
+                <EmailField
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Votre adresse email"
+                  required
+                  variant="client"
+                  size="md"
+                  autoComplete="email"
+                />
+              </Form.Field>
+
+              <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="shrink-0 bg-luxury-charcoal text-luxury-cream text-[10px] tracking-[0.3em] uppercase py-3.5 px-8 hover:bg-luxury-gold transition-colors duration-300 font-sans font-medium cursor-pointer flex items-center gap-2"
+                className="shrink-0"
               >
-                S'inscrire
-                <FiArrowRight size={12} />
-              </motion.button>
-            </form>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  icon={<FiArrowRight size={12} />}
+                  className="text-[10px] tracking-[0.3em] uppercase whitespace-nowrap"
+                >
+                  S'inscrire
+                </Button>
+              </motion.div>
+            </Form>
           )}
         </motion.div>
 

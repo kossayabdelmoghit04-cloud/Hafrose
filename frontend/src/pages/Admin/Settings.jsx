@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
+import Skeleton from '../../components/ui/Skeleton';
 import Swal from 'sweetalert2';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import { 
-  FiSettings, 
-  FiInfo, 
-  FiShare2, 
-  FiSearch, 
-  FiUpload, 
-  FiImage, 
-  FiSave 
+import {
+  FiSettings,
+  FiInfo,
+  FiShare2,
+  FiSearch,
+  FiUpload,
+  FiImage,
+  FiSave
 } from 'react-icons/fi';
+import { Form, Input, EmailField, Textarea } from '../../components/ui/form';
 
 export default function Settings() {
   const queryClient = useQueryClient();
@@ -36,7 +38,7 @@ export default function Settings() {
   const [whatsapp, setWhatsapp] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
-  
+
   // Logos
   const [logoPreview, setLogoPreview] = useState('');
   const [logoFile, setLogoFile] = useState(null);
@@ -82,9 +84,7 @@ export default function Settings() {
     if (file) {
       setLogoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
+      reader.onloadend = () => { setLogoPreview(reader.result); };
       reader.readAsDataURL(file);
     }
   };
@@ -94,9 +94,7 @@ export default function Settings() {
     if (file) {
       setFaviconFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFaviconPreview(reader.result);
-      };
+      reader.onloadend = () => { setFaviconPreview(reader.result); };
       reader.readAsDataURL(file);
     }
   };
@@ -114,18 +112,47 @@ export default function Settings() {
     formData.append('settings[whatsapp]', whatsapp);
     formData.append('settings[meta_title]', metaTitle);
     formData.append('settings[meta_description]', metaDescription);
-
-    if (logoFile) {
-      formData.append('site_logo', logoFile);
-    }
-    if (faviconFile) {
-      formData.append('site_favicon', faviconFile);
-    }
-
+    if (logoFile) formData.append('site_logo', logoFile);
+    if (faviconFile) formData.append('site_favicon', faviconFile);
     updateMutation.mutate(formData);
   };
 
-  if (isLoading) return <Loader fullPage />;
+  if (isLoading) {
+    const skeletonTabs = [
+      { id: 'general', name: 'Général & Design', icon: FiSettings },
+      { id: 'contact', name: 'Contact & Horaires', icon: FiInfo },
+      { id: 'socials', name: 'Réseaux Sociaux', icon: FiShare2 },
+      { id: 'seo', name: 'SEO & Référencement', icon: FiSearch },
+    ];
+    return (
+      <div className="space-y-6 animate-fade-in-up">
+        <div>
+          <h2 className="text-3xl font-serif text-luxury-charcoal">Paramètres du Site</h2>
+          <p className="text-sm text-luxury-gray">Configurez l'identité globale, le SEO et les coordonnées de la boutique.</p>
+        </div>
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          <Card variant="admin" size="sm" animate={false} className="w-full md:w-64 !p-0 overflow-hidden shrink-0">
+            <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible">
+              {skeletonTabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    disabled
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold w-full text-left whitespace-nowrap border-b md:border-b-0 md:border-r-2 border-transparent text-luxury-gray opacity-50"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </Card>
+          <Skeleton.Form rows={5} className="flex-grow w-full" />
+        </div>
+      </div>
+    );
+  }
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
@@ -148,8 +175,8 @@ export default function Settings() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
-        
-        {/* Navigation Tabs — Card variant="admin" comme panneau de navigation */}
+
+        {/* Navigation Tabs */}
         <Card variant="admin" size="sm" animate={false} className="w-full md:w-64 !p-0 overflow-hidden shrink-0">
           <nav className="flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible">
             {tabs.map((tab) => {
@@ -172,39 +199,38 @@ export default function Settings() {
           </nav>
         </Card>
 
-        {/* Form Panel — Card variant="admin" comme panneau de formulaire */}
+        {/* Form Panel */}
         <Card variant="admin" size="lg" animate={false} className="flex-grow w-full">
-          <form onSubmit={handleSubmit}>
+          <Form onSubmit={handleSubmit}>
             <Card.Body className="space-y-8">
-              
+
               {/* TAB 1: General & Design */}
               {activeTab === 'general' && (
-                <div className="space-y-6">
+                <Form.Section>
                   <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
                     Général & Identité
                   </Card.Title>
-                  
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Nom de l'enseigne
-                    </label>
-                    <input
-                      type="text"
-                      required
+
+                  <Form.Field name="settings-site-name">
+                    <Form.Label required>Nom de l'enseigne</Form.Label>
+                    <Input
+                      variant="admin"
                       value={siteName}
                       onChange={(e) => setSiteName(e.target.value)}
                       placeholder="Hafrose"
-                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      required
+                      autoComplete="organization"
                     />
-                  </div>
+                    <Form.Error />
+                  </Form.Field>
 
-                  {/* Logo Upload */}
+                  {/* Logo & Favicon upload */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card variant="flat" size="sm" animate={false} className="space-y-4">
                       <Card.Content className="flex-col gap-4">
                         <Card.Subtitle className="uppercase tracking-wider">Logo Officiel</Card.Subtitle>
                         <div className="flex gap-4 items-center">
-                          <div className="w-20 h-20 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
+                          <div className="w-20 h-20 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2 flex-shrink-0">
                             {logoPreview ? (
                               <img src={logoPreview} alt="Aperçu Logo" className="w-full h-full object-contain" />
                             ) : (
@@ -223,12 +249,11 @@ export default function Settings() {
                       </Card.Content>
                     </Card>
 
-                    {/* Favicon Upload */}
                     <Card variant="flat" size="sm" animate={false} className="space-y-4">
                       <Card.Content className="flex-col gap-4">
                         <Card.Subtitle className="uppercase tracking-wider">Favicon Navigateur</Card.Subtitle>
                         <div className="flex gap-4 items-center">
-                          <div className="w-12 h-12 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2">
+                          <div className="w-12 h-12 bg-white border border-luxury-gold/15 flex items-center justify-center rounded overflow-hidden p-2 flex-shrink-0">
                             {faviconPreview ? (
                               <img src={faviconPreview} alt="Aperçu Favicon" className="w-full h-full object-contain" />
                             ) : (
@@ -247,155 +272,142 @@ export default function Settings() {
                       </Card.Content>
                     </Card>
                   </div>
-                </div>
+                </Form.Section>
               )}
 
               {/* TAB 2: Contact & Hours */}
               {activeTab === 'contact' && (
-                <div className="space-y-6">
+                <Form.Section>
                   <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
                     Coordonnées & Ouverture
                   </Card.Title>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                        Téléphone de contact
-                      </label>
-                      <input
-                        type="text"
+
+                  <Form.Row cols={{ default: 1, md: 2 }}>
+                    <Form.Field name="settings-phone">
+                      <Form.Label>Téléphone de contact</Form.Label>
+                      <Input
+                        variant="admin"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+33 1 23 45 67 89"
-                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                        autoComplete="tel"
                       />
-                    </div>
+                    </Form.Field>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                        Email de contact
-                      </label>
-                      <input
-                        type="email"
+                    <Form.Field name="settings-email">
+                      <Form.Label>Email de contact</Form.Label>
+                      <EmailField
+                        variant="admin"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="contact@hafrose.com"
-                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                        autoComplete="email"
                       />
-                    </div>
-                  </div>
+                    </Form.Field>
+                  </Form.Row>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Adresse postale
-                    </label>
-                    <textarea
+                  <Form.Field name="settings-address">
+                    <Form.Label>Adresse postale</Form.Label>
+                    <Textarea
+                      variant="admin"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="123 Rue de l'Artisanat, 75001 Paris"
-                      rows="2"
-                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                      rows={2}
                     />
-                  </div>
+                  </Form.Field>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Horaires d'ouverture
-                    </label>
-                    <textarea
+                  <Form.Field name="settings-hours">
+                    <Form.Label>Horaires d'ouverture</Form.Label>
+                    <Textarea
+                      variant="admin"
                       value={hours}
                       onChange={(e) => setHours(e.target.value)}
-                      placeholder="Lundi - Vendredi : 10h00 - 19h00&#10;Samedi : 11h00 - 18h00"
-                      rows="3"
-                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      placeholder={"Lundi - Vendredi : 10h00 - 19h00\nSamedi : 11h00 - 18h00"}
+                      rows={3}
                     />
-                  </div>
-                </div>
+                    <Form.Helper>Un horaire par ligne</Form.Helper>
+                  </Form.Field>
+                </Form.Section>
               )}
 
               {/* TAB 3: Social Networks */}
               {activeTab === 'socials' && (
-                <div className="space-y-6">
+                <Form.Section>
                   <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
                     Réseaux Sociaux & Messageries
                   </Card.Title>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                        Lien Facebook
-                      </label>
-                      <input
-                        type="text"
+
+                  <Form.Row cols={{ default: 1, md: 3 }}>
+                    <Form.Field name="settings-facebook">
+                      <Form.Label>Lien Facebook</Form.Label>
+                      <Input
+                        variant="admin"
                         value={facebook}
                         onChange={(e) => setFacebook(e.target.value)}
                         placeholder="https://facebook.com/hafrose"
-                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                        autoComplete="url"
                       />
-                    </div>
+                    </Form.Field>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                        Lien Instagram
-                      </label>
-                      <input
-                        type="text"
+                    <Form.Field name="settings-instagram">
+                      <Form.Label>Lien Instagram</Form.Label>
+                      <Input
+                        variant="admin"
                         value={instagram}
                         onChange={(e) => setInstagram(e.target.value)}
                         placeholder="https://instagram.com/hafrose"
-                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                        autoComplete="url"
                       />
-                    </div>
+                    </Form.Field>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                        Numéro WhatsApp Business
-                      </label>
-                      <input
-                        type="text"
+                    <Form.Field name="settings-whatsapp">
+                      <Form.Label>Numéro WhatsApp Business</Form.Label>
+                      <Input
+                        variant="admin"
                         value={whatsapp}
                         onChange={(e) => setWhatsapp(e.target.value)}
                         placeholder="+33612345678"
-                        className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                        autoComplete="tel"
                       />
-                    </div>
-                  </div>
-                </div>
+                      <Form.Helper>Format international sans espaces</Form.Helper>
+                    </Form.Field>
+                  </Form.Row>
+                </Form.Section>
               )}
 
               {/* TAB 4: SEO Metadata */}
               {activeTab === 'seo' && (
-                <div className="space-y-6">
+                <Form.Section>
                   <Card.Title as="h3" className="font-serif text-lg pb-3 border-b border-luxury-light-gray">
                     SEO & Optimisation pour les Moteurs de Recherche
                   </Card.Title>
-                  
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Meta Title par défaut
-                    </label>
-                    <input
-                      type="text"
+
+                  <Form.Field name="settings-meta-title">
+                    <Form.Label>Meta Title par défaut</Form.Label>
+                    <Input
+                      variant="admin"
                       value={metaTitle}
                       onChange={(e) => setMetaTitle(e.target.value)}
                       placeholder="Hafrose - Boutique Artisanale d'Exception"
-                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
                     />
-                  </div>
+                    <Form.Counter current={metaTitle.length} max={60} />
+                    <Form.Helper>Recommandé : 50–60 caractères</Form.Helper>
+                  </Form.Field>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Meta Description par défaut
-                    </label>
-                    <textarea
+                  <Form.Field name="settings-meta-desc">
+                    <Form.Label>Meta Description par défaut</Form.Label>
+                    <Textarea
+                      variant="admin"
                       value={metaDescription}
                       onChange={(e) => setMetaDescription(e.target.value)}
                       placeholder="Boutique d'articles artisanaux de luxe façonnés à la main..."
-                      rows="4"
-                      className="w-full px-4 py-2.5 bg-luxury-cream/30 border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                      rows={4}
                     />
-                  </div>
-                </div>
+                    <Form.Counter current={metaDescription.length} max={160} />
+                    <Form.Helper>Recommandé : 120–160 caractères</Form.Helper>
+                  </Form.Field>
+                </Form.Section>
               )}
 
             </Card.Body>
@@ -413,7 +425,7 @@ export default function Settings() {
                 </Button>
               </div>
             </Card.Footer>
-          </form>
+          </Form>
         </Card>
 
       </div>

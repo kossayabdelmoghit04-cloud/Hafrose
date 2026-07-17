@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiSliders } from 'react-icons/fi';
+import { FiSearch, FiSliders, FiShoppingBag } from 'react-icons/fi';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import ProductCard from '../../components/cards/ProductCard';
 import Loader from '../../components/ui/Loader';
+import Skeleton from '../../components/ui/Skeleton';
 import Pagination from '../../components/ui/Pagination';
 import Input from '../../components/ui/Input';
 import Breadcrumb from '../../components/ui/Breadcrumb';
+import EmptyState from '../../components/ui/EmptyState';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const COLORS = [
@@ -290,24 +292,25 @@ export default function Shop() {
 
       {/* Products Presentation */}
       {isLoading ? (
-        <Loader />
+        <Skeleton.ProductGrid limit={8} />
       ) : error ? (
         <div className="py-20 text-center">
           <p className="text-sm font-sans text-red-500 font-light">{error}</p>
         </div>
       ) : products.length === 0 ? (
-        <div className="py-24 text-center space-y-6 max-w-md mx-auto">
-          <h3 className="font-serif text-xl font-light text-luxury-charcoal">Aucune pièce disponible</h3>
-          <p className="text-xs text-luxury-gray font-sans font-light leading-relaxed">
-            Aucun de nos modèles ne correspond à vos filtres actuels. Nous vous invitons à réinitialiser vos critères de recherche.
-          </p>
-          <button
-            onClick={resetAllFilters}
-            className="px-6 py-3 bg-luxury-charcoal text-luxury-cream font-sans text-[10px] tracking-widest uppercase hover:bg-luxury-gold transition-colors duration-300"
-          >
-            Voir toute la collection
-          </button>
-        </div>
+        <EmptyState
+          icon={<FiShoppingBag />}
+          title="Aucune création disponible"
+          description="Aucun de nos modèles ne correspond à vos filtres actuels. Nous vous invitons à réinitialiser vos critères de recherche."
+          action={
+            <button
+              onClick={resetAllFilters}
+              className="px-6 py-3 bg-luxury-charcoal text-luxury-cream font-sans text-[10px] tracking-widest uppercase hover:bg-luxury-gold transition-colors duration-300 cursor-pointer"
+            >
+              Voir toute la collection
+            </button>
+          }
+        />
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">

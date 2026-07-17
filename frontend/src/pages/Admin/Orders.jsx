@@ -20,6 +20,7 @@ import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
+import { Select } from '../../components/ui/form';
 
 export default function Orders() {
   const queryClient = useQueryClient();
@@ -115,8 +116,6 @@ export default function Orders() {
     setIsDetailOpen(false);
     setSelectedOrder(null);
   };
-
-  if (isLoading) return <Loader fullPage />;
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
@@ -352,15 +351,14 @@ export default function Orders() {
             <Modal.Footer className="print:hidden">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-luxury-gray font-semibold uppercase">Modifier statut :</span>
-                <select
+                <Select
+                  variant="admin"
+                  size="sm"
                   value={selectedOrder.status}
                   onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-luxury-gold/15 rounded text-xs outline-none cursor-pointer uppercase font-bold"
-                >
-                  {statuses.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
+                  options={statuses.map(s => ({ value: s, label: s }))}
+                  className="text-xs uppercase font-bold"
+                />
               </div>
               
               <Modal.Actions>

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
+import Skeleton from '../../components/ui/Skeleton';
 import Card from '../../components/ui/Card';
 import { 
   FiDollarSign, 
@@ -22,7 +23,7 @@ export default function Dashboard() {
     queryFn: () => api.get('/admin/dashboard').then(res => res.data),
   });
 
-  if (isLoading) return <Loader fullPage />;
+  if (isLoading) return <Skeleton.Dashboard />;
   if (error) {
     return (
       <Card variant="alert" size="md" animate={false}>

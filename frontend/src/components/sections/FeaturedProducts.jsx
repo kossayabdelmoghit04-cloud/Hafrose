@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ProductCard from '../cards/ProductCard';
 import Button from '../ui/Button';
 import Loader from '../ui/Loader';
+import Skeleton from '../ui/Skeleton';
 import productService from '../../services/productService';
 
 export default function FeaturedProducts() {
@@ -52,9 +53,7 @@ export default function FeaturedProducts() {
 
         {/* Products Display */}
         {isLoading ? (
-          <div className="py-12">
-            <Loader />
-          </div>
+          <Skeleton.ProductGrid limit={4} />
         ) : error || products.length === 0 ? (
           <div className="py-12 text-center text-xs font-sans text-luxury-gray font-light">
             {error || 'Aucune création vedette disponible pour le moment.'}

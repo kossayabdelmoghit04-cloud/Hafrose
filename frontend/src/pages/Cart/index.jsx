@@ -6,17 +6,18 @@ import Swal from 'sweetalert2';
 import { useCart } from '../../context/CartContext';
 import orderService from '../../services/orderService';
 import { getProductImage } from '../../utils/imageHelper';
-import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import { formatPrice } from '../../utils/format';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import Card from '../../components/ui/Card';
+import { Form, Input } from '../../components/ui/form';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function Cart() {
   const navigate = useNavigate();
   const { cart, cartCount, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
-  
+
   useDocumentTitle('Validation de commande', 'Révisez votre panier et saisissez vos informations de livraison pour finaliser votre commande Hafrose.');
 
   const [form, setForm] = useState({
@@ -25,7 +26,7 @@ export default function Cart() {
     address: '',
     city: ''
   });
-  
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -83,7 +84,7 @@ export default function Cart() {
     }
 
     setIsSubmitting(true);
-    
+
     // Format payload matching StoreOrderRequest validation constraints
     const orderData = {
       customer: form.customer.trim(),
@@ -101,7 +102,7 @@ export default function Cart() {
       if (res?.success) {
         const orderDetails = res.data;
         clearCart();
-        
+
         Swal.fire({
           title: 'Commande validée !',
           text: 'Votre commande a été enregistrée avec succès. Notre atelier prépare vos créations.',
@@ -154,32 +155,29 @@ export default function Cart() {
 
       <AnimatePresence mode="wait">
         {cart.length === 0 ? (
-          <Card
+          <motion.div
             key="empty-cart"
-            variant="empty"
-            className="flex flex-col items-center justify-center py-20 text-center gap-6 select-none bg-card-bg-primary"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            <FiShoppingBag className="text-luxury-gray/30" size={64} />
-            <Card.Title as="h2" className="text-2xl font-light">Votre Panier est Vide</Card.Title>
-            <Card.Description className="max-w-sm mx-auto leading-relaxed">
-              Vous n'avez sélectionné aucune pièce d'exception pour le moment. Explorez nos collections de maroquinerie, joaillerie et horlogerie.
-            </Card.Description>
-            <Button
-              to="/shop"
-              variant="primary"
-              className="mt-4 mx-auto"
-            >
-              Explorer la Boutique
-            </Button>
-          </Card>
+            <EmptyState
+              icon={<FiShoppingBag size={48} />}
+              title="Votre Panier est Vide"
+              description="Vous n'avez sélectionné aucune pièce d'exception pour le moment. Explorez nos collections de maroquinerie, joaillerie et horlogerie."
+              action={
+                <Button to="/shop" variant="primary">
+                  Explorer la Boutique
+                </Button>
+              }
+            />
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 text-left">
             {/* Left Column: Cart items and Delivery details form */}
             <div className="lg:col-span-7 space-y-10">
-              
+
               {/* Form Section */}
               <Card
                 variant="panel"
@@ -192,61 +190,81 @@ export default function Cart() {
                   <FiCreditCard className="text-luxury-gold" size={20} />
                   <Card.Title as="h2" className="text-xl font-light">Adresse de Livraison</Card.Title>
                 </Card.Header>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <Input
-                    label="Nom complet"
-                    name="customer"
-                    value={form.customer}
-                    onChange={handleChange}
-                    error={errors.customer}
-                    placeholder="M. ou Mme Prénom Nom"
-                    required
-                  />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Téléphone"
-                      name="phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={handleChange}
-                      error={errors.phone}
-                      placeholder="+33 6 12 34 56 78"
-                      required
-                    />
-                    <Input
-                      label="Ville"
-                      name="city"
-                      value={form.city}
-                      onChange={handleChange}
-                      error={errors.city}
-                      placeholder="Paris"
-                      required
-                    />
-                  </div>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Section>
+                    {/* Nom complet — full width */}
+                    <Form.Field name="customer" error={errors.customer}>
+                      <Form.Label required>Nom complet</Form.Label>
+                      <Input
+                        name="customer"
+                        value={form.customer}
+                        onChange={handleChange}
+                        placeholder="M. ou Mme Prénom Nom"
+                        required
+                        autoComplete="name"
+                      />
+                      <Form.Error />
+                    </Form.Field>
 
-                  <Input
-                    label="Adresse complète"
-                    name="address"
-                    value={form.address}
-                    onChange={handleChange}
-                    error={errors.address}
-                    placeholder="12, Avenue Montaigne"
-                    required
-                  />
+                    {/* Row: Téléphone + Ville */}
+                    <Form.Row cols={{ default: 1, md: 2 }}>
+                      <Form.Field name="phone" error={errors.phone}>
+                        <Form.Label required>Téléphone</Form.Label>
+                        <Input
+                          name="phone"
+                          type="tel"
+                          value={form.phone}
+                          onChange={handleChange}
+                          placeholder="+33 6 12 34 56 78"
+                          required
+                          autoComplete="tel"
+                        />
+                        <Form.Error />
+                      </Form.Field>
 
-                  <div className="pt-4 border-t border-luxury-charcoal/5">
-                    <Button
-                      variant="primary"
-                      type="submit"
-                      fullWidth
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? 'Validation en cours...' : `Confirmer & Régler la commande`}
-                    </Button>
-                  </div>
-                </form>
+                      <Form.Field name="city" error={errors.city}>
+                        <Form.Label required>Ville</Form.Label>
+                        <Input
+                          name="city"
+                          value={form.city}
+                          onChange={handleChange}
+                          placeholder="Paris"
+                          required
+                          autoComplete="address-level2"
+                        />
+                        <Form.Error />
+                      </Form.Field>
+                    </Form.Row>
+
+                    {/* Adresse complète — full width */}
+                    <Form.Field name="address" error={errors.address}>
+                      <Form.Label required>Adresse complète</Form.Label>
+                      <Input
+                        name="address"
+                        value={form.address}
+                        onChange={handleChange}
+                        placeholder="12, Avenue Montaigne"
+                        required
+                        autoComplete="street-address"
+                      />
+                      <Form.Error />
+                    </Form.Field>
+                  </Form.Section>
+
+                  <Form.Footer>
+                    <Form.Actions align="left">
+                      <Button
+                        variant="primary"
+                        type="submit"
+                        fullWidth
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Validation en cours...' : `Confirmer & Régler la commande`}
+                      </Button>
+                    </Form.Actions>
+                  </Form.Footer>
+                </Form>
               </Card>
             </div>
 

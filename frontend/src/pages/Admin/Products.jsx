@@ -3,16 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
-import { 
-  FiPlus, 
-  FiEdit, 
-  FiTrash2, 
-  FiSearch, 
-  FiX, 
-  FiUpload, 
-  FiImage, 
-  FiFilter, 
-  FiStar 
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiX,
+  FiUpload,
+  FiImage,
+  FiFilter,
+  FiStar
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';
 import Button from '../../components/ui/Button';
@@ -20,6 +20,7 @@ import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
+import { Form, Input, NumberField, Textarea, Select, Checkbox } from '../../components/ui/form';
 
 export default function Products() {
   const queryClient = useQueryClient();
@@ -29,11 +30,11 @@ export default function Products() {
   const [featuredFilter, setFeaturedFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-  const [activeMediaTarget, setActiveMediaTarget] = useState('main'); // 'main' ou 'gallery'
-  
+  const [activeMediaTarget, setActiveMediaTarget] = useState('main');
+
   // États du produit en cours d'édition
   const [editingProduct, setEditingProduct] = useState(null);
-  
+
   // États du formulaire
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -49,7 +50,7 @@ export default function Products() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [selectedMainMediaPath, setSelectedMainMediaPath] = useState('');
-  
+
   // Galerie d'images
   const [newGalleryFiles, setNewGalleryFiles] = useState([]);
   const [newGalleryPreviews, setNewGalleryPreviews] = useState([]);
@@ -73,7 +74,6 @@ export default function Products() {
       if (search) params.append('search', search);
       if (categoryFilter) params.append('category', categoryFilter);
       if (featuredFilter) params.append('is_featured', featuredFilter);
-      
       return api.get(`/admin/products?${params.toString()}`).then(res => res);
     },
     keepPreviousData: true,
@@ -196,9 +196,7 @@ export default function Products() {
       setImageFile(file);
       setSelectedMainMediaPath('');
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
+      reader.onloadend = () => { setImagePreview(reader.result); };
       reader.readAsDataURL(file);
     }
   };
@@ -207,12 +205,9 @@ export default function Products() {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       setNewGalleryFiles(prev => [...prev, ...files]);
-      
       files.forEach(file => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setNewGalleryPreviews(prev => [...prev, reader.result]);
-        };
+        reader.onloadend = () => { setNewGalleryPreviews(prev => [...prev, reader.result]); };
         reader.readAsDataURL(file);
       });
     }
@@ -261,24 +256,12 @@ export default function Products() {
     formData.append('brand', brand);
     formData.append('is_featured', isFeatured ? 1 : 0);
 
-    if (imageFile) {
-      formData.append('image', imageFile);
-    }
-    if (selectedMainMediaPath) {
-      formData.append('image_path', selectedMainMediaPath);
-    }
+    if (imageFile) formData.append('image', imageFile);
+    if (selectedMainMediaPath) formData.append('image_path', selectedMainMediaPath);
 
-    newGalleryFiles.forEach((file) => {
-      formData.append('galleries[]', file);
-    });
-
-    newGalleryPaths.forEach((path, i) => {
-      formData.append(`galleries_paths[${i}]`, path);
-    });
-
-    deletedGalleryIds.forEach((id, i) => {
-      formData.append(`deleted_gallery_ids[${i}]`, id);
-    });
+    newGalleryFiles.forEach((file) => { formData.append('galleries[]', file); });
+    newGalleryPaths.forEach((path, i) => { formData.append(`galleries_paths[${i}]`, path); });
+    deletedGalleryIds.forEach((id, i) => { formData.append(`deleted_gallery_ids[${i}]`, id); });
 
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, formData });
@@ -298,13 +281,10 @@ export default function Products() {
       confirmButtonText: 'Oui, supprimer !',
       cancelButtonText: 'Annuler'
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteMutation.mutate(product.id);
-      }
+      if (result.isConfirmed) { deleteMutation.mutate(product.id); }
     });
   };
 
-  if (isLoading) return <Loader fullPage />;
   if (error) return (
     <Card variant="alert" animate={false}>
       <Card.Body><p className="text-red-500">Erreur : {error.message}</p></Card.Body>
@@ -313,6 +293,8 @@ export default function Products() {
 
   const productsList = productsData?.data || [];
   const meta = productsData?.meta || { current_page: 1, last_page: 1, total: 0 };
+
+  const categoryOptions = categories.map(c => ({ value: c.id, label: c.name }));
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -339,9 +321,7 @@ export default function Products() {
           />
           <Table.Filter
             label="Vedette"
-            options={[
-              { value: 'true', label: 'Vedettes uniquement' }
-            ]}
+            options={[{ value: 'true', label: 'Vedettes uniquement' }]}
             value={featuredFilter}
             onChange={(val) => { setFeaturedFilter(val); setPage(1); }}
             allLabel="Tous les produits"
@@ -401,16 +381,8 @@ export default function Products() {
                 </Table.Cell>
                 <Table.Cell align="right">
                   <Table.RowActions>
-                    <AdminActionButton
-                      action="edit"
-                      onClick={() => openModal(product)}
-                      title="Modifier"
-                    />
-                    <AdminActionButton
-                      action="delete"
-                      onClick={() => handleDelete(product)}
-                      title="Supprimer"
-                    />
+                    <AdminActionButton action="edit" onClick={() => openModal(product)} title="Modifier" />
+                    <AdminActionButton action="delete" onClick={() => handleDelete(product)} title="Supprimer" />
                   </Table.RowActions>
                 </Table.Cell>
               </Table.Row>
@@ -419,7 +391,6 @@ export default function Products() {
             <Table.Empty
               visible={productsList.length === 0 && !isLoading}
               colSpan={7}
-              icon={<FiBox />}
               title="Aucun produit trouvé"
               description="Modifiez vos critères de recherche ou ajoutez un nouveau produit."
               action={
@@ -442,11 +413,10 @@ export default function Products() {
         </Table.Footer>
       </Table>
 
-      {/* Modal - Create/Edit Product — Card variant="admin" */}
+      {/* Modal - Create/Edit Product */}
       <Modal isOpen={isModalOpen} onClose={closeModal} variant="admin" size="xl">
         <Modal.Backdrop />
         <Modal.Container className="max-h-[90vh] flex flex-col overflow-hidden">
-          {/* Modal Header */}
           <Modal.Header className="bg-luxury-charcoal text-white border-b border-luxury-gold/20">
             <Modal.Title className="text-luxury-gold">
               {editingProduct ? 'Modifier le Produit' : 'Créer un Produit'}
@@ -454,219 +424,188 @@ export default function Products() {
             <Modal.CloseButton className="text-luxury-gray hover:text-white" />
           </Modal.Header>
 
-          {/* Modal Body / Scrollable Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
-            <Modal.Body className="overflow-y-auto space-y-6 flex-grow">
-              
-                {/* Row 1: Name, Slug, Category */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Nom du produit
-                    </label>
-                    <input
-                      type="text"
-                      required
+          <Form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+            <Modal.Body className="overflow-y-auto flex-grow">
+              <Form.Section>
+
+                {/* Row 1 : Nom, Slug, Catégorie */}
+                <Form.Row cols={{ default: 1, md: 3 }}>
+                  <Form.Field name="prod-name">
+                    <Form.Label required>Nom du produit</Form.Label>
+                    <Input
+                      variant="admin"
                       value={name}
                       onChange={handleNameChange}
                       placeholder="Vase d'Argile Dorée"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Slug
-                    </label>
-                    <input
-                      type="text"
                       required
+                    />
+                    <Form.Error />
+                  </Form.Field>
+
+                  <Form.Field name="prod-slug">
+                    <Form.Label required>Slug</Form.Label>
+                    <Input
+                      variant="admin"
                       value={slug}
                       onChange={(e) => setSlug(e.target.value)}
                       placeholder="vase-d-argile-doree"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm font-mono text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Catégorie
-                    </label>
-                    <select
                       required
+                      className="font-mono"
+                    />
+                    <Form.Helper>Généré automatiquement depuis le nom</Form.Helper>
+                    <Form.Error />
+                  </Form.Field>
+
+                  <Form.Field name="prod-category">
+                    <Form.Label required>Catégorie</Form.Label>
+                    <Select
+                      variant="admin"
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm cursor-pointer"
-                    >
-                      <option value="">Sélectionner une catégorie</option>
-                      {categories.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Row 2: Price, Stock, Color, Material, Brand */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Prix (€)</label>
-                    <input
-                      type="number"
-                      step="0.01"
+                      options={categoryOptions}
+                      placeholder="Sélectionner une catégorie"
                       required
+                    />
+                    <Form.Error />
+                  </Form.Field>
+                </Form.Row>
+
+                {/* Row 2 : Prix, Stock, Couleur, Matière, Marque */}
+                <Form.Row cols={{ default: 2, md: 5 }}>
+                  <Form.Field name="prod-price">
+                    <Form.Label required>Prix (€)</Form.Label>
+                    <NumberField
+                      variant="admin"
+                      step="0.01"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="49.00"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Stock</label>
-                    <input
-                      type="number"
                       required
+                    />
+                    <Form.Error />
+                  </Form.Field>
+
+                  <Form.Field name="prod-stock">
+                    <Form.Label required>Stock</Form.Label>
+                    <NumberField
+                      variant="admin"
                       value={stock}
                       onChange={(e) => setStock(e.target.value)}
                       placeholder="10"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
+                      required
                     />
-                  </div>
+                    <Form.Error />
+                  </Form.Field>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Couleur</label>
-                    <input
-                      type="text"
+                  <Form.Field name="prod-color">
+                    <Form.Label>Couleur</Form.Label>
+                    <Input
+                      variant="admin"
                       value={color}
                       onChange={(e) => setColor(e.target.value)}
                       placeholder="Or / Noir"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
                     />
-                  </div>
+                  </Form.Field>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Matière</label>
-                    <input
-                      type="text"
+                  <Form.Field name="prod-material">
+                    <Form.Label>Matière</Form.Label>
+                    <Input
+                      variant="admin"
                       value={material}
                       onChange={(e) => setMaterial(e.target.value)}
                       placeholder="Argile"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
                     />
-                  </div>
+                  </Form.Field>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">Marque</label>
-                    <input
-                      type="text"
+                  <Form.Field name="prod-brand">
+                    <Form.Label>Marque</Form.Label>
+                    <Input
+                      variant="admin"
                       value={brand}
                       onChange={(e) => setBrand(e.target.value)}
                       placeholder="Hafrose Paris"
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
                     />
-                  </div>
-                </div>
+                  </Form.Field>
+                </Form.Row>
 
-                {/* Row 3: Short Description & Featured checkbox */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                  <div className="md:col-span-3">
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                      Description Courte
-                    </label>
-                    <input
-                      type="text"
+                {/* Row 3 : Description courte + Vedette */}
+                <Form.Row cols={{ default: 1, md: 4 }}>
+                  <Form.Field name="prod-short-desc" className="md:col-span-3">
+                    <Form.Label>Description Courte</Form.Label>
+                    <Input
+                      variant="admin"
                       value={shortDescription}
                       onChange={(e) => setShortDescription(e.target.value)}
                       placeholder="Présentation rapide en une phrase..."
-                      className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm"
                     />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 py-3 px-4 border border-luxury-gold/15 bg-white rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id="is_featured"
+                  </Form.Field>
+
+                  <Form.Field name="prod-featured" className="flex items-end pb-1.5">
+                    <Checkbox
+                      variant="admin"
                       checked={isFeatured}
                       onChange={(e) => setIsFeatured(e.target.checked)}
-                      className="accent-luxury-gold w-4 h-4 cursor-pointer"
+                      label="Produit Vedette"
                     />
-                    <label htmlFor="is_featured" className="text-xs font-semibold text-luxury-charcoal cursor-pointer">
-                      Produit Vedette
-                    </label>
-                  </div>
-                </div>
+                  </Form.Field>
+                </Form.Row>
 
-                {/* Row 4: Long Description */}
-                <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Description Complète
-                  </label>
-                  <textarea
-                    required
+                {/* Row 4 : Description complète */}
+                <Form.Field name="prod-description">
+                  <Form.Label required>Description Complète</Form.Label>
+                  <Textarea
+                    variant="admin"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Histoire, processus artisanal et caractéristiques du produit..."
-                    rows="4"
-                    className="w-full px-4 py-2.5 bg-white border border-luxury-gold/15 rounded outline-none focus:border-luxury-gold text-sm resize-none"
+                    rows={4}
+                    required
                   />
-                </div>
+                  <Form.Counter current={description.length} />
+                  <Form.Error />
+                </Form.Field>
 
-                {/* Row 5: Main Image Upload/Picker */}
+                <Form.Divider />
+
+                {/* Image principale */}
                 <div>
-                  <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider mb-2">
-                    Image Principale du Produit
-                  </label>
+                  <p className="text-label text-anthracite/70 mb-3">Image Principale du Produit</p>
                   <div className="flex gap-4 items-center">
-                    <div className="relative w-24 h-24 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-24 h-24 rounded bg-white border border-luxury-gold/15 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {imagePreview ? (
                         <img src={imagePreview} alt="Aperçu principal" className="w-full h-full object-cover" />
                       ) : (
                         <FiImage className="w-8 h-8 text-luxury-light-gray" />
                       )}
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold">
-                          <FiUpload />
-                          <span>Téléverser</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMainImageChange}
-                            className="hidden"
-                          />
-                        </label>
-                        <Button
-                          type="button"
-                          onClick={() => handleOpenMediaPicker('main')}
-                          variant="primary"
-                          size="sm"
-                          icon={<FiImage />}
-                        >
-                          Médiathèque
-                        </Button>
-                      </div>
+                    <div className="flex gap-2">
+                      <label className="flex items-center gap-2 px-3 py-2 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-xs cursor-pointer text-luxury-charcoal font-semibold">
+                        <FiUpload />
+                        <span>Téléverser</span>
+                        <input type="file" accept="image/*" onChange={handleMainImageChange} className="hidden" />
+                      </label>
+                      <Button
+                        type="button"
+                        onClick={() => handleOpenMediaPicker('main')}
+                        variant="primary"
+                        size="sm"
+                        icon={<FiImage />}
+                      >
+                        Médiathèque
+                      </Button>
                     </div>
                   </div>
                 </div>
 
-                {/* Row 6: Galleries Multiple Select/Upload */}
+                {/* Galerie */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-xs font-semibold text-luxury-gray uppercase tracking-wider">
-                      Galerie d'Images (Upload multiple)
-                    </label>
+                  <div className="flex justify-between items-center mb-3">
+                    <p className="text-label text-anthracite/70">Galerie d'Images</p>
                     <div className="flex gap-2">
                       <label className="flex items-center gap-2 px-2.5 py-1.5 bg-white border border-luxury-gold/25 hover:border-luxury-gold rounded text-[10px] uppercase font-bold cursor-pointer text-luxury-charcoal">
                         <FiUpload />
                         <span>Ajouter des fichiers</span>
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleGalleryImagesChange}
-                          className="hidden"
-                        />
+                        <input type="file" multiple accept="image/*" onChange={handleGalleryImagesChange} className="hidden" />
                       </label>
                       <Button
                         type="button"
@@ -682,8 +621,6 @@ export default function Products() {
 
                   <Card variant="flat" size="sm" animate={false} className="!p-0">
                     <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
-                      
-                      {/* Existing Images (for edit mode) */}
                       {existingGalleries.map((img) => (
                         <div key={img.id} className="relative aspect-square rounded border border-luxury-gold/10 overflow-hidden group">
                           <img src={img.image} alt="galerie" className="w-full h-full object-cover" />
@@ -697,7 +634,6 @@ export default function Products() {
                         </div>
                       ))}
 
-                      {/* New previews (to be uploaded/linked) */}
                       {newGalleryPreviews.map((url, index) => (
                         <div key={index} className="relative aspect-square rounded border border-luxury-gold/30 overflow-hidden group">
                           <img src={url} alt="nouveau aperçu" className="w-full h-full object-cover" />
@@ -720,38 +656,33 @@ export default function Products() {
                   </Card>
                 </div>
 
+              </Form.Section>
             </Modal.Body>
 
-              {/* Action Buttons */}
-              <Modal.Footer>
-                <Modal.Actions>
-                  <Button
-                    type="button"
-                    onClick={closeModal}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    loading={createMutation.isPending || updateMutation.isPending}
-                  >
-                    Enregistrer
-                  </Button>
-                </Modal.Actions>
-              </Modal.Footer>
-            </form>
-          </Modal.Container>
-        </Modal>
+            <Modal.Footer>
+              <Modal.Actions>
+                <Button type="button" onClick={closeModal} variant="secondary" size="sm">
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  loading={createMutation.isPending || updateMutation.isPending}
+                >
+                  Enregistrer
+                </Button>
+              </Modal.Actions>
+            </Modal.Footer>
+          </Form>
+        </Modal.Container>
+      </Modal>
 
       {/* Media Library Picker Modal */}
       {isMediaPickerOpen && (
-        <MediaPickerModal 
-          onClose={() => setIsMediaPickerOpen(false)} 
-          onSelect={handleMediaSelected} 
+        <MediaPickerModal
+          onClose={() => setIsMediaPickerOpen(false)}
+          onSelect={handleMediaSelected}
         />
       )}
     </div>

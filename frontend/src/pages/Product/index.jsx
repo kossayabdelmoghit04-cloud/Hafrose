@@ -6,15 +6,25 @@ import productService from '../../services/productService';
 import reviewService from '../../services/reviewService';
 import ProductCard from '../../components/cards/ProductCard';
 import Loader from '../../components/ui/Loader';
+import Skeleton from '../../components/ui/Skeleton';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import { useCart } from '../../context/CartContext';
 import { getProductGallery } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import Card from '../../components/ui/Card';
+import { Form, Input, Select, Textarea } from '../../components/ui/form';
+import EmptyState from '../../components/ui/EmptyState';
+
+const RATING_OPTIONS = [
+  { value: '1', label: '★ 1 — Passable' },
+  { value: '2', label: '★★ 2 — Médiocre' },
+  { value: '3', label: '★★★ 3 — Correct' },
+  { value: '4', label: '★★★★ 4 — Très bien' },
+  { value: '5', label: '★★★★★ 5 — Exceptionnel' },
+];
 
 export default function Product() {
   const { slug } = useParams();
@@ -59,7 +69,7 @@ export default function Product() {
         setProduct(res.data);
         setActiveImgIdx(0);
         setQty(1);
-        
+
         // Fetch similar products in same category
         const simRes = await productService.getAll({ category: res.data.category?.slug, per_page: 5 });
         if (simRes?.success) {
@@ -119,7 +129,7 @@ export default function Product() {
     }
   };
 
-  if (isLoading) return <Loader fullPage />;
+  if (isLoading) return <Skeleton.ProductDetail />;
   if (error || !product) return <div className="py-32 text-center text-red-500 font-sans">{error || 'Création introuvable.'}</div>;
 
   return (
@@ -146,7 +156,7 @@ export default function Product() {
         <div className="lg:col-span-5 space-y-6 text-left">
           <span className="text-[10px] tracking-[0.3em] uppercase text-luxury-gold font-sans font-semibold">{product.category?.name}</span>
           <h1 className="font-serif text-3xl md:text-4xl font-light text-luxury-charcoal leading-tight">{product.name}</h1>
-          
+
           <div className="flex items-center space-x-4 border-b border-luxury-charcoal/5 pb-4">
             <div className="flex text-luxury-gold">
               {[...Array(5)].map((_, i) => <FiStar key={i} className={`w-4 h-4 ${i < Math.round(avgRating || 5) ? 'fill-luxury-gold' : ''}`} />)}
@@ -157,7 +167,7 @@ export default function Product() {
           </div>
 
           <p className="font-sans text-xl text-luxury-gold font-medium">{formatPrice(product.price)}</p>
-          
+
           <div className="space-y-2 text-xs font-sans font-light text-luxury-charcoal">
             {product.material && <p><span className="text-luxury-gray uppercase tracking-wider text-[10px] font-medium mr-2">Matière :</span> {product.material}</p>}
             {product.color && <p><span className="text-luxury-gray uppercase tracking-wider text-[10px] font-medium mr-2">Coloris :</span> {product.color}</p>}
@@ -193,7 +203,12 @@ export default function Product() {
           <h2 className="font-serif text-2xl font-light text-luxury-charcoal">Avis des Clients</h2>
           <div className="space-y-4">
             {!product.reviews?.length ? (
-              <p className="text-xs text-luxury-gray font-sans font-light">Aucun avis n'a encore été déposé. Partagez votre expérience avec cette création.</p>
+              <EmptyState
+                variant="flat"
+                compact
+                title="Aucun avis pour le moment"
+                description="Aucun avis n'a encore été déposé. Partagez votre expérience avec cette création."
+              />
             ) : (
               product.reviews.map((rev) => (
                 <Card key={rev.id} variant="review" className="border-b border-luxury-charcoal/5 pb-4 p-0 shadow-none gap-2 text-left bg-transparent border-0">
@@ -211,30 +226,80 @@ export default function Product() {
         </div>
 
         {/* Review Form */}
-        <Card variant="panel" className="lg:col-span-5 p-6 gap-4">
-          <Card.Header className="border-b-0 pb-0 mb-0">
+        <Card variant="panel" className="lg:col-span-5 p-6">
+          <Card.Header className="border-b-0 pb-0 mb-4">
             <Card.Title as="h3" className="text-lg font-light text-luxury-charcoal">Partager votre avis</Card.Title>
           </Card.Header>
-          <form onSubmit={handleReviewSubmit} className="space-y-4">
-            <Input label="Votre Nom" value={revName} onChange={(e) => setRevName(e.target.value)} required />
-            <div className="flex flex-col space-y-1.5">
-              <span className="text-[10px] tracking-[0.25em] uppercase font-sans font-medium text-luxury-charcoal/80">Note</span>
-              <div className="flex space-x-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} type="button" onClick={() => setRevRating(star)} className="text-luxury-gold focus:outline-none cursor-pointer">
-                    <FiStar className={`w-5 h-5 ${star <= revRating ? 'fill-luxury-gold' : ''}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] tracking-[0.25em] uppercase font-sans font-medium text-luxury-charcoal/80">Commentaire (min. 10 caractères)</label>
-              <textarea value={revComment} onChange={(e) => setRevComment(e.target.value)} rows={4} className="w-full px-4 py-3 bg-white border border-luxury-charcoal/10 focus:border-luxury-gold outline-none text-xs font-sans font-light tracking-wide text-luxury-charcoal transition-all duration-300 placeholder:text-luxury-gray/50 rounded-none" required />
-            </div>
-            <Button variant="primary" type="submit" fullWidth disabled={isSubmittingReview}>
-              {isSubmittingReview ? 'Transmission...' : 'Soumettre mon avis'}
-            </Button>
-          </form>
+
+          <Form onSubmit={handleReviewSubmit}>
+            <Form.Section>
+              {/* Nom */}
+              <Form.Field name="revName">
+                <Form.Label required>Votre Nom</Form.Label>
+                <Input
+                  name="revName"
+                  value={revName}
+                  onChange={(e) => setRevName(e.target.value)}
+                  required
+                  autoComplete="name"
+                />
+                <Form.Error />
+              </Form.Field>
+
+              {/* Note — star picker (interactive) + Select fallback */}
+              <Form.Field name="revRating">
+                <Form.Label required>Note</Form.Label>
+                {/* Interactive star rating buttons */}
+                <div className="flex space-x-1 py-1" role="group" aria-label="Choisir une note">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRevRating(star)}
+                      aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
+                      aria-pressed={star <= revRating}
+                      className="text-luxury-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-luxury-gold cursor-pointer"
+                    >
+                      <FiStar className={`w-5 h-5 ${star <= revRating ? 'fill-luxury-gold' : ''}`} />
+                    </button>
+                  ))}
+                </div>
+                {/* Hidden select for screen reader / form serialization */}
+                <Select
+                  name="revRating"
+                  value={String(revRating)}
+                  onChange={(e) => setRevRating(Number(e.target.value))}
+                  options={RATING_OPTIONS}
+                  size="sm"
+                  className="sr-only"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
+              </Form.Field>
+
+              {/* Commentaire */}
+              <Form.Field name="revComment">
+                <Form.Label required>Commentaire (min. 10 caractères)</Form.Label>
+                <Textarea
+                  name="revComment"
+                  value={revComment}
+                  onChange={(e) => setRevComment(e.target.value)}
+                  rows={4}
+                  required
+                />
+                <Form.Counter current={revComment.length} />
+                <Form.Error />
+              </Form.Field>
+            </Form.Section>
+
+            <Form.Footer>
+              <Form.Actions align="left">
+                <Button variant="primary" type="submit" fullWidth disabled={isSubmittingReview}>
+                  {isSubmittingReview ? 'Transmission...' : 'Soumettre mon avis'}
+                </Button>
+              </Form.Actions>
+            </Form.Footer>
+          </Form>
         </Card>
       </div>
 

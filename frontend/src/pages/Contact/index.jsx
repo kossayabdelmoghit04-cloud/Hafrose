@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiSend } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import contactService from '../../services/contactService';
-import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import Card from '../../components/ui/Card';
+import { Form, Input, EmailField, Select, Textarea } from '../../components/ui/form';
 
 const SUBJECTS = [
   'Renseignement sur un produit',
@@ -17,6 +17,8 @@ const SUBJECTS = [
   'Presse & Partenariats',
   'Autre'
 ];
+
+const SUBJECT_OPTIONS = SUBJECTS.map((s) => ({ value: s, label: s }));
 
 export default function Contact() {
   useDocumentTitle('Nous Contacter', 'Notre conciergerie se tient à votre entière disposition pour répondre à vos questions ou organiser une consultation privée.');
@@ -34,12 +36,12 @@ export default function Contact() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Le nom est obligatoire.';
     else if (form.name.trim().length > 255) errs.name = 'Le nom ne doit pas dépasser 255 caractères.';
-    
+
     if (!form.email.trim()) errs.email = "L'adresse e-mail est obligatoire.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "L'adresse e-mail n'est pas valide.";
-    
+
     if (!form.subject) errs.subject = 'Le sujet est obligatoire.';
-    
+
     if (!form.message.trim()) errs.message = 'Le message est obligatoire.';
     else if (form.message.trim().length < 10) errs.message = 'Le message doit contenir au moins 10 caractères.';
     else if (form.message.trim().length > 5000) errs.message = 'Le message ne doit pas dépasser 5000 caractères.';
@@ -107,65 +109,97 @@ export default function Contact() {
           <Card.Header className="border-b-0 pb-0 mb-8">
             <Card.Title as="h2" className="text-xl font-light text-luxury-charcoal">Votre Message</Card.Title>
           </Card.Header>
-          <form onSubmit={handleSubmit} className="space-y-5">
+
+          <Form onSubmit={handleSubmit}>
             {/* Honeypot anti-spam field - hidden from users */}
             <input type="text" name="website" value={form.website} onChange={handleChange} className="hidden" tabIndex="-1" autoComplete="off" aria-hidden="true" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Input label="Nom complet" name="name" value={form.name} onChange={handleChange} error={errors.name} required />
-              <Input label="Adresse e-mail" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} required />
-            </div>
+            <Form.Section>
+              {/* Row 1: Nom + Email */}
+              <Form.Row cols={{ default: 1, md: 2 }}>
+                <Form.Field name="name" error={errors.name}>
+                  <Form.Label required>Nom complet</Form.Label>
+                  <Input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                    autoComplete="name"
+                  />
+                  <Form.Error />
+                </Form.Field>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Input label="Téléphone (facultatif)" name="phone" type="tel" value={form.phone} onChange={handleChange} />
-              <div className="flex flex-col space-y-1.5 text-left">
-                <label className="text-[10px] tracking-[0.25em] uppercase font-sans font-medium text-luxury-charcoal/80">
-                  Sujet
-                </label>
-                <select
-                  name="subject"
-                  value={form.subject}
+                <Form.Field name="email" error={errors.email}>
+                  <Form.Label required>Adresse e-mail</Form.Label>
+                  <EmailField
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="email"
+                  />
+                  <Form.Error />
+                </Form.Field>
+              </Form.Row>
+
+              {/* Row 2: Téléphone + Sujet */}
+              <Form.Row cols={{ default: 1, md: 2 }}>
+                <Form.Field name="phone" error={errors.phone}>
+                  <Form.Label>Téléphone (facultatif)</Form.Label>
+                  <Input
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    autoComplete="tel"
+                  />
+                  <Form.Error />
+                </Form.Field>
+
+                <Form.Field name="subject" error={errors.subject}>
+                  <Form.Label required>Sujet</Form.Label>
+                  <Select
+                    name="subject"
+                    value={form.subject}
+                    onChange={handleChange}
+                    options={SUBJECT_OPTIONS}
+                    placeholder="Sélectionner un sujet"
+                    required
+                  />
+                  <Form.Error />
+                </Form.Field>
+              </Form.Row>
+
+              {/* Message */}
+              <Form.Field name="message" error={errors.message}>
+                <Form.Label required>Votre message</Form.Label>
+                <Textarea
+                  name="message"
+                  value={form.message}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-white border outline-none text-xs font-sans font-light tracking-wide text-luxury-charcoal transition-all duration-300 rounded-none ${
-                    errors.subject ? 'border-rose-400' : 'border-luxury-charcoal/10 focus:border-luxury-gold'
-                  }`}
+                  rows={6}
+                  placeholder="Décrivez votre demande avec le plus de détails possible..."
                   required
+                />
+                <Form.Counter current={form.message.length} max={5000} />
+                <Form.Error />
+              </Form.Field>
+            </Form.Section>
+
+            <Form.Footer className="border-t-0 pt-2 mt-6">
+              <Form.Actions align="left">
+                <Button
+                  variant="primary"
+                  type="submit"
+                  fullWidth
+                  disabled={isSubmitting}
+                  icon={<FiSend size={14} />}
                 >
-                  <option value="">Sélectionner un sujet</option>
-                  {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-                {errors.subject && <span className="text-[10px] font-sans text-rose-500 font-light">{errors.subject}</span>}
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-1.5 text-left">
-              <label className="text-[10px] tracking-[0.25em] uppercase font-sans font-medium text-luxury-charcoal/80">
-                Votre message
-              </label>
-              <textarea
-                name="message"
-                value={form.message}
-                onChange={handleChange}
-                rows={6}
-                className={`w-full px-4 py-3 bg-white border outline-none text-xs font-sans font-light tracking-wide text-luxury-charcoal transition-all duration-300 placeholder:text-luxury-gray/50 rounded-none ${
-                  errors.message ? 'border-rose-400' : 'border-luxury-charcoal/10 focus:border-luxury-gold'
-                }`}
-                placeholder="Décrivez votre demande avec le plus de détails possible..."
-                required
-              />
-              {errors.message && <span className="text-[10px] font-sans text-rose-500 font-light">{errors.message}</span>}
-            </div>
-
-            <Button
-              variant="primary"
-              type="submit"
-              fullWidth
-              disabled={isSubmitting}
-              icon={<FiSend size={14} />}
-            >
-              {isSubmitting ? 'Envoi en cours...' : 'Envoyer votre message'}
-            </Button>
-          </form>
+                  {isSubmitting ? 'Envoi en cours...' : 'Envoyer votre message'}
+                </Button>
+              </Form.Actions>
+            </Form.Footer>
+          </Form>
         </Card>
 
         {/* Contact Info Sidebar */}
