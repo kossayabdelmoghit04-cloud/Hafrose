@@ -17,15 +17,18 @@ class DashboardService
      */
     public function getMetrics(): array
     {
-        // Chiffre d'affaires : commandes non annulées
-        $revenue = Order::where('status', '!=', Order::STATUS_CANCELLED)->sum('total_price');
+        $orderStats = Order::selectRaw("
+            SUM(CASE WHEN status != ? THEN total_price ELSE 0 END) as revenue,
+            COUNT(*) as total_orders,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_orders
+        ", [Order::STATUS_CANCELLED, Order::STATUS_PENDING])->first();
 
         return [
             'products_count'    => Product::count(),
             'categories_count'  => Category::count(),
-            'orders_count'      => Order::count(),
-            'pending_orders'    => Order::where('status', Order::STATUS_PENDING)->count(),
-            'revenue'           => round($revenue, 2),
+            'orders_count'      => $orderStats->total_orders,
+            'pending_orders'    => (int)$orderStats->pending_orders,
+            'revenue'           => round((float)$orderStats->revenue, 2),
             'pending_reviews'   => Review::where('is_approved', false)->count(),
             'unread_contacts'   => Contact::where('is_read', false)->count(),
         ];
@@ -69,9 +72,8 @@ class DashboardService
     public function getPopularProducts(int $limit = 5): array
     {
         $popular = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_qty'))
-            ->whereHas('order', function ($query) {
-                $query->where('status', '!=', Order::STATUS_CANCELLED);
-            })
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.status', '!=', Order::STATUS_CANCELLED)
             ->groupBy('product_id')
             ->orderBy('total_qty', 'desc')
             ->limit($limit)
@@ -95,7 +97,8 @@ class DashboardService
      */
     public function getLatestOrders(int $limit = 5): array
     {
-        return Order::latest()
+        return Order::select('id', 'customer_name', 'phone', 'city', 'total_price', 'status', 'created_at')
+            ->latest()
             ->limit($limit)
             ->get()
             ->toArray();
@@ -106,7 +109,8 @@ class DashboardService
      */
     public function getLatestMessages(int $limit = 5): array
     {
-        return Contact::latest()
+        return Contact::select('id', 'name', 'email', 'subject', 'is_read', 'created_at')
+            ->latest()
             ->limit($limit)
             ->get()
             ->toArray();

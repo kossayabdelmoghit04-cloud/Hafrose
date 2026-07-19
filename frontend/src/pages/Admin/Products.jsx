@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import Loader from '../../components/ui/Loader';
 import Swal from 'sweetalert2';
 import {
   FiPlus,
-  FiEdit,
   FiTrash2,
   FiSearch,
   FiX,
   FiUpload,
   FiImage,
-  FiFilter,
   FiStar
 } from 'react-icons/fi';
 import MediaPickerModal from '../../components/common/MediaPickerModal';

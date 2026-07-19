@@ -5,7 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Setting;
 use App\Repositories\Contracts\SettingRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; // utilisé pour upsert() dans updateMultiple()
 
 class SettingRepository implements SettingRepositoryInterface
 {
@@ -37,14 +37,33 @@ class SettingRepository implements SettingRepositoryInterface
     }
 
     /**
-     * Mettre à jour plusieurs paramètres en une fois (transactionnel).
+     * Mettre à jour plusieurs paramètres en une fois.
+     *
+     * Utilise upsert() pour réduire les N aller-retours base de données
+     * (un seul INSERT ... ON DUPLICATE KEY UPDATE) au lieu de N updateOrCreate().
      */
     public function updateMultiple(array $settings): void
     {
-        DB::transaction(function () use ($settings) {
-            foreach ($settings as $key => $value) {
-                $this->updateOrCreate($key, $value);
-            }
-        });
+        if (empty($settings)) {
+            return;
+        }
+
+        $now  = now();
+        $rows = [];
+
+        foreach ($settings as $key => $value) {
+            $rows[] = [
+                'key'        => $key,
+                'value'      => $value,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::table('settings')->upsert(
+            $rows,
+            ['key'],                    // colonne unique de correspondance
+            ['value', 'updated_at']     // colonnes à mettre à jour si la ligne existe
+        );
     }
 }

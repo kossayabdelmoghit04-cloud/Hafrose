@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -93,7 +93,7 @@ const Button = memo(({
   }, [fullWidth]);
 
   // Click handler to prevent navigation when disabled/loading
-  const handleClick = (e) => {
+  const handleClick = useCallback((e) => {
     if (disabled || activeLoading) {
       e.preventDefault();
       return;
@@ -101,7 +101,7 @@ const Button = memo(({
     if (onClick) {
       onClick(e);
     }
-  };
+  }, [disabled, activeLoading, onClick]);
 
   // Determine spinner size based on button size
   const spinnerSizeClass = useMemo(() => {
@@ -148,7 +148,7 @@ const Button = memo(({
       type,
       disabled: disabled || activeLoading
     };
-  }, [baseStyle, variantClass, sizeClass, toneClass, className, disabled, activeLoading, onClick, type, to, href, as, props]);
+  }, [baseStyle, variantClass, sizeClass, toneClass, className, disabled, activeLoading, handleClick, type, to, href, as, props]);
 
   return (
     <MotionComponent {...elementProps}>

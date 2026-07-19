@@ -30,6 +30,17 @@ class WishlistRepository implements WishlistRepositoryInterface
     }
 
     /**
+     * Vérifier si un favori existe pour un utilisateur et un produit donnés.
+     * Utilise exists() pour éviter de rapatrier l'enregistrement complet.
+     */
+    public function existsForUserAndProduct(User $user, int $productId): bool
+    {
+        return WishlistItem::where('user_id', $user->id)
+            ->where('product_id', $productId)
+            ->exists();
+    }
+
+    /**
      * Ajouter un produit aux favoris de l'utilisateur.
      */
     public function createForUser(User $user, int $productId): WishlistItem

@@ -46,18 +46,21 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         // Filtre par recherche textuelle (supporte q et search)
-        // Recherche dans name, description, et dynamiquement dans short_description et sku si existants
+        // Les vérifications Schema::hasColumn sont calculées une seule fois hors de la closure
         $search = $filters['q'] ?? $filters['search'] ?? null;
         if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
+            $hasShortDescription = \Illuminate\Support\Facades\Schema::hasColumn('products', 'short_description');
+            $hasSku              = \Illuminate\Support\Facades\Schema::hasColumn('products', 'sku');
+
+            $query->where(function ($q) use ($search, $hasShortDescription, $hasSku) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
-                
-                if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'short_description')) {
+
+                if ($hasShortDescription) {
                     $q->orWhere('short_description', 'like', "%{$search}%");
                 }
-                
-                if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'sku')) {
+
+                if ($hasSku) {
                     $q->orWhere('sku', 'like', "%{$search}%");
                 }
             });

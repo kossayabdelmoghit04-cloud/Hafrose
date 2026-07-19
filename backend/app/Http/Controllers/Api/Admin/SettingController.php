@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSettingsRequest;
+use App\Models\AdminLog;
+use App\Services\AdminLogService;
 use App\Services\SettingService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -13,12 +15,10 @@ class SettingController extends Controller
 {
     use HttpResponses;
 
-    protected SettingService $settingService;
-
-    public function __construct(SettingService $settingService)
-    {
-        $this->settingService = $settingService;
-    }
+    public function __construct(
+        protected SettingService   $settingService,
+        protected AdminLogService  $adminLogService,
+    ) {}
 
     /**
      * Obtenir tous les paramètres sous forme de clé-valeur.
@@ -34,14 +34,24 @@ class SettingController extends Controller
      */
     public function update(UpdateSettingsRequest $request): JsonResponse
     {
+        $oldSettings  = $this->settingService->getSettings();
         $settingsData = $request->input('settings');
-        $logo = $request->file('site_logo');
-        $favicon = $request->file('site_favicon');
+        $logo         = $request->file('site_logo');
+        $favicon      = $request->file('site_favicon');
 
         $this->settingService->updateSettings($settingsData, $logo, $favicon);
+        $newSettings = $this->settingService->getSettings();
+
+        $this->adminLogService->log(
+            request:   $request,
+            action:    AdminLog::ACTION_UPDATE,
+            resource:  AdminLog::RESOURCE_SETTING,
+            oldValues: is_array($oldSettings) ? $oldSettings : $oldSettings->toArray(),
+            newValues: is_array($newSettings) ? $newSettings : $newSettings->toArray(),
+        );
 
         return $this->successResponse(
-            $this->settingService->getSettings(),
+            $newSettings,
             'Paramètres mis à jour avec succès.'
         );
     }

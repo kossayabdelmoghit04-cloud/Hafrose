@@ -5,20 +5,21 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminContactIndexRequest;
 use App\Http\Resources\ContactResource;
+use App\Models\AdminLog;
+use App\Services\AdminLogService;
 use App\Services\ContactService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
     use HttpResponses;
 
-    protected ContactService $contactService;
-
-    public function __construct(ContactService $contactService)
-    {
-        $this->contactService = $contactService;
-    }
+    public function __construct(
+        protected ContactService   $contactService,
+        protected AdminLogService  $adminLogService,
+    ) {}
 
     /**
      * Obtenir la liste paginée de tous les messages de contact avec filtres facultatifs.
@@ -51,10 +52,19 @@ class ContactController extends Controller
     /**
      * Marquer un message de contact comme lu.
      */
-    public function markAsRead(int $id): JsonResponse
+    public function markAsRead(Request $request, int $id): JsonResponse
     {
         $contact = $this->contactService->getContactById($id);
         $updated = $this->contactService->markAsRead($contact);
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_MARK_READ,
+            resource:   AdminLog::RESOURCE_CONTACT,
+            resourceId: $contact->id,
+            oldValues:  ['is_read' => false],
+            newValues:  ['is_read' => true],
+        );
 
         return $this->successResponse(
             new ContactResource($updated),
@@ -65,10 +75,20 @@ class ContactController extends Controller
     /**
      * Supprimer un message de contact.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $contact = $this->contactService->getContactById($id);
+        $contact  = $this->contactService->getContactById($id);
+        $snapshot = $this->adminLogService->extractModelValues($contact, ['id', 'name', 'email', 'subject']);
+
         $this->contactService->deleteContact($contact);
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_DELETE,
+            resource:   AdminLog::RESOURCE_CONTACT,
+            resourceId: $id,
+            oldValues:  $snapshot,
+        );
 
         return $this->successResponse(null, 'Message de contact supprimé avec succès.');
     }

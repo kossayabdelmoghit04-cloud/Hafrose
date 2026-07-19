@@ -1,4 +1,4 @@
-import React, { useMemo, memo, forwardRef } from 'react';
+import React, { useMemo, useCallback, memo, forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -58,6 +58,7 @@ const Card = memo(forwardRef(({
   section = false,
   className = '',
   style = {},
+  onClick,
   ...props
 }, ref) => {
   // Resolve correct motion tag for polymorphism
@@ -104,15 +105,15 @@ const Card = memo(forwardRef(({
     return classes;
   }, [hoverable, variant, selected, disabled, error, success]);
 
-  const handleClick = (e) => {
+  const handleClick = useCallback((e) => {
     if (disabled || loading) {
       e.preventDefault();
       return;
     }
-    if (props.onClick) {
-      props.onClick(e);
+    if (onClick) {
+      onClick(e);
     }
-  };
+  }, [disabled, loading, onClick]);
 
   const finalProps = useMemo(() => {
     const isTagLink = to || as === Link;
@@ -143,7 +144,7 @@ const Card = memo(forwardRef(({
     }
 
     return baseProps;
-  }, [activeVariant, activeSize, stateClass, className, style, disabled, loading, to, href, as, props]);
+  }, [activeVariant, activeSize, stateClass, className, style, disabled, loading, handleClick, to, href, as, ref, props]);
 
   return (
     <Component {...finalProps}>

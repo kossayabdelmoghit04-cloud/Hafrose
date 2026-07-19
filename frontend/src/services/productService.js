@@ -15,6 +15,22 @@ const productService = {
    */
   getBySlug: (slug) => {
     return api.get(`/products/${slug}`);
+  },
+
+  /**
+   * Récupère les produits similaires à un produit
+   * @param {number|string} id - L'ID du produit
+   */
+  getRelated: (id) => {
+    return api.get(`/products/${id}/related`);
+  },
+
+  /**
+   * Récupère les produits les plus populaires
+   * @param {number} [limit] - Nombre maximum de produits à retourner
+   */
+  getPopular: (limit) => {
+    return api.get('/products/popular', { params: limit ? { limit } : {} });
   }
 };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiSliders, FiShoppingBag } from 'react-icons/fi';
@@ -102,7 +102,7 @@ export default function Shop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [fetchProducts]);
 
-  const updateParam = (key, value) => {
+  const updateParam = useCallback((key, value) => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('page', '1'); // Reset pagination on filter change
     if (value) {
@@ -111,11 +111,29 @@ export default function Shop() {
       nextParams.delete(key);
     }
     setSearchParams(nextParams);
-  };
+  }, [searchParams, setSearchParams]);
 
-  const resetAllFilters = () => {
+  const resetAllFilters = useCallback(() => {
     setSearchParams({});
-  };
+  }, [setSearchParams]);
+
+  // Debounced search to avoid API call on every keystroke
+  const searchDebounceRef = useRef(null);
+  const [searchInput, setSearchInput] = useState(searchVal);
+
+  // Keep local input in sync when URL param changes externally (e.g. reset)
+  useEffect(() => {
+    setSearchInput(searchVal);
+  }, [searchVal]);
+
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      updateParam('search', value);
+    }, 400);
+  }, [updateParam]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 pt-32 min-h-screen">
@@ -135,8 +153,8 @@ export default function Shop() {
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Input
-            value={searchVal}
-            onChange={(e) => updateParam('search', e.target.value)}
+            value={searchInput}
+            onChange={handleSearchChange}
             placeholder="Rechercher une pièce d'exception..."
             className="pr-10 !py-2.5"
           />

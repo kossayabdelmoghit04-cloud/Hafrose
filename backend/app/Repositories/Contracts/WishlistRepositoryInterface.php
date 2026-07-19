@@ -24,6 +24,12 @@ interface WishlistRepositoryInterface
     public function createForUser(User $user, int $productId): WishlistItem;
 
     /**
+     * Vérifier si un favori existe pour un utilisateur et un produit donnés.
+     * Plus efficace que findForUserAndProduct() lorsque seule l'existence est nécessaire.
+     */
+    public function existsForUserAndProduct(User $user, int $productId): bool;
+
+    /**
      * Supprimer un favori.
      */
     public function delete(WishlistItem $wishlistItem): bool;

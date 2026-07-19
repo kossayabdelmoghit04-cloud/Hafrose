@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMediaRequest;
 use App\Http\Resources\MediaResource;
+use App\Models\AdminLog;
+use App\Services\AdminLogService;
 use App\Services\MediaService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -14,12 +16,10 @@ class MediaController extends Controller
 {
     use HttpResponses;
 
-    protected MediaService $mediaService;
-
-    public function __construct(MediaService $mediaService)
-    {
-        $this->mediaService = $mediaService;
-    }
+    public function __construct(
+        protected MediaService     $mediaService,
+        protected AdminLogService  $adminLogService,
+    ) {}
 
     /**
      * Obtenir la liste paginée des médias.
@@ -27,7 +27,7 @@ class MediaController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->input('per_page', 18);
-        $media = $this->mediaService->getPaginatedMedia($perPage);
+        $media   = $this->mediaService->getPaginatedMedia($perPage);
 
         return response()->json([
             'success' => true,
@@ -48,8 +48,20 @@ class MediaController extends Controller
      */
     public function store(StoreMediaRequest $request): JsonResponse
     {
-        $file = $request->file('file');
+        $file  = $request->file('file');
         $media = $this->mediaService->uploadMedia($file);
+
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_UPLOAD,
+            resource:   AdminLog::RESOURCE_MEDIA,
+            resourceId: $media->id,
+            newValues:  [
+                'filename'  => $media->filename ?? $media->name ?? null,
+                'mime_type' => $file->getMimeType(),
+                'size'      => $file->getSize(),
+            ],
+        );
 
         return $this->successResponse(
             new MediaResource($media),
@@ -61,9 +73,17 @@ class MediaController extends Controller
     /**
      * Supprimer un média de la médiathèque.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
+        $this->adminLogService->log(
+            request:    $request,
+            action:     AdminLog::ACTION_DELETE,
+            resource:   AdminLog::RESOURCE_MEDIA,
+            resourceId: $id,
+        );
+
         $this->mediaService->deleteMedia($id);
+
         return $this->successResponse(null, 'Média supprimé avec succès.');
     }
 }

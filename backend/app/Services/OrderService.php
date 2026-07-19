@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Models\Order;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -12,13 +13,16 @@ class OrderService
 {
     protected OrderRepositoryInterface $orderRepository;
     protected ProductRepositoryInterface $productRepository;
+    protected ActivityLogService $activityLogService;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        ActivityLogService $activityLogService
     ) {
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
+        $this->activityLogService = $activityLogService;
     }
 
     /**
@@ -74,6 +78,19 @@ class OrderService
             // Recharger la commande pour obtenir le total_price mis à jour par Eloquent
             $order->refresh();
 
+            // Enregistrer l'activité de création de commande
+            $this->activityLogService->log(
+                eventType:  ActivityLog::EVENT_ORDER_CREATED,
+                category:   ActivityLog::CATEGORY_ORDER,
+                resource:   'orders',
+                resourceId: $order->id,
+                metadata:   [
+                    'customer'    => $order->customer_name,
+                    'total_price' => $order->total_price,
+                    'city'        => $order->city,
+                ]
+            );
+
             // Charger les lignes de commande et les produits pour le formatage
             return $order->load('orderItems.product');
         });
@@ -115,6 +132,8 @@ class OrderService
 
             // Si la commande est annulée, restituer le stock
             if ($status === Order::STATUS_CANCELLED && $oldStatus !== Order::STATUS_CANCELLED) {
+                // Charger les articles si non déjà en mémoire pour éviter le lazy loading implicite
+                $order->loadMissing('orderItems');
                 foreach ($order->orderItems as $item) {
                     $product = $this->productRepository->findForUpdate($item->product_id);
                     if ($product) {
@@ -124,6 +143,8 @@ class OrderService
             }
             // Si la commande était annulée et qu'elle est réactivée, décrémenter le stock si possible
             elseif ($oldStatus === Order::STATUS_CANCELLED && $status !== Order::STATUS_CANCELLED) {
+                // Charger les articles si non déjà en mémoire pour éviter le lazy loading implicite
+                $order->loadMissing('orderItems');
                 foreach ($order->orderItems as $item) {
                     $product = $this->productRepository->findForUpdate($item->product_id);
                     if ($product) {
@@ -140,7 +161,21 @@ class OrderService
                 }
             }
 
-            return $this->orderRepository->update($order, ['status' => $status]);
+            $updatedOrder = $this->orderRepository->update($order, ['status' => $status]);
+
+            // Enregistrer l'activité de changement de statut de la commande
+            $this->activityLogService->log(
+                eventType:  ActivityLog::EVENT_ORDER_STATUS_CHANGED,
+                category:   ActivityLog::CATEGORY_ORDER,
+                resource:   'orders',
+                resourceId: $updatedOrder->id,
+                metadata:   [
+                    'old_status' => $oldStatus,
+                    'new_status' => $status,
+                ]
+            );
+
+            return $updatedOrder;
         });
     }
 }
