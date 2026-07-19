@@ -1,6 +1,33 @@
-# robots.txt for Hafrose luxury store
+# robots.txt — Maison Hafrose
+# https://hafrose.com
+
+# ── Règles globales ────────────────────────────────────────────────────────
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart
+Disallow: /order-confirmation
 
-# Sitemap URL
+# Évite de surcharger le serveur
+Crawl-delay: 1
+
+# ── Googlebot ─────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart
+Disallow: /order-confirmation
+
+# ── Bingbot ──────────────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cart
+Disallow: /order-confirmation
+Crawl-delay: 5
+
+# ── Sitemap ───────────────────────────────────────────────────────────────
 Sitemap: https://hafrose.com/sitemap.xml

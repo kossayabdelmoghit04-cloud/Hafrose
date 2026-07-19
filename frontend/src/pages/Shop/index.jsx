@@ -11,7 +11,7 @@ import Pagination from '../../components/ui/Pagination';
 import Input from '../../components/ui/Input';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import EmptyState from '../../components/ui/EmptyState';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 
 const COLORS = [
   { name: 'Noir Ébène', hex: '#111111' },
@@ -55,7 +55,22 @@ export default function Shop() {
   const sortOrder = searchParams.get('sort_order') || 'desc';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
-  useDocumentTitle('La Boutique', 'Découvrez la collection exclusive d\'accessoires de mode, maroquinerie, bijoux et montres de la Maison Hafrose.');
+  useSEO({
+    title: 'La Boutique',
+    description:
+      'Découvrez la collection exclusive d\'accessoires de mode, maroquinerie, bijoux et montres de la Maison Hafrose.',
+    canonical: 'https://hafrose.com/shop',
+    ogImage: 'https://hafrose.com/og-default.jpg',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'La Boutique Hafrose',
+      description:
+        'Collection exclusive de maroquinerie, bijoux, montres et accessoires de luxe de la Maison Hafrose.',
+      url: 'https://hafrose.com/shop',
+      isPartOf: { '@type': 'WebSite', name: 'Hafrose', url: 'https://hafrose.com' },
+    },
+  });
 
   const fetchCategories = useCallback(async () => {
     try {

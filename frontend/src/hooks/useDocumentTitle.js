@@ -1,23 +1,12 @@
-import { useEffect } from 'react';
+import useSEO from './useSEO';
 
 /**
- * Custom hook to dynamically update document title and meta description.
- * @param {string} title - Page specific title segment
- * @param {string} description - Page specific description
+ * Backward-compatible hook. Delegates to useSEO.
+ * All existing pages continue to work without modification.
+ *
+ * @param {string} title       - Page-specific title segment
+ * @param {string} description - Meta description
  */
 export default function useDocumentTitle(title, description) {
-  useEffect(() => {
-    if (title) {
-      document.title = `${title} | Hafrose — Haute Maroquinerie d'Exception`;
-    } else {
-      document.title = 'Hafrose — Haute Maroquinerie d\'Exception';
-    }
-
-    if (description) {
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', description);
-      }
-    }
-  }, [title, description]);
+  useSEO({ title, description });
 }

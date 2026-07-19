@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 
 /**
@@ -5,7 +6,7 @@ import { Link } from 'react-router-dom';
  * @param {Object} props
  * @param {Array} props.items - List of { label, path } objects
  */
-export default function Breadcrumb({ items = [] }) {
+const Breadcrumb = memo(function Breadcrumb({ items = [] }) {
   return (
     <nav className="flex py-4 mb-6" aria-label="Breadcrumb">
       <ol className="inline-flex items-center space-x-1.5 md:space-x-3">
@@ -41,4 +42,7 @@ export default function Breadcrumb({ items = [] }) {
       </ol>
     </nav>
   );
-}
+});
+
+export default Breadcrumb;
+

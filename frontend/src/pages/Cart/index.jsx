@@ -9,7 +9,7 @@ import { getProductImage } from '../../utils/imageHelper';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import { formatPrice } from '../../utils/format';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 import Card from '../../components/ui/Card';
 import { Form, Input } from '../../components/ui/form';
 import EmptyState from '../../components/ui/EmptyState';
@@ -19,7 +19,11 @@ export default function Cart() {
   const navigate = useNavigate();
   const { cart, cartCount, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
 
-  useDocumentTitle('Validation de commande', 'Révisez votre panier et saisissez vos informations de livraison pour finaliser votre commande Hafrose.');
+  useSEO({
+    title: 'Validation de commande',
+    description: 'Révisez votre panier et saisissez vos informations de livraison pour finaliser votre commande Hafrose.',
+    robots: 'noindex, nofollow',
+  });
 
   const [form, setForm] = useState({
     customer: '',

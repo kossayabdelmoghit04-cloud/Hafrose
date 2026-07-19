@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import Card from '../ui/Card';
 
-export default function Testimonials() {
+const Testimonials = memo(function Testimonials() {
   const reviews = [
     {
       author: "Hélène de M.",
@@ -80,4 +81,7 @@ export default function Testimonials() {
       </div>
     </section>
   );
-}
+});
+
+export default Testimonials;
+

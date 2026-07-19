@@ -6,37 +6,37 @@ export default function PopularCategories() {
     {
       name: 'Sacs',
       slug: 'sacs',
-      image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=500&q=70',
       description: 'Cabas, sacs à main et pochettes de soirée.'
     },
     {
       name: 'Bijoux',
       slug: 'bijoux',
-      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=500&q=70',
       description: 'Créations précieuses serties d\'éclats éternels.'
     },
     {
       name: 'Montres',
       slug: 'montres',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=70',
       description: 'Garde-temps automatiques de haute précision.'
     },
     {
       name: 'Lunettes',
       slug: 'lunettes',
-      image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=500&q=70',
       description: 'Lunettes de créateur alliant style et clarté.'
     },
     {
       name: 'Ceintures',
       slug: 'ceintures',
-      image: 'https://images.unsplash.com/photo-1624222247344-550fb8efeb31?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1624222247344-550fb8efeb31?auto=format&fit=crop&w=500&q=70',
       description: 'Ceintures en cuir de veau aux finitions d\'art.'
     },
     {
       name: 'Portefeuilles',
       slug: 'portefeuilles',
-      image: 'https://images.unsplash.com/photo-1627124357773-41319db23f2f?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1627124357773-41319db23f2f?auto=format&fit=crop&w=500&q=70',
       description: 'Petite maroquinerie fonctionnelle et raffinée.'
     }
   ];
@@ -72,6 +72,7 @@ export default function PopularCategories() {
                 src={cat.image}
                 alt={cat.name}
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out brightness-[0.7]"
               />
 

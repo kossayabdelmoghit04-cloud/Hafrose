@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { FiCompass, FiTruck, FiAward, FiMessageCircle } from 'react-icons/fi';
 import Card from '../ui/Card';
 
-export default function WhyChooseUs() {
+const WhyChooseUs = memo(function WhyChooseUs() {
   const assets = [
     {
       icon: <FiCompass className="text-luxury-gold" size={28} />,
@@ -68,4 +69,7 @@ export default function WhyChooseUs() {
       </div>
     </section>
   );
-}
+});
+
+export default WhyChooseUs;
+

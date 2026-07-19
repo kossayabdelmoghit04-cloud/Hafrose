@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../../services/api';
-import Loader from '../../components/ui/Loader';
 import Skeleton from '../../components/ui/Skeleton';
 import Card from '../../components/ui/Card';
 import { 

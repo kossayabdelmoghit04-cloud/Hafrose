@@ -4,7 +4,7 @@ import Card from '../ui/Card';
 
 // Handle absolute or relative images outside component definition to avoid function re-creation
 const getImageUrl = (img) => {
-  if (!img) return 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600';
+  if (!img) return 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=70&w=400';
   if (img.startsWith('http') || img.startsWith('data:')) return img;
   return `http://localhost:8000/storage/${img}`;
 };

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import ProductCard from '../cards/ProductCard';
 import Button from '../ui/Button';
-import Loader from '../ui/Loader';
 import Skeleton from '../ui/Skeleton';
 import productService from '../../services/productService';
 

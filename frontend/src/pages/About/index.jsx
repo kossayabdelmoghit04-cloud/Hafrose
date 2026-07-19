@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { FiAward, FiHeart, FiShield, FiStar } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 import Card from '../../components/ui/Card';
 
 const VALUES = [
@@ -21,7 +21,30 @@ const MILESTONES = [
 ];
 
 export default function About() {
-  useDocumentTitle('La Maison', 'L\'histoire, le savoir-faire et l\'héritage d\'excellence de la Maison Hafrose, entreprise du patrimoine vivant.');
+  useSEO({
+    title: 'La Maison',
+    description:
+      "L'histoire, le savoir-faire et l'héritage d'excellence de la Maison Hafrose, entreprise du patrimoine vivant.",
+    canonical: 'https://hafrose.com/about',
+    ogImage: 'https://hafrose.com/og-default.jpg',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      name: 'La Maison Hafrose',
+      description:
+        "L'histoire, le savoir-faire et l'héritage d'excellence de la Maison Hafrose.",
+      url: 'https://hafrose.com/about',
+      isPartOf: { '@type': 'WebSite', name: 'Hafrose', url: 'https://hafrose.com' },
+      about: {
+        '@type': 'Organization',
+        name: 'Maison Hafrose',
+        foundingDate: '2018',
+        foundingLocation: 'Paris, France',
+        description:
+          "Haute Maroquinerie, Joaillerie Fine et Horlogerie d'Exception.",
+      },
+    },
+  });
   const fadeUp = { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.7 } };
 
   return (

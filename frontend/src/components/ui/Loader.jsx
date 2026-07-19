@@ -71,15 +71,20 @@ SectionLoader.displayName = 'SectionLoader';
 /**
  * Core Loader Component (Defaults to PageLoader if fullPage is true, or SectionLoader otherwise)
  */
-export default function Loader({ fullPage = false, size = 'md', message = '' }) {
+const Loader = memo(({ fullPage = false, size = 'md', message = '' }) => {
   if (fullPage) {
     return <PageLoader text="Maison Hafrose" size={size} />;
   }
   return <SectionLoader message={message} size={size === 'md' ? 'sm' : size} />;
-}
+});
+
+Loader.displayName = 'Loader';
 
 // Attach subcomponents for dot notation usage
 Loader.Spinner = LuxurySpinner;
 Loader.Page = PageLoader;
 Loader.Section = SectionLoader;
+
+export default Loader;
+
 

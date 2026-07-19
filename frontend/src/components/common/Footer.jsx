@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiInstagram, FiFacebook, FiTwitter, FiArrowRight } from 'react-icons/fi';
 import Button from '../ui/Button';
 import { Form, EmailField } from '../ui/form';
 
-export default function Footer() {
+const Footer = memo(function Footer() {
   const currentYear = new Date().getFullYear();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState(null); // 'success' | 'error' | null
@@ -215,4 +215,7 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+});
+
+export default Footer;
+

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 /**
@@ -7,7 +8,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
  * @param {number} props.lastPage - Total number of pages
  * @param {function} props.onPageChange - Handler callback when a page is selected
  */
-export default function Pagination({ currentPage, lastPage, onPageChange }) {
+const Pagination = memo(function Pagination({ currentPage, lastPage, onPageChange }) {
   if (lastPage <= 1) return null;
 
   // Generate range of page numbers to show
@@ -109,7 +110,10 @@ export default function Pagination({ currentPage, lastPage, onPageChange }) {
       </button>
     </nav>
   );
-}
+});
+
+export default Pagination;
+
 
 // Helpers for ellipses gap logic
 function startPageHasGap(visiblePages, firstPage) {

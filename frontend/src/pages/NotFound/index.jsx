@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
 import Button from '../../components/ui/Button';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 
 export default function NotFound() {
-  useDocumentTitle('Page Introuvable', 'La page recherchée n\'existe pas ou a été déplacée.');
+  useSEO({
+    title: 'Page Introuvable',
+    description: "La page recherchée n'existe pas ou a été déplacée.",
+    robots: 'noindex, follow',
+  });
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-24 pt-32 flex flex-col items-center justify-center min-h-[70vh] text-center">
       <motion.div

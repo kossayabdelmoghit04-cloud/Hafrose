@@ -14,7 +14,7 @@ import Breadcrumb from '../../components/ui/Breadcrumb';
 import { useCart } from '../../context/CartContext';
 import { getProductGallery } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 import Card from '../../components/ui/Card';
 import { Form, Input, Select, Textarea } from '../../components/ui/form';
 import EmptyState from '../../components/ui/EmptyState';
@@ -35,10 +35,6 @@ export default function Product() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useDocumentTitle(
-    product ? product.name : 'Chargement...',
-    product ? product.description : 'Découvrez une création d\'exception façonnée à la main par la Maison Hafrose.'
-  );
 
   // Gallery & Zoom state
   const [activeImgIdx, setActiveImgIdx] = useState(0);
@@ -48,12 +44,86 @@ export default function Product() {
   // Purchase quantity
   const [qty, setQty] = useState(1);
 
+  // Derived from product data — must be computed before productSchema
   const gallery = useMemo(() => (product ? getProductGallery(product) : []), [product]);
   const avgRating = useMemo(() => {
     return product?.reviews?.length
       ? (product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length).toFixed(1)
       : null;
   }, [product?.reviews]);
+
+  // ── JSON-LD Product schema (memoised, updates when product data loads) ─
+  const productSchema = useMemo(() => {
+    if (!product) return null;
+    const productUrl = `https://hafrose.com/products/${product.slug}`;
+
+    const schema = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        description: product.description,
+        image: gallery,
+        sku: product.slug,
+        brand: { '@type': 'Brand', name: 'Maison Hafrose' },
+        offers: {
+          '@type': 'Offer',
+          url: productUrl,
+          priceCurrency: 'EUR',
+          price: product.price,
+          availability:
+            product.stock > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          seller: { '@type': 'Organization', name: 'Maison Hafrose' },
+        },
+        ...(avgRating && product.reviews?.length
+          ? {
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: avgRating,
+                reviewCount: product.reviews.length,
+                bestRating: 5,
+                worstRating: 1,
+              },
+              review: product.reviews.slice(0, 5).map((r) => ({
+                '@type': 'Review',
+                author: { '@type': 'Person', name: r.name },
+                reviewRating: {
+                  '@type': 'Rating',
+                  ratingValue: r.rating,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+                reviewBody: r.comment,
+              })),
+            }
+          : {}),
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://hafrose.com/' },
+          { '@type': 'ListItem', position: 2, name: 'La Boutique', item: 'https://hafrose.com/shop' },
+          { '@type': 'ListItem', position: 3, name: product.name, item: productUrl },
+        ],
+      },
+    ];
+    return schema;
+  }, [product, gallery, avgRating]);
+
+  useSEO({
+    title: product ? product.name : 'Chargement...',
+    description: product
+      ? product.description
+      : "Découvrez une création d'exception façonnée à la main par la Maison Hafrose.",
+    canonical: product ? `https://hafrose.com/products/${product.slug}` : undefined,
+    ogType: 'product',
+    ogImage: gallery[0] || 'https://hafrose.com/og-default.jpg',
+    schema: productSchema,
+  });
+
 
   // Review form state
   const [revName, setRevName] = useState('');
@@ -75,10 +145,10 @@ export default function Product() {
         setActiveImgIdx(0);
         setQty(1);
 
-        // Fetch similar products in same category
-        const simRes = await productService.getAll({ category: res.data.category?.slug, per_page: 5 });
+        // Fetch similar products in same category using the optimized related endpoint
+        const simRes = await productService.getRelated(res.data.id);
         if (simRes?.success) {
-          setSimilar(simRes.data.data.filter(p => p.id !== res.data.id).slice(0, 4));
+          setSimilar(simRes.data);
         }
       }
     } catch (err) {
@@ -182,12 +252,12 @@ export default function Product() {
           <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible gap-3 flex-shrink-0">
             {gallery.map((img, i) => (
               <button key={i} onClick={() => setActiveImgIdx(i)} className={`w-16 h-20 border flex-shrink-0 overflow-hidden ${activeImgIdx === i ? 'border-luxury-gold' : 'border-luxury-charcoal/10 hover:border-luxury-gold/50'}`}>
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={img} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
           <div onMouseEnter={() => setIsZooming(true)} onMouseLeave={() => setIsZooming(false)} onMouseMove={handleZoomMove} className="flex-grow aspect-[3/4] bg-luxury-light-gray relative overflow-hidden cursor-zoom-in border border-luxury-charcoal/5">
-            <img src={gallery[activeImgIdx]} alt={product.name} className="w-full h-full object-cover transition-transform duration-200" style={isZooming ? { transform: 'scale(1.5)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : { transform: 'scale(1)' }} />
+            <img src={gallery[activeImgIdx]} alt={product.name} decoding="async" className="w-full h-full object-cover transition-transform duration-200" style={isZooming ? { transform: 'scale(1.5)', transformOrigin: `${zoomPos.x}% ${zoomPos.y}%` } : { transform: 'scale(1)' }} />
           </div>
         </div>
 

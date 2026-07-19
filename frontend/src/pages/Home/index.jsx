@@ -5,13 +5,57 @@ import FeaturedProducts from '../../components/sections/FeaturedProducts';
 import WhyChooseUs from '../../components/sections/WhyChooseUs';
 import Testimonials from '../../components/sections/Testimonials';
 import Newsletter from '../../components/sections/Newsletter';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
+
+const HOME_SCHEMA = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Maison Hafrose',
+    url: 'https://hafrose.com',
+    logo: 'https://hafrose.com/favicon.svg',
+    description: "Haute Maroquinerie, Joaillerie Fine et Horlogerie d'Exception artisanales.",
+    foundingDate: '2018',
+    foundingLocation: 'Paris, France',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '12 Rue du Faubourg Saint-Honoré',
+      addressLocality: 'Paris',
+      postalCode: '75008',
+      addressCountry: 'FR',
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'contact@hafrose.com',
+      contactType: 'customer service',
+      availableLanguage: 'French',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Hafrose',
+    url: 'https://hafrose.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://hafrose.com/shop?search={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+];
 
 export default function Home() {
-  useDocumentTitle(
-    'Accueil',
-    'Maison Hafrose — Haute Maroquinerie, Joaillerie Fine et Horlogerie d\'Exception. Découvrez nos créations artisanales façonnées avec des matières nobles.'
-  );
+  useSEO({
+    title: 'Accueil',
+    description:
+      "Maison Hafrose — Haute Maroquinerie, Joaillerie Fine et Horlogerie d'Exception. Découvrez nos créations artisanales façonnées avec des matières nobles.",
+    canonical: 'https://hafrose.com/',
+    ogImage: 'https://hafrose.com/og-default.jpg',
+    schema: HOME_SCHEMA,
+  });
 
   return (
     <>

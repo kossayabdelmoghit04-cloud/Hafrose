@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import contactService from '../../services/contactService';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 import Card from '../../components/ui/Card';
 import { Form, Input, EmailField, Select, Textarea } from '../../components/ui/form';
 import Turnstile from '../../components/ui/Turnstile';
@@ -22,7 +22,42 @@ const SUBJECTS = [
 const SUBJECT_OPTIONS = SUBJECTS.map((s) => ({ value: s, label: s }));
 
 export default function Contact() {
-  useDocumentTitle('Nous Contacter', 'Notre conciergerie se tient à votre entière disposition pour répondre à vos questions ou organiser une consultation privée.');
+  useSEO({
+    title: 'Nous Contacter',
+    description:
+      'Notre conciergerie se tient à votre entière disposition pour répondre à vos questions ou organiser une consultation privée.',
+    canonical: 'https://hafrose.com/contact',
+    ogImage: 'https://hafrose.com/og-default.jpg',
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: 'Maison Hafrose',
+      description: "Haute Maroquinerie d'Exception. Conciergerie disponible pour vos consultations privées.",
+      url: 'https://hafrose.com',
+      email: 'contact@hafrose.com',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '12 Rue du Faubourg Saint-Honoré',
+        addressLocality: 'Paris',
+        postalCode: '75008',
+        addressCountry: 'FR',
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          opens: '10:00',
+          closes: '19:00',
+        },
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: 'Saturday',
+          opens: '11:00',
+          closes: '18:00',
+        },
+      ],
+    },
+  });
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '', website: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);

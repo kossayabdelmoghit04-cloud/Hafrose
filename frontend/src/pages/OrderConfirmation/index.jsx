@@ -3,14 +3,18 @@ import { motion } from 'framer-motion';
 import { FiCheck, FiMapPin, FiPhone, FiUser, FiCalendar, FiBox } from 'react-icons/fi';
 import Button from '../../components/ui/Button';
 import { formatPrice } from '../../utils/format';
-import useDocumentTitle from '../../hooks/useDocumentTitle';
+import useSEO from '../../hooks/useSEO';
 import Card from '../../components/ui/Card';
 
 export default function OrderConfirmation() {
   const location = useLocation();
   const order = location.state?.order;
 
-  useDocumentTitle('Commande validée', 'Votre achat de créations d\'exception Hafrose a bien été enregistré. Nos artisans préparent votre colis.');
+  useSEO({
+    title: 'Commande validée',
+    description: "Votre achat de créations d'exception Hafrose a bien été enregistré. Nos artisans préparent votre colis.",
+    robots: 'noindex, nofollow',
+  });
 
   // Fallback: If no order details in state, redirect to shop
   if (!order) {

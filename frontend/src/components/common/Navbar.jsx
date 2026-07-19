@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiShoppingBag, FiSearch, FiMenu, FiX, FiHeart, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi';
@@ -8,7 +8,7 @@ import { useCart } from '../../context/CartContext';
 import { getProductImage } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -331,4 +331,7 @@ export default function Navbar() {
       </Modal>
     </>
   );
-}
+});
+
+export default Navbar;
+

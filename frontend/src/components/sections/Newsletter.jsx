@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { Form, EmailField } from '../ui/form';
 import Button from '../ui/Button';
 
-export default function Newsletter() {
+const Newsletter = memo(function Newsletter() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -90,4 +90,7 @@ export default function Newsletter() {
       </div>
     </section>
   );
-}
+});
+
+export default Newsletter;
+

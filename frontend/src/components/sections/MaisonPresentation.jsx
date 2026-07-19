@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import Card from '../ui/Card';
 
-export default function MaisonPresentation() {
+const MaisonPresentation = memo(function MaisonPresentation() {
   return (
     <section className="py-24 bg-luxury-cream overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
@@ -66,4 +67,7 @@ export default function MaisonPresentation() {
       </div>
     </section>
   );
-}
+});
+
+export default MaisonPresentation;
+
