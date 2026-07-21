@@ -56,6 +56,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Vérifier si l'utilisateur est un administrateur.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN || $this->hasRole('admin');
+    }
+
+    /**
      * Relation : Un utilisateur possède plusieurs favoris.
      */
     public function wishlistItems(): \Illuminate\Database\Eloquent\Relations\HasMany

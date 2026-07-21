@@ -113,5 +113,9 @@ Route::prefix('admin')->group(function () {
         Route::get('/media', [\App\Http\Controllers\Api\Admin\MediaController::class, 'index']);
         Route::post('/media', [\App\Http\Controllers\Api\Admin\MediaController::class, 'store']);
         Route::delete('/media/{media}', [\App\Http\Controllers\Api\Admin\MediaController::class, 'destroy']);
+
+        // Journal d'administration (Consultation seule, immuable)
+        Route::get('/logs', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'index']);
+        Route::get('/logs/{log}', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'show']);
     });
 });

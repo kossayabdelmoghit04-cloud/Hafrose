@@ -1,14 +1,16 @@
 <?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
     | Activation du CAPTCHA Cloudflare Turnstile
     |--------------------------------------------------------------------------
     |
     | Détermine si la vérification Turnstile est active globalement.
-    | En désactivant cette option (tests automatisés, CI), aucun appel
+    | En désactivant cette option (TURNSTILE_ENABLED=false), aucun appel
     | réseau vers Cloudflare n'est effectué et tout token est accepté.
+    | Indispensable pour les tests automatisés et les pipelines CI/CD.
     |
     */
     'enabled' => env('TURNSTILE_ENABLED', true),
@@ -19,7 +21,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Clé fournie par Cloudflare dans le tableau de bord Turnstile.
-    | Elle est utilisée uniquement côté serveur pour vérifier les tokens.
+    | Utilisée uniquement côté serveur pour vérifier les tokens.
     | Ne jamais exposer cette valeur dans le code source ou le frontend.
     |
     */
@@ -54,8 +56,22 @@ return [
     |--------------------------------------------------------------------------
     |
     | Durée maximale accordée à la requête vers l'API Cloudflare.
-    | En cas de dépassement, l'erreur réseau est gérée proprement.
+    | En cas de dépassement, la ConnectionException est capturée
+    | et l'accès est refusé de manière sécurisée.
     |
     */
     'timeout' => env('TURNSTILE_TIMEOUT', 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Canal de log
+    |--------------------------------------------------------------------------
+    |
+    | Canal Laravel utilisé pour les warnings et erreurs de vérification
+    | Turnstile (token invalide, timeout, erreur Cloudflare, config manquante).
+    | Valeurs possibles : stack, single, daily, slack, etc.
+    |
+    */
+    'log_channel' => env('TURNSTILE_LOG_CHANNEL', 'stack'),
+
 ];

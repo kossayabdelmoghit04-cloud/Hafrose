@@ -72,11 +72,12 @@ class ProductController extends Controller
         $product = $this->productService->createProduct($data, $imageFile, $galleryFiles);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_CREATE,
-            resource:   AdminLog::RESOURCE_PRODUCT,
-            resourceId: $product->id,
-            newValues:  $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            request:     $request,
+            action:      AdminLog::ACTION_CREATE,
+            resource:    AdminLog::RESOURCE_PRODUCT,
+            resourceId:  $product->id,
+            newValues:   $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            description: "Création du produit : {$product->name}",
         );
 
         return $this->successResponse(
@@ -106,12 +107,13 @@ class ProductController extends Controller
         );
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_UPDATE,
-            resource:   AdminLog::RESOURCE_PRODUCT,
-            resourceId: $product->id,
-            oldValues:  $oldValues,
-            newValues:  $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            request:     $request,
+            action:      AdminLog::ACTION_UPDATE,
+            resource:    AdminLog::RESOURCE_PRODUCT,
+            resourceId:  $product->id,
+            oldValues:   $oldValues,
+            newValues:   $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            description: "Modification du produit : {$updated->name}",
         );
 
         return $this->successResponse(
@@ -131,11 +133,12 @@ class ProductController extends Controller
         $this->productService->deleteProduct($product);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_DELETE,
-            resource:   AdminLog::RESOURCE_PRODUCT,
-            resourceId: $id,
-            oldValues:  $snapshot,
+            request:     $request,
+            action:      AdminLog::ACTION_DELETE,
+            resource:    AdminLog::RESOURCE_PRODUCT,
+            resourceId:  $id,
+            oldValues:   $snapshot,
+            description: "Suppression du produit : {$product->name}",
         );
 
         return $this->successResponse(null, 'Produit supprimé avec succès.');

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,15 +14,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string      $action
  * @property string      $resource
  * @property int|null    $resource_id
+ * @property string|null $description
  * @property array|null  $old_values
  * @property array|null  $new_values
  * @property string|null $ip_address
  * @property string|null $user_agent
+ * @property string|null $url
+ * @property string|null $method
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
 class AdminLog extends Model
 {
+    use HasFactory;
     // ─── Actions disponibles ────────────────────────────────────────────────────
 
     public const ACTION_LOGIN          = 'login';
@@ -54,10 +59,13 @@ class AdminLog extends Model
         'action',
         'resource',
         'resource_id',
+        'description',
         'old_values',
         'new_values',
         'ip_address',
         'user_agent',
+        'url',
+        'method',
     ];
 
     // ─── Casts ─────────────────────────────────────────────────────────────────
@@ -66,6 +74,16 @@ class AdminLog extends Model
         'old_values' => 'array',
         'new_values' => 'array',
     ];
+
+    // ─── Accessors ─────────────────────────────────────────────────────────────
+
+    /**
+     * Accessor pour alias `resource_type` correspondant à `resource`.
+     */
+    public function getResourceTypeAttribute(): string
+    {
+        return $this->attributes['resource'] ?? '';
+    }
 
     // ─── Relations ─────────────────────────────────────────────────────────────
 
