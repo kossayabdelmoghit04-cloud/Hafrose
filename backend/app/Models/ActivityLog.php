@@ -29,23 +29,38 @@ class ActivityLog extends Model
     public const CATEGORY_WISHLIST = 'wishlist';
     public const CATEGORY_CONTACT  = 'contact';
     public const CATEGORY_REVIEW   = 'review';
+    public const CATEGORY_SECURITY = 'security';
+    public const CATEGORY_ADMIN    = 'admin';
 
     // ─── Types d'événements spécifiques ────────────────────────────────────────
 
+    // Auth
     public const EVENT_USER_REGISTERED       = 'auth.register';
     public const EVENT_USER_LOGIN            = 'auth.login';
     public const EVENT_USER_LOGOUT           = 'auth.logout';
+
+    // Commandes
     public const EVENT_ORDER_CREATED         = 'order.created';
     public const EVENT_ORDER_STATUS_CHANGED  = 'order.status_changed';
+
+    // Wishlist
     public const EVENT_WISHLIST_ADDED        = 'wishlist.added';
     public const EVENT_WISHLIST_REMOVED      = 'wishlist.removed';
+
+    // Contact
     public const EVENT_CONTACT_SENT          = 'contact.sent';
     public const EVENT_CONTACT_MARKED_READ   = 'contact.marked_read';
     public const EVENT_CONTACT_DELETED       = 'contact.deleted';
+
+    // Avis
     public const EVENT_REVIEW_SUBMITTED      = 'review.submitted';
     public const EVENT_REVIEW_APPROVED       = 'review.approved';
     public const EVENT_REVIEW_REJECTED       = 'review.rejected';
     public const EVENT_REVIEW_DELETED        = 'review.deleted';
+
+    // Sécurité
+    public const EVENT_HONEYPOT_TRIGGERED    = 'security.honeypot_triggered';
+    public const EVENT_TURNSTILE_FAILED      = 'security.turnstile_failed';
 
     // ─── Attributs mass-assignables ────────────────────────────────────────────
 

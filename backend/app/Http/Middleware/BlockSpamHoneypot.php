@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ActivityLog;
+use App\Services\ActivityLogService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +37,9 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class BlockSpamHoneypot
 {
+    public function __construct(protected ActivityLogService $activityLogService)
+    {
+    }
     /**
      * Handle an incoming request.
      */
@@ -65,7 +70,8 @@ class BlockSpamHoneypot
     }
 
     /**
-     * Enregistre un warning dans les logs Laravel lors d'une détection de bot.
+     * Enregistre un warning dans les logs Laravel et dans le journal d'activité global
+     * lors d'une détection de bot.
      *
      * @param  Request  $request
      * @param  string   $fieldName  Nom du champ honeypot déclenché
@@ -82,6 +88,19 @@ class BlockSpamHoneypot
             'field'      => $fieldName,
             'timestamp'  => now()->toDateTimeString(),
         ]);
+
+        // Journalisation dans le journal d'activité global (catégorie sécurité)
+        $this->activityLogService->log(
+            eventType: ActivityLog::EVENT_HONEYPOT_TRIGGERED,
+            category:  ActivityLog::CATEGORY_SECURITY,
+            resource:  $request->path(),
+            metadata:  [
+                'method'     => $request->method(),
+                'route'      => $request->fullUrl(),
+                'field'      => $fieldName,
+                'user_agent' => $request->userAgent() ?? 'unknown',
+            ]
+        );
     }
 
     /**

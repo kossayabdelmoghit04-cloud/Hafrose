@@ -40,6 +40,13 @@ class AdminLog extends Model
     public const ACTION_MARK_READ      = 'mark_read';
     public const ACTION_UPLOAD         = 'upload';
     public const ACTION_EXPORT         = 'export';
+    public const ACTION_BULK_DELETE    = 'bulk_delete';
+    public const ACTION_BULK_UPDATE    = 'bulk_update';
+    public const ACTION_ACTIVATE       = 'activate';
+    public const ACTION_DEACTIVATE     = 'deactivate';
+    public const ACTION_PUBLISH        = 'publish';
+    public const ACTION_UNPUBLISH      = 'unpublish';
+    public const ACTION_ARCHIVE        = 'archive';
 
     // ─── Ressources disponibles ─────────────────────────────────────────────────
 
@@ -51,6 +58,7 @@ class AdminLog extends Model
     public const RESOURCE_CONTACT      = 'contact';
     public const RESOURCE_SETTING      = 'setting';
     public const RESOURCE_MEDIA        = 'media';
+    public const RESOURCE_USER         = 'user';
 
     // ─── Attributs mass-assignables ────────────────────────────────────────────
 

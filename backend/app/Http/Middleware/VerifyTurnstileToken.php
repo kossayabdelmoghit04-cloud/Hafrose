@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ActivityLog;
+use App\Services\ActivityLogService;
 use App\Services\TurnstileService;
 use Closure;
 use Illuminate\Http\Request;
@@ -33,8 +35,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class VerifyTurnstileToken
 {
-    public function __construct(protected TurnstileService $turnstile)
-    {
+    public function __construct(
+        protected TurnstileService $turnstile,
+        protected ActivityLogService $activityLogService,
+    ) {
     }
 
     /**
@@ -65,7 +69,8 @@ class VerifyTurnstileToken
     }
 
     /**
-     * Enregistrer un warning lors d'un échec de vérification CAPTCHA.
+     * Enregistrer un warning lors d'un échec de vérification CAPTCHA
+     * et l'inscrire dans le journal d'activité global.
      *
      * @param  string|null  $ip          Adresse IP du client.
      * @param  string       $route       URL complète appelée.
@@ -82,5 +87,16 @@ class VerifyTurnstileToken
                 'route'     => $route,
                 'timestamp' => now()->toDateTimeString(),
             ]);
+
+        // Journalisation dans le journal d'activité global (catégorie sécurité)
+        $this->activityLogService->log(
+            eventType: ActivityLog::EVENT_TURNSTILE_FAILED,
+            category:  ActivityLog::CATEGORY_SECURITY,
+            resource:  parse_url($route, PHP_URL_PATH) ?? $route,
+            metadata:  [
+                'reason' => $reason,
+                'route'  => $route,
+            ]
+        );
     }
 }

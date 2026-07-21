@@ -351,4 +351,65 @@ class ActivityLogTest extends TestCase
 
         $this->assertTrue(true); // Si on arrive ici sans plantage, c'est bon !
     }
+
+    // ─── Tests Événements Sécurité (Honeypot & Turnstile) ─────────────────────
+
+    public function test_honeypot_trigger_generates_security_activity_log(): void
+    {
+        // Simuler un bot remplissant le champ honeypot "website"
+        $response = $this->postJson('/api/contact', [
+            'name'    => 'Bot Sender',
+            'email'   => 'bot@spam.com',
+            'phone'   => '0000000000',
+            'subject' => 'Spam subject',
+            'message' => 'Spam message',
+            'website' => 'http://spam-bot.com', // Champ honeypot rempli
+        ]);
+
+        // Shadow block : le bot reçoit un 201 factice
+        $response->assertStatus(201);
+
+        // Vérifier que l'activité sécurité a bien été enregistrée
+        $this->assertDatabaseHas('activity_logs', [
+            'event_type' => ActivityLog::EVENT_HONEYPOT_TRIGGERED,
+            'category'   => ActivityLog::CATEGORY_SECURITY,
+        ]);
+
+        // Vérifier que le formulaire de contact n'a pas été créé en base
+        $this->assertDatabaseMissing('contacts', [
+            'email' => 'bot@spam.com',
+        ]);
+    }
+
+    public function test_turnstile_failure_generates_security_activity_log(): void
+    {
+        // Forcer l'environnement avec Turnstile activé et un token invalide
+        config(['turnstile.enabled' => true]);
+
+        $response = $this->postJson('/api/contact', [
+            'name'                  => 'Real User',
+            'email'                 => 'user@example.com',
+            'phone'                 => '0102030405',
+            'subject'               => 'Question',
+            'message'               => 'Hello!',
+            'cf-turnstile-response' => 'invalid-token-value',
+        ]);
+
+        // Turnstile échoue : 422
+        $response->assertStatus(422);
+
+        // Vérifier que l'activité sécurité Turnstile a été enregistrée
+        $this->assertDatabaseHas('activity_logs', [
+            'event_type' => ActivityLog::EVENT_TURNSTILE_FAILED,
+            'category'   => ActivityLog::CATEGORY_SECURITY,
+        ]);
+    }
+
+    public function test_activity_log_has_correct_security_categories(): void
+    {
+        $this->assertSame('security', ActivityLog::CATEGORY_SECURITY);
+        $this->assertSame('admin', ActivityLog::CATEGORY_ADMIN);
+        $this->assertSame('security.honeypot_triggered', ActivityLog::EVENT_HONEYPOT_TRIGGERED);
+        $this->assertSame('security.turnstile_failed', ActivityLog::EVENT_TURNSTILE_FAILED);
+    }
 }

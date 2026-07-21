@@ -76,6 +76,17 @@ Route::prefix('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'index']);
 
+        // Exports CSV & Excel
+        Route::get('/export/{resource}/csv', [\App\Http\Controllers\Api\Admin\ExportController::class, 'exportCsv']);
+        Route::get('/export/{resource}/excel', [\App\Http\Controllers\Api\Admin\ExportController::class, 'exportExcel']);
+
+        // Actions groupées (Bulk Actions) — Doit être déclaré avant /{resource}/{id} pour éviter les conflits
+        Route::post('/{resource}/bulk', [\App\Http\Controllers\Api\Admin\BulkActionController::class, 'bulk'])
+            ->where('resource', 'products|categories|reviews|contacts|orders');
+
+        // Historique des modifications
+        Route::get('/history/{resource}/{id}', [\App\Http\Controllers\Api\Admin\HistoryController::class, 'show']);
+
         // Catégories CRUD (POST utilisé pour la mise à jour afin de gérer facilement multipart/form-data)
         Route::get('/categories', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'index']);
         Route::post('/categories', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'store']);
@@ -117,5 +128,9 @@ Route::prefix('admin')->group(function () {
         // Journal d'administration (Consultation seule, immuable)
         Route::get('/logs', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'index']);
         Route::get('/logs/{log}', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'show']);
+
+        // Journal d'activité global (Consultation seule, immuable)
+        Route::get('/activity-logs', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/{log}', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'show']);
     });
 });

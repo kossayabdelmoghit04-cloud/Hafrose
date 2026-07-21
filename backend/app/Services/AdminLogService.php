@@ -91,6 +91,13 @@ class AdminLogService
             AdminLog::ACTION_MARK_READ     => "Marquage comme lu de {$resourceName}{$target}",
             AdminLog::ACTION_UPLOAD        => "Téléversement pour {$resourceName}{$target}",
             AdminLog::ACTION_EXPORT        => "Exportation de {$resourceName}{$target}",
+            AdminLog::ACTION_ACTIVATE       => "Activation de {$resourceName}{$target}",
+            AdminLog::ACTION_DEACTIVATE     => "Désactivation de {$resourceName}{$target}",
+            AdminLog::ACTION_PUBLISH        => "Publication de {$resourceName}{$target}",
+            AdminLog::ACTION_UNPUBLISH      => "Dépublication de {$resourceName}{$target}",
+            AdminLog::ACTION_ARCHIVE        => "Archivage de {$resourceName}{$target}",
+            AdminLog::ACTION_BULK_DELETE    => "Suppression groupée de {$resourceName}s",
+            AdminLog::ACTION_BULK_UPDATE    => "Mise à jour groupée de {$resourceName}s",
             default                        => "Action {$action} sur {$resourceName}{$target}",
         };
     }
