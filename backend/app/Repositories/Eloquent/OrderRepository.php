@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Repositories\Contracts\OrderRepositoryInterface;
+use App\Services\PerformanceCacheManager;
 
 class OrderRepository implements OrderRepositoryInterface
 {
@@ -13,7 +14,9 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function create(array $data): Order
     {
-        return Order::create($data);
+        $order = Order::create($data);
+        PerformanceCacheManager::invalidateDashboard();
+        return $order;
     }
 
     /**
@@ -29,7 +32,15 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function paginateWithFilters(array $filters, int $perPage = 10): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Order::query()->with('orderItems.product');
+        $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
+        $perPage = min(max(1, $perPage), $maxPerPage);
+
+        $query = Order::query()->with(['orderItems' => function ($q) {
+            $q->select('id', 'order_id', 'product_id', 'quantity', 'unit_price')
+              ->with(['product' => function ($p) {
+                  $p->select('id', 'name', 'slug', 'price');
+              }]);
+        }]);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -57,7 +68,12 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function find(int $id): ?Order
     {
-        return Order::with('orderItems.product')->find($id);
+        return Order::with(['orderItems' => function ($q) {
+            $q->select('id', 'order_id', 'product_id', 'quantity', 'unit_price')
+              ->with(['product' => function ($p) {
+                  $p->select('id', 'name', 'slug', 'price');
+              }]);
+        }])->find($id);
     }
 
     /**
@@ -66,6 +82,7 @@ class OrderRepository implements OrderRepositoryInterface
     public function update(Order $order, array $data): Order
     {
         $order->update($data);
+        PerformanceCacheManager::invalidateDashboard();
         return $order;
     }
 }

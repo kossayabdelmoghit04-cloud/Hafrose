@@ -4,16 +4,21 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Services\PerformanceCacheManager;
 use Illuminate\Database\Eloquent\Collection;
 
 class CategoryRepository implements CategoryRepositoryInterface
 {
     /**
-     * Obtenir toutes les catégories.
+     * Obtenir toutes les catégories avec mise en cache.
      */
     public function all(): Collection
     {
-        return Category::all();
+        $ttl = config('cache-performance.ttls.categories', 86400);
+
+        return PerformanceCacheManager::remember('categories_all', $ttl, function () {
+            return Category::all();
+        }, ['categories']);
     }
 
     /**
@@ -37,7 +42,9 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function create(array $data): Category
     {
-        return Category::create($data);
+        $category = Category::create($data);
+        PerformanceCacheManager::invalidateCategories();
+        return $category;
     }
 
     /**
@@ -46,6 +53,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     public function update(Category $category, array $data): Category
     {
         $category->update($data);
+        PerformanceCacheManager::invalidateCategories();
         return $category;
     }
 
@@ -54,6 +62,8 @@ class CategoryRepository implements CategoryRepositoryInterface
      */
     public function delete(Category $category): bool
     {
-        return $category->delete();
+        $deleted = $category->delete();
+        PerformanceCacheManager::invalidateCategories();
+        return $deleted;
     }
 }

@@ -132,5 +132,10 @@ Route::prefix('admin')->group(function () {
         // Journal d'activité global (Consultation seule, immuable)
         Route::get('/activity-logs', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'index']);
         Route::get('/activity-logs/{log}', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'show']);
+
+        // ── Cache Performance Management ──────────────────────────────────────
+        Route::post('/cache/clear', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'clear']);
+        Route::post('/cache/dashboard/refresh', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'refreshDashboard']);
+        Route::get('/cache/status', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'status']);
     });
 });

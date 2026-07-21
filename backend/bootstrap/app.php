@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'honeypot' => \App\Http\Middleware\BlockSpamHoneypot::class,
             'turnstile' => \App\Http\Middleware\VerifyTurnstileToken::class,
+            'perf.monitor' => \App\Http\Middleware\PerformanceMonitoringMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

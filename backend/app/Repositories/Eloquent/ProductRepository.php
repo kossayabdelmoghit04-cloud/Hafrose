@@ -2,9 +2,12 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Services\PerformanceCacheManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Schema;
 
 class ProductRepository implements ProductRepositoryInterface
 {
@@ -13,6 +16,9 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function paginateWithFilters(array $filters, int $perPage = 12): LengthAwarePaginator
     {
+        $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
+        $perPage = min(max(1, $perPage), $maxPerPage);
+
         $query = Product::query();
 
         // Filtre par catégorie (ID ou Slug)
@@ -23,13 +29,13 @@ class ProductRepository implements ProductRepositoryInterface
             });
         }
 
-        // Filtre par prix minimum (supporte price_min et min_price)
+        // Filtre par prix minimum
         $minPrice = $filters['price_min'] ?? $filters['min_price'] ?? null;
         if (isset($minPrice) && $minPrice !== '') {
             $query->where('price', '>=', (float) $minPrice);
         }
 
-        // Filtre par prix maximum (supporte price_max et max_price)
+        // Filtre par prix maximum
         $maxPrice = $filters['price_max'] ?? $filters['max_price'] ?? null;
         if (isset($maxPrice) && $maxPrice !== '') {
             $query->where('price', '<=', (float) $maxPrice);
@@ -45,12 +51,11 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('material', $filters['material']);
         }
 
-        // Filtre par recherche textuelle (supporte q et search)
-        // Les vérifications Schema::hasColumn sont calculées une seule fois hors de la closure
+        // Filtre par recherche textuelle
         $search = $filters['q'] ?? $filters['search'] ?? null;
         if (!empty($search)) {
-            $hasShortDescription = \Illuminate\Support\Facades\Schema::hasColumn('products', 'short_description');
-            $hasSku              = \Illuminate\Support\Facades\Schema::hasColumn('products', 'sku');
+            $hasShortDescription = Schema::hasColumn('products', 'short_description');
+            $hasSku              = Schema::hasColumn('products', 'sku');
 
             $query->where(function ($q) use ($search, $hasShortDescription, $hasSku) {
                 $q->where('name', 'like', "%{$search}%")
@@ -71,7 +76,7 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('is_featured', true);
         }
 
-        // Tri (sécurisé contre les injections SQL, supporte sort et sort_by)
+        // Tri sécurisé
         $allowedSorts = ['price', 'created_at', 'name'];
         $sortBy = $filters['sort'] ?? $filters['sort_by'] ?? 'created_at';
         $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
@@ -81,14 +86,14 @@ class ProductRepository implements ProductRepositoryInterface
 
         $query->orderBy($sortBy, $sortOrder);
 
-        // Eager load category relation to avoid N+1 query issues
-        $query->with('category');
+        // Eager load category et galleries pour éliminer N+1
+        $query->with(['category', 'galleries']);
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Trouver un produit par son slug avec ses relations (catégorie, galerie, avis approuvés).
+     * Trouver un produit par son slug avec ses relations.
      */
     public function findBySlug(string $slug): ?Product
     {
@@ -104,7 +109,7 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function find(int $id): ?Product
     {
-        return Product::find($id);
+        return Product::with(['category', 'galleries'])->find($id);
     }
 
     /**
@@ -120,7 +125,9 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function create(array $data): Product
     {
-        return Product::create($data);
+        $product = Product::create($data);
+        PerformanceCacheManager::invalidateProducts();
+        return $product;
     }
 
     /**
@@ -129,6 +136,7 @@ class ProductRepository implements ProductRepositoryInterface
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
+        PerformanceCacheManager::invalidateProducts();
         return $product;
     }
 
@@ -137,104 +145,95 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function delete(Product $product): bool
     {
-        return $product->delete();
+        $deleted = $product->delete();
+        PerformanceCacheManager::invalidateProducts();
+        return $deleted;
     }
 
     /**
-     * Obtenir les données de filtres pour la boutique.
+     * Obtenir les données de filtres pour la boutique avec mise en cache.
      */
     public function getFiltersData(): array
     {
-        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+        $ttl = config('cache-performance.ttls.filters', 3600);
 
-        // Récupérer uniquement les catégories contenant au moins un produit actif (et compter ses produits)
-        $categories = \App\Models\Category::whereHas('products', function ($query) use ($hasActiveCheck) {
-            if ($hasActiveCheck) {
-                $query->where('is_active', true);
-            }
-        })
-        ->withCount(['products' => function ($query) use ($hasActiveCheck) {
-            if ($hasActiveCheck) {
-                $query->where('is_active', true);
-            }
-        }])
-        ->get();
+        return PerformanceCacheManager::remember('products_filters_data', $ttl, function () {
+            $hasActiveCheck = Schema::hasColumn('products', 'is_active');
 
-        // Calculer le prix min, max, count et les statistiques utiles en une seule requête SQL
-        $stats = Product::query()
-            ->when($hasActiveCheck, function ($query) {
-                $query->where('is_active', true);
+            $categories = Category::whereHas('products', function ($query) use ($hasActiveCheck) {
+                if ($hasActiveCheck) {
+                    $query->where('is_active', true);
+                }
             })
-            ->selectRaw('MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as total_count, AVG(price) as avg_price, SUM(stock) as total_stock')
-            ->first();
+            ->withCount(['products' => function ($query) use ($hasActiveCheck) {
+                if ($hasActiveCheck) {
+                    $query->where('is_active', true);
+                }
+            }])
+            ->get();
 
-        // Récupérer les marques uniques disponibles parmi les produits actifs
-        $brands = Product::query()
-            ->when($hasActiveCheck, function ($query) {
-                $query->where('is_active', true);
-            })
-            ->whereNotNull('brand')
-            ->where('brand', '!=', '')
-            ->distinct()
-            ->orderBy('brand')
-            ->pluck('brand')
-            ->toArray();
+            $stats = Product::query()
+                ->when($hasActiveCheck, function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->selectRaw('MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as total_count, AVG(price) as avg_price, SUM(stock) as total_stock')
+                ->first();
 
-        // Calculer le nombre de produits mis en avant (featured)
-        $featuredCount = Product::query()
-            ->when($hasActiveCheck, function ($query) {
-                $query->where('is_active', true);
-            })
-            ->where('is_featured', true)
-            ->count();
+            $brands = Product::query()
+                ->when($hasActiveCheck, function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->distinct()
+                ->orderBy('brand')
+                ->pluck('brand')
+                ->toArray();
 
-        return [
-            'categories' => $categories,
-            'price' => [
-                'min' => $stats ? $stats->min_price : 0,
-                'max' => $stats ? $stats->max_price : 0,
-            ],
-            'products_count' => $stats ? $stats->total_count : 0,
-            'brands' => $brands,
-            'statistics' => [
-                'average_price' => $stats ? round((float) $stats->avg_price, 2) : 0,
-                'total_stock'   => $stats ? (int) $stats->total_stock : 0,
-                'featured_count' => $featuredCount,
-            ]
-        ];
+            $featuredCount = Product::query()
+                ->when($hasActiveCheck, function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->where('is_featured', true)
+                ->count();
+
+            return [
+                'categories' => $categories,
+                'price' => [
+                    'min' => $stats ? (float)$stats->min_price : 0,
+                    'max' => $stats ? (float)$stats->max_price : 0,
+                ],
+                'products_count' => $stats ? (int)$stats->total_count : 0,
+                'brands' => $brands,
+                'statistics' => [
+                    'average_price' => $stats ? round((float) $stats->avg_price, 2) : 0,
+                    'total_stock'   => $stats ? (int) $stats->total_stock : 0,
+                    'featured_count' => $featuredCount,
+                ]
+            ];
+        }, ['filters', 'products']);
     }
 
     /**
-     * Obtenir les produits similaires à un produit donné (même catégorie, triés par proximité de prix).
-     * Si la catégorie contient peu de résultats, complète avec les produits les plus récents.
-     *
-     * @param  \App\Models\Product  $product
-     * @param  int                  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Obtenir les produits similaires à un produit donné.
      */
     public function getRelatedProducts(Product $product, int $limit = 4): \Illuminate\Database\Eloquent\Collection
     {
-        // --- 1. Produits de la même catégorie, triés par proximité de prix ---
         $related = Product::query()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->with('category')
+            ->with(['category', 'galleries'])
             ->orderByRaw('ABS(price - ?) ASC', [$product->price])
             ->limit($limit)
             ->get();
 
-        // --- 2. Compléter si pas assez de résultats dans la catégorie ---
         if ($related->count() < $limit) {
             $remaining = $limit - $related->count();
-
-            // IDs déjà récupérés (catégorie) + ID du produit courant
-            $excludeIds = $related->pluck('id')
-                ->push($product->id)
-                ->all();
+            $excludeIds = $related->pluck('id')->push($product->id)->all();
 
             $fallback = Product::query()
                 ->whereNotIn('id', $excludeIds)
-                ->with('category')
+                ->with(['category', 'galleries'])
                 ->orderBy('created_at', 'desc')
                 ->limit($remaining)
                 ->get();
@@ -246,38 +245,43 @@ class ProductRepository implements ProductRepositoryInterface
     }
 
     /**
-     * Obtenir les produits les plus populaires.
-     *
-     * Stratégie choisie : nombre de fois commandés (count des order_items).
-     * C'est le signal le plus fiable de l'attractivité réelle d'un produit.
-     * En cas d'égalité : produits vedettes en premier (is_featured), puis les plus récents.
-     *
-     * La requête utilise un sous-select pour calculer orders_count sans JOIN qui duplique les lignes,
-     * et sans withCount() pour rester lisible et extensible.
-     *
-     * Pour remplacer la logique : modifier uniquement cette méthode dans le Repository.
-     *
-     * @param  int  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Obtenir les produits les plus populaires avec mise en cache.
      */
     public function getPopularProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection
     {
-        return Product::query()
-            ->with('category')
-            ->withCount('orderItems')                      // eager: évite N+1
-            ->orderBy('order_items_count', 'desc')        // 1er critère : le + commandé
-            ->orderBy('is_featured', 'desc')              // 2e critère : vedette
-            ->orderBy('created_at', 'desc')               // 3e critère : le + récent
-            ->limit($limit)
-            ->get();
+        $ttl = config('cache-performance.ttls.popular_products', 3600);
+        $key = "popular_products_list_{$limit}";
+
+        $productIds = PerformanceCacheManager::remember($key, $ttl, function () use ($limit) {
+            return Product::query()
+                ->withCount('orderItems')
+                ->orderBy('order_items_count', 'desc')
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->pluck('id')
+                ->toArray();
+        }, ['popular', 'products']);
+
+        if (empty($productIds)) {
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
+
+        // Conserver l'ordre exact des IDs du cache
+        return Product::whereIn('id', $productIds)
+            ->with(['category', 'galleries'])
+            ->withCount('orderItems')
+            ->get()
+            ->sortBy(fn ($product) => array_search($product->id, $productIds))
+            ->values();
     }
 
     /**
-     * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
+     * Obtenir les produits similaires de la même catégorie.
      */
     public function getSimilarProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection
     {
-        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+        $hasActiveCheck = Schema::hasColumn('products', 'is_active');
 
         return Product::query()
             ->where('category_id', $product->category_id)
@@ -285,55 +289,71 @@ class ProductRepository implements ProductRepositoryInterface
             ->when($hasActiveCheck, function ($q) {
                 $q->where('is_active', true);
             })
-            ->with('category')
+            ->with(['category', 'galleries'])
             ->inRandomOrder()
             ->limit($limit)
             ->get();
     }
 
     /**
-     * Obtenir les produits les plus populaires selon un calcul de score pondéré.
+     * Obtenir les produits populaires avec score pondéré.
      */
     public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): \Illuminate\Database\Eloquent\Collection
     {
-        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+        $ttl = config('cache-performance.ttls.popular_products', 3600);
+        $key = "popular_products_list_{$limit}";
 
-        $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
-        $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
-        $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
+        $productIds = PerformanceCacheManager::remember($key, $ttl, function () use ($limit, $weights) {
+            $hasActiveCheck = Schema::hasColumn('products', 'is_active');
 
-        return Product::query()
-            ->when($hasActiveCheck, function ($query) {
-                $query->where('is_active', true);
-            })
-            ->with('category')
-            ->withCount('orderItems')
-            ->withCount(['reviews as approved_reviews_count' => function ($q) {
-                $q->where('is_approved', true);
-            }])
-            ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
-                $q->where('is_approved', true);
-            }], 'rating')
-            ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get();
+            $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
+            $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
+            $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
+
+            return Product::query()
+                ->when($hasActiveCheck, function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->withCount('orderItems')
+                ->withCount(['reviews as approved_reviews_count' => function ($q) {
+                    $q->where('is_approved', true);
+                }])
+                ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
+                    $q->where('is_approved', true);
+                }], 'rating')
+                ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->pluck('id')
+                ->toArray();
+        }, ['popular', 'products']);
+
+        if (empty($productIds)) {
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
+
+        return Product::whereIn('id', $productIds)
+            ->with(['category', 'galleries'])
+            ->get()
+            ->sortBy(fn ($product) => array_search($product->id, $productIds))
+            ->values();
     }
 
     /**
-     * Effectuer une recherche avancée multicritère avec tris personnalisés.
+     * Recherche avancée multicritère.
      */
     public function searchAdvanced(array $params, int $perPage = 12, array $weights = []): LengthAwarePaginator
     {
-        $query = Product::query()->with('category');
-        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+        $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
+        $perPage = min(max(1, $perPage), $maxPerPage);
 
-        // Toujours filtrer sur les produits actifs en production
+        $query = Product::query()->with(['category', 'galleries']);
+        $hasActiveCheck = Schema::hasColumn('products', 'is_active');
+
         $query->when($hasActiveCheck, function ($q) {
             $q->where('is_active', true);
         });
 
-        // Recherche textuelle q
         if (!empty($params['q'])) {
             $search = $params['q'];
             $query->where(function ($q) use ($search) {
@@ -347,7 +367,6 @@ class ProductRepository implements ProductRepositoryInterface
             });
         }
 
-        // Filtre par catégorie
         if (!empty($params['category'])) {
             $category = $params['category'];
             $query->whereHas('category', function ($q) use ($category) {
@@ -356,22 +375,18 @@ class ProductRepository implements ProductRepositoryInterface
             });
         }
 
-        // Filtre par prix min
         if (isset($params['price_min']) && $params['price_min'] !== '') {
             $query->where('price', '>=', (float) $params['price_min']);
         }
 
-        // Filtre par prix max
         if (isset($params['price_max']) && $params['price_max'] !== '') {
             $query->where('price', '<=', (float) $params['price_max']);
         }
 
-        // Filtre par marque
         if (!empty($params['brand'])) {
             $query->where('brand', $params['brand']);
         }
 
-        // Tri
         $sort = $params['sort'] ?? 'newest';
 
         if ($sort === 'price_asc') {
@@ -402,8 +417,6 @@ class ProductRepository implements ProductRepositoryInterface
                 }], 'rating')
                 ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
                 ->orderBy('created_at', 'desc');
-        } else {
-            $query->orderBy('created_at', 'desc');
         }
 
         return $query->paginate($perPage);

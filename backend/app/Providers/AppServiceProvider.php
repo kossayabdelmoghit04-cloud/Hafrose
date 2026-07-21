@@ -42,6 +42,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Observers pour invalidation automatique du cache ───────────────────
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
+        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
+        \App\Models\Review::observe(\App\Observers\ReviewObserver::class);
+        \App\Models\Contact::observe(\App\Observers\ContactObserver::class);
+
         // ── Routes publiques générales ─────────────────────────────────────────
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)

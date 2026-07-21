@@ -14,9 +14,17 @@ class WishlistRepository implements WishlistRepositoryInterface
      */
     public function getFavoritesForUser(User $user): Collection
     {
-        return WishlistItem::with(['product.category', 'product.galleries'])
-            ->where('user_id', $user->id)
-            ->get();
+        return WishlistItem::with([
+            'product' => function ($q) {
+                $q->select('id', 'name', 'slug', 'price', 'category_id')
+                  ->with([
+                      'category' => fn ($c) => $c->select('id', 'name', 'slug'),
+                      'galleries',
+                  ]);
+            }
+        ])
+        ->where('user_id', $user->id)
+        ->get();
     }
 
     /**

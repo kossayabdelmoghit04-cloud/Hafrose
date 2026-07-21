@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Review;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Services\PerformanceCacheManager;
 use Illuminate\Database\Eloquent\Collection;
 
 class ReviewRepository implements ReviewRepositoryInterface
@@ -13,10 +14,16 @@ class ReviewRepository implements ReviewRepositoryInterface
      */
     public function allApproved(int $limit = 20): Collection
     {
-        return Review::where('is_approved', true)
-            ->orderBy('created_at', 'desc')
-            ->limit($limit)
-            ->get();
+        $ttl = config('cache-performance.ttls.statistics', 1800);
+        $key = "reviews_approved_list_{$limit}";
+
+        return PerformanceCacheManager::remember($key, $ttl, function () use ($limit) {
+            return Review::where('is_approved', true)
+                ->select('id', 'product_id', 'customer_name', 'rating', 'comment', 'created_at')
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->get();
+        }, ['reviews']);
     }
 
     /**
@@ -24,7 +31,9 @@ class ReviewRepository implements ReviewRepositoryInterface
      */
     public function create(array $data): Review
     {
-        return Review::create($data);
+        $review = Review::create($data);
+        PerformanceCacheManager::invalidateReviews();
+        return $review;
     }
 
     /**
@@ -32,7 +41,14 @@ class ReviewRepository implements ReviewRepositoryInterface
      */
     public function paginate(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        return Review::with('product')->latest()->paginate($perPage);
+        $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
+        $perPage = min(max(1, $perPage), $maxPerPage);
+
+        return Review::with(['product' => function ($q) {
+            $q->select('id', 'name', 'slug');
+        }])
+        ->latest()
+        ->paginate($perPage);
     }
 
     /**
@@ -40,7 +56,9 @@ class ReviewRepository implements ReviewRepositoryInterface
      */
     public function find(int $id): ?Review
     {
-        return Review::with('product')->find($id);
+        return Review::with(['product' => function ($q) {
+            $q->select('id', 'name', 'slug');
+        }])->find($id);
     }
 
     /**
@@ -49,6 +67,7 @@ class ReviewRepository implements ReviewRepositoryInterface
     public function update(Review $review, array $data): Review
     {
         $review->update($data);
+        PerformanceCacheManager::invalidateReviews();
         return $review;
     }
 
@@ -57,6 +76,8 @@ class ReviewRepository implements ReviewRepositoryInterface
      */
     public function delete(Review $review): bool
     {
-        return $review->delete();
+        $deleted = $review->delete();
+        PerformanceCacheManager::invalidateReviews();
+        return $deleted;
     }
 }
