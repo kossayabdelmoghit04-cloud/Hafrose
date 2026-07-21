@@ -33,9 +33,11 @@ Route::middleware('throttle:api')->group(function () {
     // Produits (lecture seule)
     Route::get('/products/filters', [ProductController::class, 'filters']);
     Route::get('/products/popular', [ProductController::class, 'popular']);
+    Route::get('/products/search', [ProductController::class, 'search']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{product}/related', [ProductController::class, 'related']);
+    Route::get('/products/{product}/similar', [ProductController::class, 'similar']);
 
     // Avis (lecture seule)
     Route::get('/reviews', [ReviewController::class, 'index']);

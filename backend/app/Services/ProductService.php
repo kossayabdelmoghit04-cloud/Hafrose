@@ -223,4 +223,28 @@ class ProductService
     {
         return $this->productRepository->getPopularProducts($limit);
     }
+
+    /**
+     * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
+     */
+    public function getSimilarProducts(Product $product, int $limit = 8): Collection
+    {
+        return $this->productRepository->getSimilarProducts($product, $limit);
+    }
+
+    /**
+     * Obtenir les produits les plus populaires selon un calcul de score pondéré.
+     */
+    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): Collection
+    {
+        return $this->productRepository->getPopularProductsWithWeights($limit, $weights);
+    }
+
+    /**
+     * Effectuer une recherche avancée multicritère avec pagination.
+     */
+    public function searchProducts(array $params, int $perPage = 12): LengthAwarePaginator
+    {
+        return $this->productRepository->searchAdvanced($params, $perPage);
+    }
 }

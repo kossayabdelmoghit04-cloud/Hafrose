@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductSearchRequest;
+use App\Http\Requests\AdvancedSearchRequest;
+use App\Http\Requests\PopularProductsRequest;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductFiltersResource;
 use App\Models\Product;
@@ -79,20 +81,50 @@ class ProductController extends Controller
     }
 
     /**
+     * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
+     *
+     * GET /api/products/{product}/similar
+     */
+    public function similar(Product $product): JsonResponse
+    {
+        $products = $this->productService->getSimilarProducts($product, 8);
+
+        return $this->successResponse(ProductResource::collection($products));
+    }
+
+    /**
      * Obtenir les produits les plus populaires.
      *
      * GET /api/products/popular
      *
-     * Stratégie : produits les plus commandés (order_items count),
-     * avec fallback sur is_featured puis created_at.
-     * Retourne 8 produits (configurable).
+     * Stratégie : produits les plus commandés,
+     * pondéré par le nombre d'avis approuvés et la note moyenne.
+     * Retourne 8 produits par défaut (max 50).
      */
-    public function popular(): JsonResponse
+    public function popular(PopularProductsRequest $request): JsonResponse
     {
-        $limit = config('recommendations.popular_limit', 8);
+        $limit = (int) ($request->validated()['limit'] ?? config('recommendations.popular_limit', 8));
 
-        $products = $this->productService->getPopularProducts($limit);
+        $products = $this->productService->getPopularProductsWithWeights($limit);
 
         return $this->successResponse(ProductResource::collection($products));
     }
+
+    /**
+     * Moteur de recherche avancé de produits.
+     *
+     * GET /api/products/search
+     */
+    public function search(AdvancedSearchRequest $request): JsonResponse
+    {
+        $params = $request->validated();
+        $perPage = (int) ($params['per_page'] ?? 12);
+
+        $products = $this->productService->searchProducts($params, $perPage);
+
+        $paginatedData = ProductResource::collection($products)->response()->getData(true);
+
+        return $this->successResponse($paginatedData);
+    }
 }
+

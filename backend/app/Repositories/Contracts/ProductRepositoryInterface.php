@@ -66,4 +66,19 @@ interface ProductRepositoryInterface
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getPopularProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection;
+
+    /**
+     * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
+     */
+    public function getSimilarProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection;
+
+    /**
+     * Obtenir les produits les plus populaires selon un calcul de score pondéré.
+     */
+    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): \Illuminate\Database\Eloquent\Collection;
+
+    /**
+     * Effectuer une recherche avancée multicritère avec tris personnalisés.
+     */
+    public function searchAdvanced(array $params, int $perPage = 12, array $weights = []): LengthAwarePaginator;
 }

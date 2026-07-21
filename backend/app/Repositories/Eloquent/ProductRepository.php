@@ -160,13 +160,33 @@ class ProductRepository implements ProductRepositoryInterface
         }])
         ->get();
 
-        // Calculer le prix min, max et le nombre total de produits en une seule requête SQL
+        // Calculer le prix min, max, count et les statistiques utiles en une seule requête SQL
         $stats = Product::query()
             ->when($hasActiveCheck, function ($query) {
                 $query->where('is_active', true);
             })
-            ->selectRaw('MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as total_count')
+            ->selectRaw('MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as total_count, AVG(price) as avg_price, SUM(stock) as total_stock')
             ->first();
+
+        // Récupérer les marques uniques disponibles parmi les produits actifs
+        $brands = Product::query()
+            ->when($hasActiveCheck, function ($query) {
+                $query->where('is_active', true);
+            })
+            ->whereNotNull('brand')
+            ->where('brand', '!=', '')
+            ->distinct()
+            ->orderBy('brand')
+            ->pluck('brand')
+            ->toArray();
+
+        // Calculer le nombre de produits mis en avant (featured)
+        $featuredCount = Product::query()
+            ->when($hasActiveCheck, function ($query) {
+                $query->where('is_active', true);
+            })
+            ->where('is_featured', true)
+            ->count();
 
         return [
             'categories' => $categories,
@@ -175,17 +195,18 @@ class ProductRepository implements ProductRepositoryInterface
                 'max' => $stats ? $stats->max_price : 0,
             ],
             'products_count' => $stats ? $stats->total_count : 0,
+            'brands' => $brands,
+            'statistics' => [
+                'average_price' => $stats ? round((float) $stats->avg_price, 2) : 0,
+                'total_stock'   => $stats ? (int) $stats->total_stock : 0,
+                'featured_count' => $featuredCount,
+            ]
         ];
     }
 
     /**
-     * Obtenir les produits similaires à un produit donné.
-     *
-     * Algorithme :
-     *  1. Cherche les produits de la même catégorie, en excluant le produit courant.
-     *  2. Les trie par proximité de prix (ABS(price - current_price) ASC).
-     *  3. Si le nombre de résultats est insuffisant, complète avec les produits les plus récents
-     *     (toutes catégories), toujours en excluant le produit courant et sans doublons.
+     * Obtenir les produits similaires à un produit donné (même catégorie, triés par proximité de prix).
+     * Si la catégorie contient peu de résultats, complète avec les produits les plus récents.
      *
      * @param  \App\Models\Product  $product
      * @param  int                  $limit
@@ -249,5 +270,142 @@ class ProductRepository implements ProductRepositoryInterface
             ->orderBy('created_at', 'desc')               // 3e critère : le + récent
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
+     */
+    public function getSimilarProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    {
+        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+
+        return Product::query()
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->when($hasActiveCheck, function ($q) {
+                $q->where('is_active', true);
+            })
+            ->with('category')
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Obtenir les produits les plus populaires selon un calcul de score pondéré.
+     */
+    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): \Illuminate\Database\Eloquent\Collection
+    {
+        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+
+        $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
+        $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
+        $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
+
+        return Product::query()
+            ->when($hasActiveCheck, function ($query) {
+                $query->where('is_active', true);
+            })
+            ->with('category')
+            ->withCount('orderItems')
+            ->withCount(['reviews as approved_reviews_count' => function ($q) {
+                $q->where('is_approved', true);
+            }])
+            ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
+                $q->where('is_approved', true);
+            }], 'rating')
+            ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Effectuer une recherche avancée multicritère avec tris personnalisés.
+     */
+    public function searchAdvanced(array $params, int $perPage = 12, array $weights = []): LengthAwarePaginator
+    {
+        $query = Product::query()->with('category');
+        $hasActiveCheck = \Illuminate\Support\Facades\Schema::hasColumn('products', 'is_active');
+
+        // Toujours filtrer sur les produits actifs en production
+        $query->when($hasActiveCheck, function ($q) {
+            $q->where('is_active', true);
+        });
+
+        // Recherche textuelle q
+        if (!empty($params['q'])) {
+            $search = $params['q'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%")
+                  ->orWhereHas('category', function ($catQ) use ($search) {
+                      $catQ->where('name', 'like', "%{$search}%")
+                           ->orWhere('slug', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filtre par catégorie
+        if (!empty($params['category'])) {
+            $category = $params['category'];
+            $query->whereHas('category', function ($q) use ($category) {
+                $q->where('slug', $category)
+                  ->orWhere('id', $category);
+            });
+        }
+
+        // Filtre par prix min
+        if (isset($params['price_min']) && $params['price_min'] !== '') {
+            $query->where('price', '>=', (float) $params['price_min']);
+        }
+
+        // Filtre par prix max
+        if (isset($params['price_max']) && $params['price_max'] !== '') {
+            $query->where('price', '<=', (float) $params['price_max']);
+        }
+
+        // Filtre par marque
+        if (!empty($params['brand'])) {
+            $query->where('brand', $params['brand']);
+        }
+
+        // Tri
+        $sort = $params['sort'] ?? 'newest';
+
+        if ($sort === 'price_asc') {
+            $query->orderBy('price', 'asc');
+        } elseif ($sort === 'price_desc') {
+            $query->orderBy('price', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } elseif ($sort === 'newest') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($sort === 'rating') {
+            $query->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
+                $q->where('is_approved', true);
+            }], 'rating')
+            ->orderByRaw('COALESCE(approved_reviews_avg_rating, 0) DESC')
+            ->orderBy('created_at', 'desc');
+        } elseif ($sort === 'popular') {
+            $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
+            $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
+            $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
+
+            $query->withCount('orderItems')
+                ->withCount(['reviews as approved_reviews_count' => function ($q) {
+                    $q->where('is_approved', true);
+                }])
+                ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
+                    $q->where('is_approved', true);
+                }], 'rating')
+                ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
+                ->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return $query->paginate($perPage);
     }
 }

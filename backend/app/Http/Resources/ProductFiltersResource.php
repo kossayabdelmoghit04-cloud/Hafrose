@@ -29,6 +29,8 @@ class ProductFiltersResource extends JsonResource
                 'max' => $this['price']['max'] !== null ? (float) $this['price']['max'] : 0,
             ],
             'products_count' => (int) $this['products_count'],
+            'brands'         => $this['brands'] ?? [],
+            'statistics'     => $this['statistics'] ?? [],
         ];
     }
 }
