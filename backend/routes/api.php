@@ -137,5 +137,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/cache/clear', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'clear']);
         Route::post('/cache/dashboard/refresh', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'refreshDashboard']);
         Route::get('/cache/status', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'status']);
+
+        // ── Sauvegardes système (Phase 5.8.1) ────────────────────────────────
+        Route::post('/system/backup', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'create']);
+        Route::get('/system/backups', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'index']);
+        Route::delete('/system/backups/{id}', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'destroy']);
     });
 });
