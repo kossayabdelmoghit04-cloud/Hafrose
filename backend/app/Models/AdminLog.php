@@ -47,8 +47,11 @@ class AdminLog extends Model
     public const ACTION_PUBLISH        = 'publish';
     public const ACTION_UNPUBLISH      = 'unpublish';
     public const ACTION_ARCHIVE        = 'archive';
-    public const ACTION_BACKUP_CREATE  = 'backup_create';
-    public const ACTION_BACKUP_DELETE  = 'backup_delete';
+    public const ACTION_BACKUP_CREATE      = 'backup_create';
+    public const ACTION_BACKUP_DELETE      = 'backup_delete';
+    public const ACTION_DEPLOYMENT_OPTIMIZE = 'deployment.optimize';
+    public const ACTION_DEPLOYMENT_CLEAR    = 'deployment.clear';
+    public const ACTION_DEPLOYMENT_WARMUP   = 'deployment.warmup';
 
     // ─── Ressources disponibles ─────────────────────────────────────────────────
 

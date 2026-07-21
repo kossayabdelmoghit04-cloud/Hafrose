@@ -142,5 +142,18 @@ Route::prefix('admin')->group(function () {
         Route::post('/system/backup', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'create']);
         Route::get('/system/backups', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'index']);
         Route::delete('/system/backups/{id}', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'destroy']);
+
+        // ── Monitoring & Observabilité (Phase 5.9) ───────────────────────────
+        Route::get('/system/health', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'health']);
+        Route::get('/system/metrics', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'metrics']);
+        Route::get('/system/status', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'status']);
+        Route::get('/system/phpinfo', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'phpinfo']);
+
+        // ── Infrastructure de Déploiement & Optimisation (Phase 5.8.2.1) ─────
+        Route::get('/system/deployment/status', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'status']);
+        Route::post('/system/deployment/optimize', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'optimize']);
+        Route::post('/system/deployment/clear', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'clear']);
+        Route::post('/system/deployment/warmup', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'warmup']);
     });
 });
+

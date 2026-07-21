@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'honeypot' => \App\Http\Middleware\BlockSpamHoneypot::class,
             'turnstile' => \App\Http\Middleware\VerifyTurnstileToken::class,
             'perf.monitor' => \App\Http\Middleware\PerformanceMonitoringMiddleware::class,
+            'monitoring' => \App\Http\Middleware\MonitoringMiddleware::class,
+        ]);
+
+        $middleware->api(append: [
+            \App\Http\Middleware\MonitoringMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
