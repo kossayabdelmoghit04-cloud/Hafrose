@@ -1,0 +1,38 @@
+# ==============================================================================
+# HAFROSE Backend — Logrotate Configuration
+# ==============================================================================
+# Target OS: Ubuntu 24.04 LTS
+# Target Path: /etc/logrotate.d/hafrose
+# Command to test: logrotate -d /etc/logrotate.d/hafrose
+# ==============================================================================
+
+/var/www/hafrose/backend/storage/logs/*.log {
+    # Perform log rotation once per day
+    daily
+
+    # Retain rotated logs for 30 days before purging
+    rotate 30
+
+    # Compress rotated log files using gzip
+    compress
+
+    # Postpone compression of the most recent rotated file to the next rotation cycle
+    delaycompress
+
+    # Do not report error if the log file is missing
+    missingok
+
+    # Do not rotate the log file if it is empty
+    notifempty
+
+    # Create a new blank log file with 0664 permissions owned by www-data:www-data
+    create 0664 www-data www-data
+
+    # Execute postrotate script once for all matching log files instead of per file
+    sharedscripts
+
+    # Reload system log daemon or notification hook post-rotation
+    postrotate
+        /usr/bin/systemctl reload php8.3-fpm > /dev/null 2>&1 || true
+    endscript
+}

@@ -1,0 +1,44 @@
+# ==============================================================================
+# HAFROSE Backend — Crontab Scheduler & Maintenance Configuration
+# ==============================================================================
+# Target OS: Ubuntu 24.04 LTS
+# Target User: www-data (or crontab -e for www-data user)
+# Target Path: /etc/cron.d/hafrose-scheduler or /var/spool/cron/crontabs/www-data
+# ==============================================================================
+
+# Setting environment variables for Cron execution context
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# ------------------------------------------------------------------------------
+# 1. Primary Laravel Task Scheduler Entry (MANDATORY - EVERY MINUTE)
+# ------------------------------------------------------------------------------
+# Triggers Laravel's internal Schedule service every minute (* * * * *).
+# Laravel evaluates app/Console/Kernel.php or routes/console.php scheduled tasks.
+# Standard output and error output redirected to /dev/null (or logged to storage/logs/cron.log).
+* * * * * cd /var/www/hafrose/backend && php /usr/bin/php artisan schedule:run >> /var/www/hafrose/backend/storage/logs/cron-scheduler.log 2>&1
+
+# ------------------------------------------------------------------------------
+# 2. Automated Production Backup Cron (Daily at 02:00 AM)
+# ------------------------------------------------------------------------------
+# Invokes HAFROSE custom production backup command to perform DB dump and rotation.
+0 2 * * * cd /var/www/hafrose/backend && php /usr/bin/php artisan hafrose:backup:run --detailed >> /var/www/hafrose/backend/storage/logs/cron-backup.log 2>&1
+
+# ------------------------------------------------------------------------------
+# 3. Log Clean / Prune (Weekly on Sunday at 03:00 AM)
+# ------------------------------------------------------------------------------
+# Prunes stale database activity logs and system monitoring metrics older than retention policy.
+0 3 * * 0 cd /var/www/hafrose/backend && php /usr/bin/php artisan activitylog:clean >> /dev/null 2>&1
+
+# ------------------------------------------------------------------------------
+# 4. Let's Encrypt SSL Certificate Auto-Renewal Verification (Daily at 04:00 AM)
+# ------------------------------------------------------------------------------
+# Checks and renews Let's Encrypt SSL certificates expiring within 30 days and reloads Nginx.
+0 4 * * * /usr/bin/certbot renew --quiet --post-hook "systemctl reload nginx"
+
+# ------------------------------------------------------------------------------
+# 5. Daily Queue Worker Health Reset (Daily at 04:30 AM)
+# ------------------------------------------------------------------------------
+# Gracefully restarts Supervisor queue workers to flush memory and reload code state.
+30 4 * * * cd /var/www/hafrose/backend && php /usr/bin/php artisan queue:restart >> /dev/null 2>&1
