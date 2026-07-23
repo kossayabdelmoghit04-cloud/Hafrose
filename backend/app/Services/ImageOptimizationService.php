@@ -12,14 +12,15 @@ class ImageOptimizationService
      * Tailles configurées pour les différentes déclinaisons d'images.
      */
     protected array $sizes;
+
     protected int $quality;
 
     public function __construct()
     {
         $this->sizes = config('cache-performance.images.sizes', [
             'thumbnail' => ['width' => 150, 'height' => 150, 'crop' => true],
-            'medium'    => ['width' => 600, 'height' => 600, 'crop' => false],
-            'large'     => ['width' => 1200, 'height' => 1200, 'crop' => false],
+            'medium' => ['width' => 600, 'height' => 600, 'crop' => false],
+            'large' => ['width' => 1200, 'height' => 1200, 'crop' => false],
         ]);
         $this->quality = config('cache-performance.images.quality', 85);
     }
@@ -27,9 +28,9 @@ class ImageOptimizationService
     /**
      * Optimiser une image téléversée et générer ses déclinaisons.
      *
-     * @param  UploadedFile|string $file Fichier uploadé ou chemin d'accès local
-     * @param  string              $disk Disque de stockage (ex: 'public')
-     * @param  string              $directory Dossier destination (ex: 'media')
+     * @param  UploadedFile|string  $file  Fichier uploadé ou chemin d'accès local
+     * @param  string  $disk  Disque de stockage (ex: 'public')
+     * @param  string  $directory  Dossier destination (ex: 'media')
      * @return array Informations sur l'original et ses déclinaisons
      */
     public function optimizeAndStore(UploadedFile|string $file, string $disk = 'public', string $directory = 'media'): array
@@ -45,34 +46,35 @@ class ImageOptimizationService
         }
 
         $result = [
-            'original'  => $originalPath,
+            'original' => $originalPath,
             'mime_type' => $mimeType,
-            'variants'  => [],
+            'variants' => [],
         ];
 
-        if (!extension_loaded('gd') || !file_exists($fullOriginalPath)) {
+        if (! extension_loaded('gd') || ! file_exists($fullOriginalPath)) {
             Log::warning("GD extension not available or file missing; image optimization skipped for {$originalPath}");
+
             return $result;
         }
 
         $imageResource = $this->createGdResource($fullOriginalPath, $mimeType);
-        if (!$imageResource) {
+        if (! $imageResource) {
             return $result;
         }
 
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] : $directory;
+        $dirname = $pathInfo['dirname'] !== '.' ? $pathInfo['dirname'] : $directory;
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? 'jpg');
+        $ext = strtolower($pathInfo['extension'] ?? 'jpg');
 
         foreach ($this->sizes as $variantName => $dimensions) {
             try {
-                $targetWidth  = $dimensions['width'];
+                $targetWidth = $dimensions['width'];
                 $targetHeight = $dimensions['height'];
-                $crop         = $dimensions['crop'] ?? false;
+                $crop = $dimensions['crop'] ?? false;
 
                 $resized = $this->resizeImage($imageResource, $targetWidth, $targetHeight, $crop);
-                if (!$resized) {
+                if (! $resized) {
                     continue;
                 }
 
@@ -81,7 +83,7 @@ class ImageOptimizationService
 
                 // Assurer que le répertoire parent existe
                 $variantDir = dirname($fullVariantPath);
-                if (!is_dir($variantDir)) {
+                if (! is_dir($variantDir)) {
                     mkdir($variantDir, 0755, true);
                 }
 
@@ -90,7 +92,7 @@ class ImageOptimizationService
 
                 $result['variants'][$variantName] = $variantFilename;
             } catch (\Throwable $e) {
-                Log::error("Failed to generate image variant {$variantName}: " . $e->getMessage());
+                Log::error("Failed to generate image variant {$variantName}: ".$e->getMessage());
             }
         }
 
@@ -105,9 +107,9 @@ class ImageOptimizationService
     public function deleteWithVariants(string $originalPath, string $disk = 'public'): bool
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? '');
+        $ext = strtolower($pathInfo['extension'] ?? '');
 
         // Supprimer l'original
         if (Storage::disk($disk)->exists($originalPath)) {
@@ -131,9 +133,9 @@ class ImageOptimizationService
     public function getVariantPaths(string $originalPath): array
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? '');
+        $ext = strtolower($pathInfo['extension'] ?? '');
 
         $variants = [];
         foreach ($this->sizes as $variantName => $dims) {
@@ -150,9 +152,9 @@ class ImageOptimizationService
     {
         return match ($mimeType) {
             'image/jpeg', 'image/jpg' => @imagecreatefromjpeg($filePath),
-            'image/png'               => @imagecreatefrompng($filePath),
-            'image/webp'              => @imagecreatefromwebp($filePath),
-            default                   => null,
+            'image/png' => @imagecreatefrompng($filePath),
+            'image/webp' => @imagecreatefromwebp($filePath),
+            default => null,
         };
     }
 
@@ -163,9 +165,9 @@ class ImageOptimizationService
     {
         return match ($mimeType) {
             'image/jpeg', 'image/jpg' => imagejpeg($resource, $outputPath, $quality),
-            'image/png'               => imagepng($resource, $outputPath, (int) round((9 * (100 - $quality)) / 100)),
-            'image/webp'              => imagewebp($resource, $outputPath, $quality),
-            default                   => false,
+            'image/png' => imagepng($resource, $outputPath, (int) round((9 * (100 - $quality)) / 100)),
+            'image/webp' => imagewebp($resource, $outputPath, $quality),
+            default => false,
         };
     }
 
@@ -174,7 +176,7 @@ class ImageOptimizationService
      */
     protected function resizeImage(mixed $source, int $targetWidth, int $targetHeight, bool $crop = false): mixed
     {
-        $origWidth  = imagesx($source);
+        $origWidth = imagesx($source);
         $origHeight = imagesy($source);
 
         if ($origWidth <= 0 || $origHeight <= 0) {
@@ -183,7 +185,7 @@ class ImageOptimizationService
 
         if ($crop) {
             $ratio = max($targetWidth / $origWidth, $targetHeight / $origHeight);
-            $newWidth  = (int) round($origWidth * $ratio);
+            $newWidth = (int) round($origWidth * $ratio);
             $newHeight = (int) round($origHeight * $ratio);
 
             $srcX = (int) round(($newWidth - $targetWidth) / (2 * $ratio));
@@ -204,10 +206,10 @@ class ImageOptimizationService
             $ratio = min($targetWidth / $origWidth, $targetHeight / $origHeight);
             if ($ratio >= 1.0) {
                 // Pas besoin d'agrandir si déjà plus petit que la cible
-                $targetWidth  = $origWidth;
+                $targetWidth = $origWidth;
                 $targetHeight = $origHeight;
             } else {
-                $targetWidth  = (int) round($origWidth * $ratio);
+                $targetWidth = (int) round($origWidth * $ratio);
                 $targetHeight = (int) round($origHeight * $ratio);
             }
 

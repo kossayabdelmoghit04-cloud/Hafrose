@@ -3,11 +3,10 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Category;
-use App\Models\Order;
+use App\Models\Contact;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
-use App\Models\Contact;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,6 +17,7 @@ class DashboardControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -28,23 +28,23 @@ class DashboardControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/dashboard');
 
         $response->assertOk()
-                 ->assertJsonStructure([
-                     'data' => [
-                         'metrics' => [
-                             'products_count',
-                             'categories_count',
-                             'orders_count',
-                             'pending_orders',
-                             'revenue',
-                             'pending_reviews',
-                             'unread_contacts',
-                         ],
-                         'sales_chart',
-                         'popular_products',
-                         'latest_orders',
-                         'latest_messages',
-                     ],
-                 ]);
+            ->assertJsonStructure([
+                'data' => [
+                    'metrics' => [
+                        'products_count',
+                        'categories_count',
+                        'orders_count',
+                        'pending_orders',
+                        'revenue',
+                        'pending_reviews',
+                        'unread_contacts',
+                    ],
+                    'sales_chart',
+                    'popular_products',
+                    'latest_orders',
+                    'latest_messages',
+                ],
+            ]);
     }
 
     public function test_dashboard_metrics_reflect_real_data(): void

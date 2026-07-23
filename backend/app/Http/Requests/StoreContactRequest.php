@@ -23,9 +23,9 @@ class StoreContactRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'    => 'required|string|max:255',
-            'email'   => 'required|email|max:255',
-            'phone'   => 'nullable|string|max:50',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|min:10|max:5000',
             // Le champ honeypot est intercepté en amont par le middleware BlockSpamHoneypot.
@@ -40,18 +40,18 @@ class StoreContactRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'    => 'Le nom est obligatoire.',
-            'name.string'      => 'Le nom doit être une chaîne de caractères.',
-            'name.max'         => 'Le nom ne doit pas dépasser 255 caractères.',
-            'email.required'   => 'L\'email est obligatoire.',
-            'email.email'      => 'L\'email doit être une adresse valide.',
-            'email.max'        => 'L\'email ne doit pas dépasser 255 caractères.',
-            'phone.max'        => 'Le numéro de téléphone ne doit pas dépasser 50 caractères.',
+            'name.required' => 'Le nom est obligatoire.',
+            'name.string' => 'Le nom doit être une chaîne de caractères.',
+            'name.max' => 'Le nom ne doit pas dépasser 255 caractères.',
+            'email.required' => 'L\'email est obligatoire.',
+            'email.email' => 'L\'email doit être une adresse valide.',
+            'email.max' => 'L\'email ne doit pas dépasser 255 caractères.',
+            'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 50 caractères.',
             'subject.required' => 'Le sujet est obligatoire.',
-            'subject.max'      => 'Le sujet ne doit pas dépasser 255 caractères.',
+            'subject.max' => 'Le sujet ne doit pas dépasser 255 caractères.',
             'message.required' => 'Le message est obligatoire.',
-            'message.min'      => 'Le message doit contenir au moins 10 caractères.',
-            'message.max'      => 'Le message ne doit pas dépasser 5000 caractères.',
+            'message.min' => 'Le message doit contenir au moins 10 caractères.',
+            'message.max' => 'Le message ne doit pas dépasser 5000 caractères.',
         ];
     }
 }

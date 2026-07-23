@@ -23,7 +23,7 @@ class SettingService
     {
         return Cache::rememberForever('site_settings', function () {
             $settings = $this->settingRepository->all();
-            
+
             // Définir des valeurs par défaut pour les clés importantes
             $defaults = [
                 'site_name' => 'Hafrose',
@@ -54,7 +54,7 @@ class SettingService
         // Gérer l'upload du logo
         if ($logo) {
             // Supprimer l'ancien logo s'il existe
-            if (!empty($currentSettings['site_logo'])) {
+            if (! empty($currentSettings['site_logo'])) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $currentSettings['site_logo']));
             }
             $logoPath = $logo->store('settings', 'public');
@@ -64,7 +64,7 @@ class SettingService
         // Gérer l'upload du favicon
         if ($favicon) {
             // Supprimer l'ancien favicon s'il existe
-            if (!empty($currentSettings['site_favicon'])) {
+            if (! empty($currentSettings['site_favicon'])) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $currentSettings['site_favicon']));
             }
             $faviconPath = $favicon->store('settings', 'public');

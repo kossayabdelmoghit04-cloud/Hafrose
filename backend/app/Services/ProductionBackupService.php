@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use ZipArchive;
@@ -36,33 +37,33 @@ class ProductionBackupService
      * Lancer une sauvegarde complète.
      *
      * @param  bool  $dryRun  Si true, simule la sauvegarde sans rien écrire.
-     * @param  bool  $verbose Activer les messages détaillés (retournés dans le rapport).
-     * @return array          Rapport de sauvegarde.
+     * @param  bool  $verbose  Activer les messages détaillés (retournés dans le rapport).
+     * @return array Rapport de sauvegarde.
      *
      * @throws \RuntimeException Si la sauvegarde est désactivée ou si l'espace disque est insuffisant.
      */
     public function run(bool $dryRun = false, bool $verbose = false): array
     {
         $this->report = [
-            'success'    => false,
-            'dry_run'    => $dryRun,
+            'success' => false,
+            'dry_run' => $dryRun,
             'started_at' => now()->toIso8601String(),
-            'steps'      => [],
-            'archive'    => null,
-            'errors'     => [],
+            'steps' => [],
+            'archive' => null,
+            'errors' => [],
         ];
 
         try {
             $this->assertBackupEnabled();
             $this->assertDiskSpace();
 
-            $timestamp      = now()->format('Y-m-d_H-i-s');
-            $prefix         = config('production.backup.filename_prefix', 'hafrose-backup');
-            $archiveName    = "{$prefix}_{$timestamp}.zip";
-            $backupDisk     = config('production.storage.disk', 'local');
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $prefix = config('production.backup.filename_prefix', 'hafrose-backup');
+            $archiveName = "{$prefix}_{$timestamp}.zip";
+            $backupDisk = config('production.storage.disk', 'local');
             $backupBasePath = config('production.backup.path', 'backups');
 
-            if (!$dryRun) {
+            if (! $dryRun) {
                 $this->workDir = storage_path("app/{$backupBasePath}/tmp_{$timestamp}");
                 File::ensureDirectoryExists($this->workDir, 0755);
             }
@@ -85,7 +86,7 @@ class ProductionBackupService
 
             // ── Archive ZIP ──────────────────────────────────────────────────
 
-            if (!$dryRun) {
+            if (! $dryRun) {
                 $archivePath = $this->createArchive($archiveName, $backupBasePath, $verbose);
 
                 // Nettoyage du répertoire temporaire
@@ -99,18 +100,18 @@ class ProductionBackupService
                 $this->report['archive'] = "[dry-run] {$archiveName} (non créé)";
             }
 
-            $this->report['success']    = true;
-            $this->report['ended_at']   = now()->toIso8601String();
+            $this->report['success'] = true;
+            $this->report['ended_at'] = now()->toIso8601String();
             $this->report['duration_s'] = now()->diffInSeconds(
-                \Carbon\Carbon::parse($this->report['started_at'])
+                Carbon::parse($this->report['started_at'])
             );
 
         } catch (\Throwable $e) {
             $this->report['errors'][] = $e->getMessage();
-            $this->report['success']  = false;
+            $this->report['success'] = false;
 
             // Nettoyer le répertoire temporaire si présent
-            if (!empty($this->workDir) && File::isDirectory($this->workDir)) {
+            if (! empty($this->workDir) && File::isDirectory($this->workDir)) {
                 File::deleteDirectory($this->workDir);
             }
 
@@ -136,7 +137,7 @@ class ProductionBackupService
      */
     private function assertBackupEnabled(): void
     {
-        if (!config('production.backup.enabled', true)) {
+        if (! config('production.backup.enabled', true)) {
             throw new \RuntimeException('Les sauvegardes sont désactivées (BACKUP_ENABLED=false).');
         }
     }
@@ -148,7 +149,7 @@ class ProductionBackupService
      */
     private function assertDiskSpace(): void
     {
-        $minMb     = config('production.backup.min_disk_space_mb', 500);
+        $minMb = config('production.backup.min_disk_space_mb', 500);
         $available = disk_free_space(storage_path()) / 1024 / 1024; // octets → Mo
 
         if ($available < $minMb) {
@@ -157,7 +158,7 @@ class ProductionBackupService
             );
         }
 
-        $this->addStep('disk_check', 'OK', "Espace disponible : " . round($available, 1) . " Mo");
+        $this->addStep('disk_check', 'OK', 'Espace disponible : '.round($available, 1).' Mo');
     }
 
     // ─── Sauvegarde base de données ──────────────────────────────────────────
@@ -168,38 +169,40 @@ class ProductionBackupService
     private function backupDatabase(bool $dryRun, bool $verbose): void
     {
         $connection = config('database.default');
-        $config     = config("database.connections.{$connection}");
+        $config = config("database.connections.{$connection}");
 
         if ($dryRun) {
             $this->addStep('database', 'DRY-RUN', "Connexion : {$connection}");
+
             return;
         }
 
         if ($connection === 'sqlite') {
             // Pour SQLite : copier le fichier de base de données
-            $dbPath  = $config['database'];
-            $destDir = $this->workDir . '/database';
+            $dbPath = $config['database'];
+            $destDir = $this->workDir.'/database';
             File::ensureDirectoryExists($destDir, 0755);
 
             if (File::exists($dbPath)) {
-                File::copy($dbPath, $destDir . '/database.sqlite');
+                File::copy($dbPath, $destDir.'/database.sqlite');
                 $this->addStep('database', 'OK', "SQLite copié depuis : {$dbPath}");
             } else {
                 $this->addStep('database', 'SKIP', 'Fichier SQLite introuvable.');
             }
+
             return;
         }
 
         // MySQL / MariaDB via mysqldump
-        $destDir = $this->workDir . '/database';
+        $destDir = $this->workDir.'/database';
         File::ensureDirectoryExists($destDir, 0755);
 
-        $host     = $config['host']     ?? '127.0.0.1';
-        $port     = $config['port']     ?? 3306;
+        $host = $config['host'] ?? '127.0.0.1';
+        $port = $config['port'] ?? 3306;
         $database = $config['database'] ?? '';
         $username = $config['username'] ?? '';
         $password = $config['password'] ?? '';
-        $dumpFile = $destDir . '/database.sql';
+        $dumpFile = $destDir.'/database.sql';
 
         // Construire la commande mysqldump
         $cmd = sprintf(
@@ -232,15 +235,17 @@ class ProductionBackupService
     private function backupStorage(bool $dryRun, bool $verbose): void
     {
         $sourcePath = storage_path('app');
-        $destPath   = $this->workDir . '/storage';
+        $destPath = $this->workDir.'/storage';
 
         if ($dryRun) {
             $this->addStep('storage', 'DRY-RUN', "Source : {$sourcePath}");
+
             return;
         }
 
-        if (!File::isDirectory($sourcePath)) {
+        if (! File::isDirectory($sourcePath)) {
             $this->addStep('storage', 'SKIP', 'Répertoire storage/app inexistant.');
+
             return;
         }
 
@@ -260,10 +265,11 @@ class ProductionBackupService
     {
         $imagesPath = public_path('images');
         $storagePublicPath = public_path('storage');
-        $destPath   = $this->workDir . '/images';
+        $destPath = $this->workDir.'/images';
 
         if ($dryRun) {
             $this->addStep('images', 'DRY-RUN', "Source : {$imagesPath}");
+
             return;
         }
 
@@ -271,14 +277,14 @@ class ProductionBackupService
         $count = 0;
 
         if (File::isDirectory($imagesPath)) {
-            File::copyDirectory($imagesPath, $destPath . '/public_images');
-            $count += count(File::allFiles($destPath . '/public_images'));
+            File::copyDirectory($imagesPath, $destPath.'/public_images');
+            $count += count(File::allFiles($destPath.'/public_images'));
         }
 
         // Inclure également le lien symbolique storage/public si présent
         if (File::isDirectory($storagePublicPath)) {
-            File::copyDirectory($storagePublicPath, $destPath . '/storage_public');
-            $count += count(File::allFiles($destPath . '/storage_public'));
+            File::copyDirectory($storagePublicPath, $destPath.'/storage_public');
+            $count += count(File::allFiles($destPath.'/storage_public'));
         }
 
         if ($count === 0) {
@@ -296,22 +302,23 @@ class ProductionBackupService
     private function backupCriticalFiles(bool $dryRun, bool $verbose): void
     {
         $criticalFiles = [
-            base_path('.env')           => 'config/.env',
-            base_path('composer.json')  => 'config/composer.json',
-            base_path('composer.lock')  => 'config/composer.lock',
-            base_path('phpunit.xml')    => 'config/phpunit.xml',
-            base_path('artisan')        => 'config/artisan',
+            base_path('.env') => 'config/.env',
+            base_path('composer.json') => 'config/composer.json',
+            base_path('composer.lock') => 'config/composer.lock',
+            base_path('phpunit.xml') => 'config/phpunit.xml',
+            base_path('artisan') => 'config/artisan',
         ];
 
         if ($dryRun) {
-            $this->addStep('critical_files', 'DRY-RUN', count($criticalFiles) . ' fichiers critiques');
+            $this->addStep('critical_files', 'DRY-RUN', count($criticalFiles).' fichiers critiques');
+
             return;
         }
 
         $count = 0;
         foreach ($criticalFiles as $source => $dest) {
             if (File::exists($source)) {
-                $destFull = $this->workDir . '/' . $dest;
+                $destFull = $this->workDir.'/'.$dest;
                 File::ensureDirectoryExists(dirname($destFull), 0755);
                 File::copy($source, $destFull);
                 $count++;
@@ -327,24 +334,25 @@ class ProductionBackupService
      * Compresser le répertoire temporaire en archive ZIP.
      *
      * @return string Chemin relatif au disk de l'archive créée.
+     *
      * @throws \RuntimeException
      */
     private function createArchive(string $archiveName, string $backupBasePath, bool $verbose): string
     {
-        $backupDir  = storage_path("app/{$backupBasePath}");
+        $backupDir = storage_path("app/{$backupBasePath}");
         File::ensureDirectoryExists($backupDir, 0755);
 
-        $archivePath = $backupDir . '/' . $archiveName;
-        $compress    = config('production.backup.compress', true);
+        $archivePath = $backupDir.'/'.$archiveName;
+        $compress = config('production.backup.compress', true);
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $result = $zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         if ($result !== true) {
             throw new \RuntimeException("Impossible de créer l'archive ZIP : erreur {$result}");
         }
 
-        $files   = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->workDir));
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->workDir));
         $addedFiles = 0;
 
         foreach ($files as $file) {
@@ -352,7 +360,7 @@ class ProductionBackupService
                 continue;
             }
 
-            $filePath     = $file->getRealPath();
+            $filePath = $file->getRealPath();
             $relativePath = substr($filePath, strlen($this->workDir) + 1);
 
             if ($compress) {
@@ -396,7 +404,7 @@ class ProductionBackupService
     {
         $backupDir = storage_path("app/{$backupBasePath}");
 
-        if (!File::isDirectory($backupDir)) {
+        if (! File::isDirectory($backupDir)) {
             return;
         }
 
@@ -409,28 +417,28 @@ class ProductionBackupService
             return;
         }
 
-        $dailyLimit   = config('production.retention.daily', 7);
-        $weeklyLimit  = config('production.retention.weekly', 4);
+        $dailyLimit = config('production.retention.daily', 7);
+        $weeklyLimit = config('production.retention.weekly', 4);
         $monthlyLimit = config('production.retention.monthly', 6);
 
-        $toKeep    = collect();
-        $weekly    = collect();
-        $monthly   = collect();
+        $toKeep = collect();
+        $weekly = collect();
+        $monthly = collect();
         $seenWeeks = [];
-        $seenMonths= [];
+        $seenMonths = [];
 
         // 1er passage : séparer journaliers, hebdos, mensuels
         foreach ($files as $file) {
-            $mtime = \Carbon\Carbon::createFromTimestamp($file->getMTime());
-            $week  = $mtime->format('Y-W');
+            $mtime = Carbon::createFromTimestamp($file->getMTime());
+            $week = $mtime->format('Y-W');
             $month = $mtime->format('Y-m');
 
-            if (!isset($seenWeeks[$week])) {
+            if (! isset($seenWeeks[$week])) {
                 $seenWeeks[$week] = true;
                 $weekly->push($file);
             }
 
-            if (!isset($seenMonths[$month])) {
+            if (! isset($seenMonths[$month])) {
                 $seenMonths[$month] = true;
                 $monthly->push($file);
             }
@@ -449,7 +457,7 @@ class ProductionBackupService
                 fn ($k) => $k->getRealPath() === $file->getRealPath()
             );
 
-            if (!$isKept) {
+            if (! $isKept) {
                 File::delete($file->getRealPath());
                 $deleted++;
             }
@@ -468,9 +476,9 @@ class ProductionBackupService
     public function listBackups(): array
     {
         $backupBasePath = config('production.backup.path', 'backups');
-        $backupDir      = storage_path("app/{$backupBasePath}");
+        $backupDir = storage_path("app/{$backupBasePath}");
 
-        if (!File::isDirectory($backupDir)) {
+        if (! File::isDirectory($backupDir)) {
             return [];
         }
 
@@ -480,12 +488,12 @@ class ProductionBackupService
             ->values()
             ->map(function ($file) use ($backupBasePath) {
                 return [
-                    'id'         => $file->getFilenameWithoutExtension(),
-                    'filename'   => $file->getFilename(),
-                    'path'       => "{$backupBasePath}/{$file->getFilename()}",
-                    'size_kb'    => round($file->getSize() / 1024, 2),
+                    'id' => $file->getFilenameWithoutExtension(),
+                    'filename' => $file->getFilename(),
+                    'path' => "{$backupBasePath}/{$file->getFilename()}",
+                    'size_kb' => round($file->getSize() / 1024, 2),
                     'size_human' => $this->humanFileSize($file->getSize()),
-                    'created_at' => \Carbon\Carbon::createFromTimestamp($file->getMTime())->toIso8601String(),
+                    'created_at' => Carbon::createFromTimestamp($file->getMTime())->toIso8601String(),
                 ];
             })
             ->toArray();
@@ -499,9 +507,9 @@ class ProductionBackupService
     public function deleteBackup(string $id): void
     {
         $backupBasePath = config('production.backup.path', 'backups');
-        $filePath       = storage_path("app/{$backupBasePath}/{$id}.zip");
+        $filePath = storage_path("app/{$backupBasePath}/{$id}.zip");
 
-        if (!File::exists($filePath)) {
+        if (! File::exists($filePath)) {
             throw new \RuntimeException("Sauvegarde introuvable : {$id}");
         }
 
@@ -517,14 +525,14 @@ class ProductionBackupService
      * La restauration complète nécessite une intervention manuelle validée.
      *
      * @param  string  $backupId  Identifiant de la sauvegarde à restaurer.
-     * @return array   Rapport de restauration.
+     * @return array Rapport de restauration.
      */
     public function restore(string $backupId): array
     {
         return [
             'success' => false,
             'message' => 'La restauration automatisée n\'est pas encore activée. '
-                . 'Veuillez restaurer manuellement depuis storage/backups/' . $backupId . '.zip.',
+                .'Veuillez restaurer manuellement depuis storage/backups/'.$backupId.'.zip.',
             'backup_id' => $backupId,
         ];
     }
@@ -533,22 +541,23 @@ class ProductionBackupService
      * [PRÉPARÉ] Vérifier l'intégrité d'une archive de sauvegarde.
      *
      * @param  string  $backupId  Identifiant de la sauvegarde.
-     * @return bool    True si l'archive est valide.
+     * @return bool True si l'archive est valide.
      */
     public function verifyBackupIntegrity(string $backupId): bool
     {
         $backupBasePath = config('production.backup.path', 'backups');
-        $filePath       = storage_path("app/{$backupBasePath}/{$backupId}.zip");
+        $filePath = storage_path("app/{$backupBasePath}/{$backupId}.zip");
 
-        if (!File::exists($filePath)) {
+        if (! File::exists($filePath)) {
             return false;
         }
 
-        $zip    = new ZipArchive();
+        $zip = new ZipArchive;
         $result = $zip->open($filePath, ZipArchive::CHECKCONS);
 
         if ($result === true) {
             $zip->close();
+
             return true;
         }
 
@@ -577,14 +586,14 @@ class ProductionBackupService
                 }
             }
 
-            if (!$excluded) {
-                File::copyDirectory($item, $dest . '/' . $basename);
+            if (! $excluded) {
+                File::copyDirectory($item, $dest.'/'.$basename);
             }
         }
 
         // Copier les fichiers à la racine
         foreach (File::files($source) as $file) {
-            File::copy($file->getRealPath(), $dest . '/' . $file->getFilename());
+            File::copy($file->getRealPath(), $dest.'/'.$file->getFilename());
         }
     }
 
@@ -594,10 +603,10 @@ class ProductionBackupService
     private function addStep(string $name, string $status, string $message): void
     {
         $this->report['steps'][] = [
-            'name'    => $name,
-            'status'  => $status,
+            'name' => $name,
+            'status' => $status,
             'message' => $message,
-            'time'    => now()->toIso8601String(),
+            'time' => now()->toIso8601String(),
         ];
     }
 
@@ -607,14 +616,14 @@ class ProductionBackupService
     private function humanFileSize(int $bytes): string
     {
         $units = ['o', 'Ko', 'Mo', 'Go', 'To'];
-        $i     = 0;
+        $i = 0;
 
         while ($bytes >= 1024 && $i < count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -623,12 +632,12 @@ class ProductionBackupService
     private function notifyFailure(string $errorMessage): void
     {
         $email = config('production.backup.notify_email');
-        if (!$email) {
+        if (! $email) {
             return;
         }
 
         try {
-            \Illuminate\Support\Facades\Mail::raw(
+            Mail::raw(
                 "[HAFROSE] Échec de la sauvegarde : {$errorMessage}",
                 fn ($m) => $m->to($email)->subject('[HAFROSE] Échec de la sauvegarde automatique')
             );

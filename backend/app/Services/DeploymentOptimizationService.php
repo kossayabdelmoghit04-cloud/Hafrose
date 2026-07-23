@@ -28,11 +28,11 @@ class DeploymentOptimizationService
         try {
             $details['config'] = $this->cacheConfig();
             $details['routes'] = $this->cacheRoutes();
-            $details['views']  = $this->cacheViews();
+            $details['views'] = $this->cacheViews();
             $details['events'] = $this->cacheEvents();
 
             foreach ($details as $op) {
-                if (!$op['success']) {
+                if (! $op['success']) {
                     $overallSuccess = false;
                 }
             }
@@ -44,20 +44,20 @@ class DeploymentOptimizationService
                 : "L'optimisation globale s'est terminée avec des avertissements ou erreurs.";
 
             return [
-                'success'  => $overallSuccess,
+                'success' => $overallSuccess,
                 'duration' => $duration,
-                'message'  => $message,
-                'details'  => $details,
+                'message' => $message,
+                'details' => $details,
             ];
         } catch (Throwable $e) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
-            Log::error("Erreur lors de l'optimisation globale du déploiement : " . $e->getMessage());
+            Log::error("Erreur lors de l'optimisation globale du déploiement : ".$e->getMessage());
 
             return [
-                'success'  => false,
+                'success' => false,
                 'duration' => $duration,
-                'message'  => "Échec de l'optimisation globale : " . $e->getMessage(),
-                'details'  => $details,
+                'message' => "Échec de l'optimisation globale : ".$e->getMessage(),
+                'details' => $details,
             ];
         }
     }
@@ -77,9 +77,9 @@ class DeploymentOptimizationService
         $commands = [
             'config' => 'config:clear',
             'routes' => 'route:clear',
-            'views'  => 'view:clear',
+            'views' => 'view:clear',
             'events' => 'event:clear',
-            'cache'  => 'cache:clear',
+            'cache' => 'cache:clear',
         ];
 
         foreach ($commands as $key => $command) {
@@ -89,22 +89,22 @@ class DeploymentOptimizationService
                 $opDuration = round((microtime(true) - $opStart) * 1000, 2);
                 $isSuccess = ($exitCode === 0);
 
-                if (!$isSuccess) {
+                if (! $isSuccess) {
                     $overallSuccess = false;
                 }
 
                 $details[$key] = [
-                    'success'  => $isSuccess,
+                    'success' => $isSuccess,
                     'duration' => $opDuration,
-                    'message'  => "Commande {$command} exécution avec code sortie {$exitCode}.",
+                    'message' => "Commande {$command} exécution avec code sortie {$exitCode}.",
                 ];
             } catch (Throwable $e) {
                 $opDuration = round((microtime(true) - $opStart) * 1000, 2);
                 $overallSuccess = false;
                 $details[$key] = [
-                    'success'  => false,
+                    'success' => false,
                     'duration' => $opDuration,
-                    'message'  => "Échec de la commande {$command} : " . $e->getMessage(),
+                    'message' => "Échec de la commande {$command} : ".$e->getMessage(),
                 ];
             }
         }
@@ -112,12 +112,12 @@ class DeploymentOptimizationService
         $duration = round((microtime(true) - $startTime) * 1000, 2);
 
         return [
-            'success'  => $overallSuccess,
+            'success' => $overallSuccess,
             'duration' => $duration,
-            'message'  => $overallSuccess
+            'message' => $overallSuccess
                 ? "Tous les caches ont été vidés avec succès en {$duration} ms."
-                : "Certaines opérations de vidage de cache ont échoué.",
-            'details'  => $details,
+                : 'Certaines opérations de vidage de cache ont échoué.',
+            'details' => $details,
         ];
     }
 
@@ -128,7 +128,7 @@ class DeploymentOptimizationService
      */
     public function cacheConfig(): array
     {
-        return $this->runArtisanCommand('config:cache', "Configuration mise en cache avec succès.");
+        return $this->runArtisanCommand('config:cache', 'Configuration mise en cache avec succès.');
     }
 
     /**
@@ -138,7 +138,7 @@ class DeploymentOptimizationService
      */
     public function cacheRoutes(): array
     {
-        return $this->runArtisanCommand('route:cache', "Routes mises en cache avec succès.");
+        return $this->runArtisanCommand('route:cache', 'Routes mises en cache avec succès.');
     }
 
     /**
@@ -148,7 +148,7 @@ class DeploymentOptimizationService
      */
     public function cacheViews(): array
     {
-        return $this->runArtisanCommand('view:cache', "Vues compilées et mises en cache avec succès.");
+        return $this->runArtisanCommand('view:cache', 'Vues compilées et mises en cache avec succès.');
     }
 
     /**
@@ -158,7 +158,7 @@ class DeploymentOptimizationService
      */
     public function cacheEvents(): array
     {
-        return $this->runArtisanCommand('event:cache', "Événements mis en cache avec succès.");
+        return $this->runArtisanCommand('event:cache', 'Événements mis en cache avec succès.');
     }
 
     /**
@@ -177,8 +177,6 @@ class DeploymentOptimizationService
      * En environnement de test ('testing'), simule le succès des commandes d'écriture de cache
      * afin de préserver les transactions de base de données PHPUnit (RefreshDatabase) et le conteneur.
      *
-     * @param string $command
-     * @param string $successMsg
      * @return array{success: bool, duration: float, message: string}
      */
     protected function runArtisanCommand(string $command, string $successMsg): array
@@ -187,9 +185,9 @@ class DeploymentOptimizationService
 
         if (app()->environment('testing') && in_array($command, ['config:cache', 'route:cache', 'view:cache', 'event:cache'])) {
             return [
-                'success'  => true,
+                'success' => true,
                 'duration' => 1.0,
-                'message'  => "{$successMsg} (mode test).",
+                'message' => "{$successMsg} (mode test).",
             ];
         }
 
@@ -199,18 +197,18 @@ class DeploymentOptimizationService
             $success = ($exitCode === 0);
 
             return [
-                'success'  => $success,
+                'success' => $success,
                 'duration' => $duration,
-                'message'  => $success ? "{$successMsg} ({$duration} ms)" : "Échec de {$command} (code {$exitCode}).",
+                'message' => $success ? "{$successMsg} ({$duration} ms)" : "Échec de {$command} (code {$exitCode}).",
             ];
         } catch (Throwable $e) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
-            Log::error("Erreur lors de l'exécution de Artisan::call('{$command}') : " . $e->getMessage());
+            Log::error("Erreur lors de l'exécution de Artisan::call('{$command}') : ".$e->getMessage());
 
             return [
-                'success'  => false,
+                'success' => false,
                 'duration' => $duration,
-                'message'  => "Exception lors de {$command} : " . $e->getMessage(),
+                'message' => "Exception lors de {$command} : ".$e->getMessage(),
             ];
         }
     }

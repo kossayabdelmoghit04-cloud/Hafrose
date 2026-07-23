@@ -30,67 +30,67 @@ class ActivityLogController extends Controller
             ->latest();
 
         // ── Filtrage par catégorie ────────────────────────────────────────────
-        if (!empty($validated['category'])) {
+        if (! empty($validated['category'])) {
             $query->where('category', $validated['category']);
         }
 
         // ── Filtrage par type d'événement ────────────────────────────────────
-        if (!empty($validated['event_type'])) {
-            $query->where('event_type', 'like', '%' . trim($validated['event_type']) . '%');
+        if (! empty($validated['event_type'])) {
+            $query->where('event_type', 'like', '%'.trim($validated['event_type']).'%');
         }
 
         // ── Filtrage par utilisateur ─────────────────────────────────────────
-        if (!empty($validated['user_id'])) {
+        if (! empty($validated['user_id'])) {
             $query->where('user_id', $validated['user_id']);
         }
 
         // ── Filtrage par ressource ───────────────────────────────────────────
-        if (!empty($validated['resource'])) {
+        if (! empty($validated['resource'])) {
             $query->where('resource', $validated['resource']);
         }
 
         // ── Filtrage par plage de dates ──────────────────────────────────────
-        if (!empty($validated['date_from'])) {
-            $query->where('created_at', '>=', $validated['date_from'] . ' 00:00:00');
+        if (! empty($validated['date_from'])) {
+            $query->where('created_at', '>=', $validated['date_from'].' 00:00:00');
         }
-        if (!empty($validated['date_to'])) {
-            $query->where('created_at', '<=', $validated['date_to'] . ' 23:59:59');
+        if (! empty($validated['date_to'])) {
+            $query->where('created_at', '<=', $validated['date_to'].' 23:59:59');
         }
 
         // ── Recherche textuelle ──────────────────────────────────────────────
-        if (!empty($validated['search'])) {
-            $term = '%' . trim($validated['search']) . '%';
+        if (! empty($validated['search'])) {
+            $term = '%'.trim($validated['search']).'%';
             $query->where(function ($q) use ($term) {
                 $q->where('event_type', 'like', $term)
-                  ->orWhere('category', 'like', $term)
-                  ->orWhere('resource', 'like', $term)
-                  ->orWhere('ip_address', 'like', $term)
-                  ->orWhereHas('user', function ($u) use ($term) {
-                      $u->where('name', 'like', $term)
-                        ->orWhere('email', 'like', $term);
-                  });
+                    ->orWhere('category', 'like', $term)
+                    ->orWhere('resource', 'like', $term)
+                    ->orWhere('ip_address', 'like', $term)
+                    ->orWhereHas('user', function ($u) use ($term) {
+                        $u->where('name', 'like', $term)
+                            ->orWhere('email', 'like', $term);
+                    });
             });
         }
 
         // ── Tri personnalisé ─────────────────────────────────────────────────
-        $sortBy    = $validated['sort_by']    ?? 'created_at';
+        $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortOrder = strtolower($validated['sort_order'] ?? 'desc');
         $query->reorder($sortBy, $sortOrder);
 
         // ── Pagination ───────────────────────────────────────────────────────
         $perPage = (int) ($validated['per_page'] ?? 20);
-        $logs    = $query->paginate($perPage);
+        $logs = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => ActivityLogResource::collection($logs),
-            'meta'    => [
+            'errors' => null,
+            'data' => ActivityLogResource::collection($logs),
+            'meta' => [
                 'current_page' => $logs->currentPage(),
-                'last_page'    => $logs->lastPage(),
-                'per_page'     => $logs->perPage(),
-                'total'        => $logs->total(),
+                'last_page' => $logs->lastPage(),
+                'per_page' => $logs->perPage(),
+                'total' => $logs->total(),
             ],
         ]);
     }
@@ -102,7 +102,7 @@ class ActivityLogController extends Controller
     {
         $log = ActivityLog::with(['user:id,name,email,role'])->find($id);
 
-        if (!$log) {
+        if (! $log) {
             return $this->errorResponse("Entrée du journal d'activité introuvable.", 404);
         }
 

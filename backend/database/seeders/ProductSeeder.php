@@ -27,7 +27,7 @@ class ProductSeeder extends Seeder
                     for ($i = 1; $i <= $imageCount; $i++) {
                         Gallery::create([
                             'product_id' => $product->id,
-                            'image' => 'products/gallery/' . $product->slug . '-details-' . $i . '.jpg',
+                            'image' => 'products/gallery/'.$product->slug.'-details-'.$i.'.jpg',
                         ]);
                     }
                 });

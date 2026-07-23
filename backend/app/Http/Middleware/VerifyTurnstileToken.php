@@ -38,8 +38,7 @@ class VerifyTurnstileToken
     public function __construct(
         protected TurnstileService $turnstile,
         protected ActivityLogService $activityLogService,
-    ) {
-    }
+    ) {}
 
     /**
      * Handle an incoming request.
@@ -47,7 +46,7 @@ class VerifyTurnstileToken
     public function handle(Request $request, Closure $next): Response
     {
         $token = $request->input('cf-turnstile-response');
-        $ip    = $request->ip();
+        $ip = $request->ip();
         $route = $request->fullUrl();
 
         if (! $this->turnstile->verify($token, $ip, $route)) {
@@ -56,7 +55,7 @@ class VerifyTurnstileToken
             return response()->json([
                 'success' => false,
                 'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                'errors'  => [
+                'errors' => [
                     'cf-turnstile-response' => [
                         'La vérification CAPTCHA a échoué. Veuillez actualiser la page et réessayer.',
                     ],
@@ -72,9 +71,9 @@ class VerifyTurnstileToken
      * Enregistrer un warning lors d'un échec de vérification CAPTCHA
      * et l'inscrire dans le journal d'activité global.
      *
-     * @param  string|null  $ip          Adresse IP du client.
-     * @param  string       $route       URL complète appelée.
-     * @param  bool         $tokenEmpty  Indique si le token était absent (vs invalide).
+     * @param  string|null  $ip  Adresse IP du client.
+     * @param  string  $route  URL complète appelée.
+     * @param  bool  $tokenEmpty  Indique si le token était absent (vs invalide).
      */
     private function logFailure(?string $ip, string $route, bool $tokenEmpty): void
     {
@@ -82,20 +81,20 @@ class VerifyTurnstileToken
 
         Log::channel(config('turnstile.log_channel', 'stack'))
             ->warning('[Turnstile] Vérification CAPTCHA échouée.', [
-                'reason'    => $reason,
-                'ip'        => $ip,
-                'route'     => $route,
+                'reason' => $reason,
+                'ip' => $ip,
+                'route' => $route,
                 'timestamp' => now()->toDateTimeString(),
             ]);
 
         // Journalisation dans le journal d'activité global (catégorie sécurité)
         $this->activityLogService->log(
             eventType: ActivityLog::EVENT_TURNSTILE_FAILED,
-            category:  ActivityLog::CATEGORY_SECURITY,
-            resource:  parse_url($route, PHP_URL_PATH) ?? $route,
-            metadata:  [
+            category: ActivityLog::CATEGORY_SECURITY,
+            resource: parse_url($route, PHP_URL_PATH) ?? $route,
+            metadata: [
                 'reason' => $reason,
-                'route'  => $route,
+                'route' => $route,
             ]
         );
     }

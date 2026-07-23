@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Service centralisé de journalisation pour la production et le monitoring.
@@ -93,13 +93,13 @@ class ProductionLogService
         }
 
         return array_merge([
-            'timestamp'      => now()->toIso8601String(),
-            'ip'             => $isCli ? 'CLI' : ($request ? $request->ip() : null),
-            'route'          => $isCli ? 'CLI' : ($request ? $request->path() : null),
-            'method'         => $isCli ? 'CLI' : ($request ? $request->method() : null),
-            'user'           => $userId,
-            'memory'         => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB',
-            'execution_time' => $executionTimeMs ? $executionTimeMs . ' ms' : 'N/A',
+            'timestamp' => now()->toIso8601String(),
+            'ip' => $isCli ? 'CLI' : ($request ? $request->ip() : null),
+            'route' => $isCli ? 'CLI' : ($request ? $request->path() : null),
+            'method' => $isCli ? 'CLI' : ($request ? $request->method() : null),
+            'user' => $userId,
+            'memory' => round(memory_get_peak_usage(true) / 1024 / 1024, 2).' MB',
+            'execution_time' => $executionTimeMs ? $executionTimeMs.' ms' : 'N/A',
         ], $context);
     }
 }

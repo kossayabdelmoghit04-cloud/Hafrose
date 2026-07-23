@@ -20,20 +20,20 @@ class DashboardStatsService
         $ttl = config('cache-performance.ttls.dashboard', 1800);
 
         return PerformanceCacheManager::remember('dashboard_metrics', $ttl, function () {
-            $orderStats = Order::selectRaw("
+            $orderStats = Order::selectRaw('
                 SUM(CASE WHEN status != ? THEN total_price ELSE 0 END) as revenue,
                 COUNT(*) as total_orders,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_orders
-            ", [Order::STATUS_CANCELLED, Order::STATUS_PENDING])->first();
+            ', [Order::STATUS_CANCELLED, Order::STATUS_PENDING])->first();
 
             return [
-                'products_count'    => Product::count(),
-                'categories_count'  => Category::count(),
-                'orders_count'      => $orderStats ? (int)$orderStats->total_orders : 0,
-                'pending_orders'    => $orderStats ? (int)$orderStats->pending_orders : 0,
-                'revenue'           => $orderStats ? round((float)$orderStats->revenue, 2) : 0.0,
-                'pending_reviews'   => Review::where('is_approved', false)->count(),
-                'unread_contacts'   => Contact::where('is_read', false)->count(),
+                'products_count' => Product::count(),
+                'categories_count' => Category::count(),
+                'orders_count' => $orderStats ? (int) $orderStats->total_orders : 0,
+                'pending_orders' => $orderStats ? (int) $orderStats->pending_orders : 0,
+                'revenue' => $orderStats ? round((float) $orderStats->revenue, 2) : 0.0,
+                'pending_reviews' => Review::where('is_approved', false)->count(),
+                'unread_contacts' => Contact::where('is_read', false)->count(),
             ];
         }, ['dashboard', 'stats']);
     }
@@ -48,10 +48,10 @@ class DashboardStatsService
 
         return PerformanceCacheManager::remember($key, $ttl, function () use ($days) {
             $sales = Order::select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('SUM(total_price) as total'),
-                    DB::raw('COUNT(id) as count')
-                )
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_price) as total'),
+                DB::raw('COUNT(id) as count')
+            )
                 ->where('status', '!=', Order::STATUS_CANCELLED)
                 ->where('created_at', '>=', now()->subDays($days))
                 ->groupBy(DB::raw('DATE(created_at)'))
@@ -64,9 +64,9 @@ class DashboardStatsService
                 $found = $sales->firstWhere('date', $dateString);
 
                 $chartData[] = [
-                    'date'  => now()->subDays($i)->format('d/m'),
-                    'sales' => $found ? (float)$found->total : 0.0,
-                    'count' => $found ? (int)$found->count : 0,
+                    'date' => now()->subDays($i)->format('d/m'),
+                    'sales' => $found ? (float) $found->total : 0.0,
+                    'count' => $found ? (int) $found->count : 0,
                 ];
             }
 
@@ -94,12 +94,12 @@ class DashboardStatsService
 
             return $popular->map(function ($item) {
                 return [
-                    'id'        => $item->product_id,
-                    'name'      => $item->product ? $item->product->name : 'Produit supprimé',
-                    'slug'      => $item->product ? $item->product->slug : '#',
-                    'category'  => ($item->product && $item->product->category) ? $item->product->category->name : 'N/A',
-                    'price'     => $item->product ? (float)$item->product->price : 0,
-                    'sales_qty' => (int)$item->total_qty,
+                    'id' => $item->product_id,
+                    'name' => $item->product ? $item->product->name : 'Produit supprimé',
+                    'slug' => $item->product ? $item->product->slug : '#',
+                    'category' => ($item->product && $item->product->category) ? $item->product->category->name : 'N/A',
+                    'price' => $item->product ? (float) $item->product->price : 0,
+                    'sales_qty' => (int) $item->total_qty,
                 ];
             })->toArray();
         }, ['dashboard', 'popular']);
@@ -147,12 +147,12 @@ class DashboardStatsService
         PerformanceCacheManager::invalidateDashboard();
 
         return [
-            'metrics'          => $this->getMetrics(),
-            'sales_chart'      => $this->getSalesChartData(),
+            'metrics' => $this->getMetrics(),
+            'sales_chart' => $this->getSalesChartData(),
             'popular_products' => $this->getPopularProducts(),
-            'latest_orders'    => $this->getLatestOrders(),
-            'latest_messages'  => $this->getLatestMessages(),
-            'refreshed_at'     => now()->toIso8601String(),
+            'latest_orders' => $this->getLatestOrders(),
+            'latest_messages' => $this->getLatestMessages(),
+            'refreshed_at' => now()->toIso8601String(),
         ];
     }
 }

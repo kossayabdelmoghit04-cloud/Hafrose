@@ -18,11 +18,11 @@ class PerformanceMonitoringMiddleware
     {
         $isEnabled = config('cache-performance.monitoring.enabled', false);
 
-        if (!$isEnabled || app()->isProduction()) {
+        if (! $isEnabled || app()->isProduction()) {
             return $next($request);
         }
 
-        $startTime   = microtime(true);
+        $startTime = microtime(true);
         $startMemory = memory_get_usage(true);
 
         // Activer le log des requêtes SQL pour les compter
@@ -30,9 +30,9 @@ class PerformanceMonitoringMiddleware
 
         $response = $next($request);
 
-        $executionMs  = round((microtime(true) - $startTime) * 1000, 2);
+        $executionMs = round((microtime(true) - $startTime) * 1000, 2);
         $memoryPeakMb = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
-        $sqlCount     = count(DB::getQueryLog());
+        $sqlCount = count(DB::getQueryLog());
 
         DB::disableQueryLog();
         DB::flushQueryLog();

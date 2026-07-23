@@ -3,12 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Services\MonitoringDashboardService;
 use App\Services\ProductionLogService;
 use App\Services\SystemHealthService;
 use App\Services\SystemMetricsService;
-use App\Services\MonitoringDashboardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
@@ -19,6 +18,7 @@ class SystemMonitoringTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $customer;
 
     protected function setUp(): void
@@ -32,14 +32,14 @@ class SystemMonitoringTest extends TestCase
         // Utilisateur Admin
         $this->admin = User::factory()->create([
             'email' => 'admin_monitoring@hafrose.com',
-            'role'  => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
         $this->admin->assignRole($adminRole);
 
         // Utilisateur Client normal
         $this->customer = User::factory()->create([
             'email' => 'customer_monitoring@hafrose.com',
-            'role'  => 'customer',
+            'role' => 'customer',
         ]);
         $this->customer->assignRole($customerRole);
     }
@@ -285,16 +285,16 @@ class SystemMonitoringTest extends TestCase
         $mockHealth = [
             'status' => 'unhealthy',
             'checks' => [
-                'database'  => ['connected' => false],
-                'cache'     => ['status' => 'unhealthy'],
+                'database' => ['connected' => false],
+                'cache' => ['status' => 'unhealthy'],
                 'scheduler' => ['active' => false],
             ],
         ];
 
         $mockMetrics = [
             'disk' => ['used_percentage' => 95.0, 'free_bytes' => 10485760],
-            'ram'  => ['current_mb' => 500],
-            'queue'=> ['failed_jobs' => 15],
+            'ram' => ['current_mb' => 500],
+            'queue' => ['failed_jobs' => 15],
         ];
 
         $alerts = $service->detectAlerts($mockHealth, $mockMetrics);

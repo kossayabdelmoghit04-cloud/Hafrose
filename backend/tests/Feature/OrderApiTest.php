@@ -20,36 +20,36 @@ class OrderApiTest extends TestCase
 
         $payload = [
             'customer' => 'Jean Dupont',
-            'phone'    => '0612345678',
-            'address'  => '123 Rue de la Paix',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => $product1->id,
-                    'quantity'   => 2,
+                    'quantity' => 2,
                 ],
                 [
                     'product_id' => $product2->id,
-                    'quantity'   => 1,
-                ]
-            ]
+                    'quantity' => 1,
+                ],
+            ],
         ];
 
         $response = $this->postJson('/api/orders', $payload);
 
         $response->assertStatus(201)
-                 ->assertJson([
-                     'success' => true,
-                     'message' => 'Commande créée avec succès.',
-                     'data' => [
-                         'customer_name' => 'Jean Dupont',
-                         'phone'         => '0612345678',
-                         'address'       => '123 Rue de la Paix',
-                         'city'          => 'Paris',
-                         'total_price'   => '250.00', // (2 * 100) + (1 * 50) = 250
-                         'status'        => 'En attente',
-                     ]
-                 ]);
+            ->assertJson([
+                'success' => true,
+                'message' => 'Commande créée avec succès.',
+                'data' => [
+                    'customer_name' => 'Jean Dupont',
+                    'phone' => '0612345678',
+                    'address' => '123 Rue de la Paix',
+                    'city' => 'Paris',
+                    'total_price' => '250.00', // (2 * 100) + (1 * 50) = 250
+                    'status' => 'En attente',
+                ],
+            ]);
 
         // Vérifier que le stock des produits a été décrémenté
         $product1->refresh();
@@ -60,7 +60,7 @@ class OrderApiTest extends TestCase
         // Vérifier que la commande et ses lignes sont bien en BDD
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Jean Dupont',
-            'total_price'   => 250.00,
+            'total_price' => 250.00,
         ]);
 
         $this->assertDatabaseCount('order_items', 2);
@@ -75,24 +75,24 @@ class OrderApiTest extends TestCase
 
         $payload = [
             'customer' => 'Jean Dupont',
-            'phone'    => '0612345678',
-            'address'  => '123 Rue de la Paix',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => $product->id,
-                    'quantity'   => 5, // Demande 5 alors que le stock est de 2
-                ]
-            ]
+                    'quantity' => 5, // Demande 5 alors que le stock est de 2
+                ],
+            ],
         ];
 
         $response = $this->postJson('/api/orders', $payload);
 
         $response->assertStatus(409)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => "Le stock est insuffisant pour le produit : {$product->name}",
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => "Le stock est insuffisant pour le produit : {$product->name}",
+            ]);
 
         // Vérifier que le stock n'a pas bougé et qu'aucune commande n'a été créée
         $product->refresh();
@@ -111,19 +111,19 @@ class OrderApiTest extends TestCase
 
         $payload = [
             'customer' => 'Jean Dupont',
-            'phone'    => '0612345678',
-            'address'  => '123 Rue de la Paix',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => $product1->id,
-                    'quantity'   => 5, // Valide (10 dispo)
+                    'quantity' => 5, // Valide (10 dispo)
                 ],
                 [
                     'product_id' => $product2->id,
-                    'quantity'   => 5, // Invalide (seulement 2 dispo) -> Doit provoquer l'échec et le rollback
-                ]
-            ]
+                    'quantity' => 5, // Invalide (seulement 2 dispo) -> Doit provoquer l'échec et le rollback
+                ],
+            ],
         ];
 
         $response = $this->postJson('/api/orders', $payload);
@@ -148,15 +148,15 @@ class OrderApiTest extends TestCase
     {
         $payload = [
             'customer' => 'Jean Dupont',
-            'phone'    => '0612345678',
-            'address'  => '123 Rue de la Paix',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => 9999, // Produit inexistant
-                    'quantity'   => 1,
-                ]
-            ]
+                    'quantity' => 1,
+                ],
+            ],
         ];
 
         $response = $this->postJson('/api/orders', $payload);
@@ -164,10 +164,10 @@ class OrderApiTest extends TestCase
         // Comme la validation avec `exists:products,id` dans StoreOrderRequest passe en premier,
         // cela retourne un code HTTP 422 avec un message de validation failed.
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Validation failed',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Validation failed',
+            ]);
     }
 
     /**
@@ -181,25 +181,25 @@ class OrderApiTest extends TestCase
 
         $payload = [
             'customer' => 'Bot Spammer',
-            'phone'    => '0600000000',
-            'address'  => '1 Rue du Spam',
-            'city'     => 'Spamville',
-            'website'  => 'http://spam-link.com', // Remplir ce champ simule un robot
-            'items'    => [
+            'phone' => '0600000000',
+            'address' => '1 Rue du Spam',
+            'city' => 'Spamville',
+            'website' => 'http://spam-link.com', // Remplir ce champ simule un robot
+            'items' => [
                 [
                     'product_id' => $product->id,
-                    'quantity'   => 2,
-                ]
-            ]
+                    'quantity' => 2,
+                ],
+            ],
         ];
 
         $response = $this->postJson('/api/orders', $payload);
 
         // Le middleware retourne une fausse réponse de succès pour ne pas alerter le robot
         $response->assertStatus(201)
-                 ->assertJson([
-                     'success' => true,
-                 ]);
+            ->assertJson([
+                'success' => true,
+            ]);
 
         // Aucune commande ne doit être créée
         $this->assertDatabaseCount('orders', 0);

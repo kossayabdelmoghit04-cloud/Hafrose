@@ -2,16 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Order;
-use App\Models\Review;
-use App\Models\Contact;
 use App\Models\ActivityLog;
-use App\Models\WishlistItem;
+use App\Models\Contact;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ActivityLogTest extends TestCase
@@ -21,9 +18,9 @@ class ActivityLogTest extends TestCase
     private function createAdmin(): User
     {
         return User::factory()->create([
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => bcrypt('Admin@Hafrose2024!'),
-            'role'     => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -42,18 +39,18 @@ class ActivityLogTest extends TestCase
 
         // 1. Test Login
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'Admin@Hafrose2024!',
         ]);
 
         $response->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_USER_LOGIN,
-            'category'   => ActivityLog::CATEGORY_AUTH,
-            'resource'   => 'users',
-            'resource_id'=> $admin->id,
+            'category' => ActivityLog::CATEGORY_AUTH,
+            'resource' => 'users',
+            'resource_id' => $admin->id,
         ]);
 
         $token = $response->json('data.token');
@@ -63,11 +60,11 @@ class ActivityLogTest extends TestCase
         $logoutResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_USER_LOGOUT,
-            'category'   => ActivityLog::CATEGORY_AUTH,
-            'resource'   => 'users',
-            'resource_id'=> $admin->id,
+            'category' => ActivityLog::CATEGORY_AUTH,
+            'resource' => 'users',
+            'resource_id' => $admin->id,
         ]);
     }
 
@@ -76,7 +73,7 @@ class ActivityLogTest extends TestCase
         $this->createAdmin();
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'wrong-password',
         ]);
 
@@ -95,15 +92,15 @@ class ActivityLogTest extends TestCase
 
         $response = $this->postJson('/api/orders', [
             'customer' => 'John Doe',
-            'phone'    => '0606060606',
-            'address'  => '123 Rue de Hafrose',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0606060606',
+            'address' => '123 Rue de Hafrose',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => $product->id,
-                    'quantity'   => 2,
-                ]
-            ]
+                    'quantity' => 2,
+                ],
+            ],
         ]);
 
         $response->assertCreated();
@@ -111,9 +108,9 @@ class ActivityLogTest extends TestCase
 
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => ActivityLog::EVENT_ORDER_CREATED,
-            'category'   => ActivityLog::CATEGORY_ORDER,
-            'resource'   => 'orders',
-            'resource_id'=> $orderId,
+            'category' => ActivityLog::CATEGORY_ORDER,
+            'resource' => 'orders',
+            'resource_id' => $orderId,
         ]);
 
         // Vérifier les métadonnées
@@ -129,15 +126,15 @@ class ActivityLogTest extends TestCase
 
         $response = $this->postJson('/api/orders', [
             'customer' => 'John Doe',
-            'phone'    => '0606060606',
-            'address'  => '123 Rue de Hafrose',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0606060606',
+            'address' => '123 Rue de Hafrose',
+            'city' => 'Paris',
+            'items' => [
                 [
                     'product_id' => $product->id,
-                    'quantity'   => 5, // Demande plus que le stock
-                ]
-            ]
+                    'quantity' => 5, // Demande plus que le stock
+                ],
+            ],
         ]);
 
         $response->assertStatus(409); // Conflict
@@ -154,11 +151,11 @@ class ActivityLogTest extends TestCase
 
         $order = Order::create([
             'customer_name' => 'John Doe',
-            'phone'         => '0606060606',
-            'address'       => '123 Rue de Hafrose',
-            'city'          => 'Paris',
-            'total_price'   => 150.00,
-            'status'        => Order::STATUS_PENDING,
+            'phone' => '0606060606',
+            'address' => '123 Rue de Hafrose',
+            'city' => 'Paris',
+            'total_price' => 150.00,
+            'status' => Order::STATUS_PENDING,
         ]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/orders/{$order->id}/status", [
@@ -168,11 +165,11 @@ class ActivityLogTest extends TestCase
         $response->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_ORDER_STATUS_CHANGED,
-            'category'   => ActivityLog::CATEGORY_ORDER,
-            'resource'   => 'orders',
-            'resource_id'=> $order->id,
+            'category' => ActivityLog::CATEGORY_ORDER,
+            'resource' => 'orders',
+            'resource_id' => $order->id,
         ]);
 
         $log = ActivityLog::where('event_type', ActivityLog::EVENT_ORDER_STATUS_CHANGED)->first();
@@ -196,11 +193,11 @@ class ActivityLogTest extends TestCase
         $response->assertCreated();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $customer->id,
+            'user_id' => $customer->id,
             'event_type' => ActivityLog::EVENT_WISHLIST_ADDED,
-            'category'   => ActivityLog::CATEGORY_WISHLIST,
-            'resource'   => 'products',
-            'resource_id'=> $product->id,
+            'category' => ActivityLog::CATEGORY_WISHLIST,
+            'resource' => 'products',
+            'resource_id' => $product->id,
         ]);
 
         // 2. Retirer des favoris
@@ -208,11 +205,11 @@ class ActivityLogTest extends TestCase
         $deleteResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $customer->id,
+            'user_id' => $customer->id,
             'event_type' => ActivityLog::EVENT_WISHLIST_REMOVED,
-            'category'   => ActivityLog::CATEGORY_WISHLIST,
-            'resource'   => 'products',
-            'resource_id'=> $product->id,
+            'category' => ActivityLog::CATEGORY_WISHLIST,
+            'resource' => 'products',
+            'resource_id' => $product->id,
         ]);
     }
 
@@ -222,9 +219,9 @@ class ActivityLogTest extends TestCase
     {
         // 1. Envoi formulaire
         $response = $this->postJson('/api/contact', [
-            'name'    => 'Visitor One',
-            'email'   => 'visitor@example.com',
-            'phone'   => '0102030405',
+            'name' => 'Visitor One',
+            'email' => 'visitor@example.com',
+            'phone' => '0102030405',
             'subject' => 'Question about shipping',
             'message' => 'Hello, do you ship to Belgium?',
         ]);
@@ -234,9 +231,9 @@ class ActivityLogTest extends TestCase
 
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => ActivityLog::EVENT_CONTACT_SENT,
-            'category'   => ActivityLog::CATEGORY_CONTACT,
-            'resource'   => 'contacts',
-            'resource_id'=> $contactId,
+            'category' => ActivityLog::CATEGORY_CONTACT,
+            'resource' => 'contacts',
+            'resource_id' => $contactId,
         ]);
 
         // 2. Marquer comme lu (Admin)
@@ -247,11 +244,11 @@ class ActivityLogTest extends TestCase
         $readResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_CONTACT_MARKED_READ,
-            'category'   => ActivityLog::CATEGORY_CONTACT,
-            'resource'   => 'contacts',
-            'resource_id'=> $contactId,
+            'category' => ActivityLog::CATEGORY_CONTACT,
+            'resource' => 'contacts',
+            'resource_id' => $contactId,
         ]);
 
         // 3. Supprimer le contact (Admin)
@@ -259,11 +256,11 @@ class ActivityLogTest extends TestCase
         $deleteResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_CONTACT_DELETED,
-            'category'   => ActivityLog::CATEGORY_CONTACT,
-            'resource'   => 'contacts',
-            'resource_id'=> $contactId,
+            'category' => ActivityLog::CATEGORY_CONTACT,
+            'resource' => 'contacts',
+            'resource_id' => $contactId,
         ]);
     }
 
@@ -275,10 +272,10 @@ class ActivityLogTest extends TestCase
 
         // 1. Dépôt avis
         $response = $this->postJson('/api/reviews', [
-            'product_id'    => $product->id,
+            'product_id' => $product->id,
             'customer_name' => 'Reviewer One',
-            'rating'        => 5,
-            'comment'       => 'Great product!',
+            'rating' => 5,
+            'comment' => 'Great product!',
         ]);
 
         $response->assertCreated();
@@ -286,9 +283,9 @@ class ActivityLogTest extends TestCase
 
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => ActivityLog::EVENT_REVIEW_SUBMITTED,
-            'category'   => ActivityLog::CATEGORY_REVIEW,
-            'resource'   => 'reviews',
-            'resource_id'=> $reviewId,
+            'category' => ActivityLog::CATEGORY_REVIEW,
+            'resource' => 'reviews',
+            'resource_id' => $reviewId,
         ]);
 
         // 2. Approbation avis (Admin)
@@ -299,11 +296,11 @@ class ActivityLogTest extends TestCase
         $approveResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_REVIEW_APPROVED,
-            'category'   => ActivityLog::CATEGORY_REVIEW,
-            'resource'   => 'reviews',
-            'resource_id'=> $reviewId,
+            'category' => ActivityLog::CATEGORY_REVIEW,
+            'resource' => 'reviews',
+            'resource_id' => $reviewId,
         ]);
 
         // 3. Rejet avis (Admin)
@@ -311,11 +308,11 @@ class ActivityLogTest extends TestCase
         $rejectResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_REVIEW_REJECTED,
-            'category'   => ActivityLog::CATEGORY_REVIEW,
-            'resource'   => 'reviews',
-            'resource_id'=> $reviewId,
+            'category' => ActivityLog::CATEGORY_REVIEW,
+            'resource' => 'reviews',
+            'resource_id' => $reviewId,
         ]);
 
         // 4. Suppression avis (Admin)
@@ -323,11 +320,11 @@ class ActivityLogTest extends TestCase
         $deleteResponse->assertOk();
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $admin->id,
+            'user_id' => $admin->id,
             'event_type' => ActivityLog::EVENT_REVIEW_DELETED,
-            'category'   => ActivityLog::CATEGORY_REVIEW,
-            'resource'   => 'reviews',
-            'resource_id'=> $reviewId,
+            'category' => ActivityLog::CATEGORY_REVIEW,
+            'resource' => 'reviews',
+            'resource_id' => $reviewId,
         ]);
     }
 
@@ -345,8 +342,8 @@ class ActivityLogTest extends TestCase
 
         // On vérifie que la méthode ne lève pas d'exception
         $service->log(
-            eventType:  $veryLongEventType,
-            category:   ActivityLog::CATEGORY_AUTH
+            eventType: $veryLongEventType,
+            category: ActivityLog::CATEGORY_AUTH
         );
 
         $this->assertTrue(true); // Si on arrive ici sans plantage, c'est bon !
@@ -358,9 +355,9 @@ class ActivityLogTest extends TestCase
     {
         // Simuler un bot remplissant le champ honeypot "website"
         $response = $this->postJson('/api/contact', [
-            'name'    => 'Bot Sender',
-            'email'   => 'bot@spam.com',
-            'phone'   => '0000000000',
+            'name' => 'Bot Sender',
+            'email' => 'bot@spam.com',
+            'phone' => '0000000000',
             'subject' => 'Spam subject',
             'message' => 'Spam message',
             'website' => 'http://spam-bot.com', // Champ honeypot rempli
@@ -372,7 +369,7 @@ class ActivityLogTest extends TestCase
         // Vérifier que l'activité sécurité a bien été enregistrée
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => ActivityLog::EVENT_HONEYPOT_TRIGGERED,
-            'category'   => ActivityLog::CATEGORY_SECURITY,
+            'category' => ActivityLog::CATEGORY_SECURITY,
         ]);
 
         // Vérifier que le formulaire de contact n'a pas été créé en base
@@ -387,11 +384,11 @@ class ActivityLogTest extends TestCase
         config(['turnstile.enabled' => true]);
 
         $response = $this->postJson('/api/contact', [
-            'name'                  => 'Real User',
-            'email'                 => 'user@example.com',
-            'phone'                 => '0102030405',
-            'subject'               => 'Question',
-            'message'               => 'Hello!',
+            'name' => 'Real User',
+            'email' => 'user@example.com',
+            'phone' => '0102030405',
+            'subject' => 'Question',
+            'message' => 'Hello!',
             'cf-turnstile-response' => 'invalid-token-value',
         ]);
 
@@ -401,7 +398,7 @@ class ActivityLogTest extends TestCase
         // Vérifier que l'activité sécurité Turnstile a été enregistrée
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => ActivityLog::EVENT_TURNSTILE_FAILED,
-            'category'   => ActivityLog::CATEGORY_SECURITY,
+            'category' => ActivityLog::CATEGORY_SECURITY,
         ]);
     }
 

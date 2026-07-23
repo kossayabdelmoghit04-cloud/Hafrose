@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class AdminUserSeeder extends Seeder
 {
@@ -16,7 +17,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // Réinitialiser le cache de permissions Spatie pour éviter les conflits de migration
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // --- Créer les permissions d'administration ---
         $permissions = [
@@ -42,9 +43,9 @@ class AdminUserSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@hafrose.com'],
             [
-                'name'     => 'Administrateur Hafrose',
+                'name' => 'Administrateur Hafrose',
                 'password' => Hash::make('Admin@Hafrose2024!'),
-                'role'     => User::ROLE_ADMIN,
+                'role' => User::ROLE_ADMIN,
             ]
         );
 

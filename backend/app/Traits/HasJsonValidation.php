@@ -21,8 +21,8 @@ trait HasJsonValidation
         throw new HttpResponseException(response()->json([
             'success' => false,
             'message' => 'Validation failed',
-            'errors'  => $validator->errors(),
-            'data'    => null,
+            'errors' => $validator->errors(),
+            'data' => null,
         ], 422));
     }
 }

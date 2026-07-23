@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\AdminLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\AdminLog
+ * @mixin AdminLog
  */
 class HistoryResource extends JsonResource
 {

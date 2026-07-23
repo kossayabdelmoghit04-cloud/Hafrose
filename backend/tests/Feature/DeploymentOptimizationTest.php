@@ -16,24 +16,25 @@ class DeploymentOptimizationTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $customer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $adminRole    = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $customerRole = Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
 
         $this->admin = User::factory()->create([
             'email' => 'admin_deploy@hafrose.com',
-            'role'  => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
         $this->admin->assignRole($adminRole);
 
         $this->customer = User::factory()->create([
             'email' => 'customer_deploy@hafrose.com',
-            'role'  => 'customer',
+            'role' => 'customer',
         ]);
         $this->customer->assignRole($customerRole);
     }
@@ -110,14 +111,14 @@ class DeploymentOptimizationTest extends TestCase
 
         $this->assertDatabaseHas('admin_logs', [
             'admin_id' => $this->admin->id,
-            'action'   => AdminLog::ACTION_DEPLOYMENT_OPTIMIZE,
+            'action' => AdminLog::ACTION_DEPLOYMENT_OPTIMIZE,
             'resource' => AdminLog::RESOURCE_SYSTEM,
         ]);
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $this->admin->id,
+            'user_id' => $this->admin->id,
             'event_type' => 'deployment.optimize',
-            'category'   => ActivityLog::CATEGORY_ADMIN,
+            'category' => ActivityLog::CATEGORY_ADMIN,
         ]);
     }
 
@@ -143,14 +144,14 @@ class DeploymentOptimizationTest extends TestCase
 
         $this->assertDatabaseHas('admin_logs', [
             'admin_id' => $this->admin->id,
-            'action'   => AdminLog::ACTION_DEPLOYMENT_CLEAR,
+            'action' => AdminLog::ACTION_DEPLOYMENT_CLEAR,
             'resource' => AdminLog::RESOURCE_SYSTEM,
         ]);
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $this->admin->id,
+            'user_id' => $this->admin->id,
             'event_type' => 'deployment.clear',
-            'category'   => ActivityLog::CATEGORY_ADMIN,
+            'category' => ActivityLog::CATEGORY_ADMIN,
         ]);
     }
 
@@ -176,14 +177,14 @@ class DeploymentOptimizationTest extends TestCase
 
         $this->assertDatabaseHas('admin_logs', [
             'admin_id' => $this->admin->id,
-            'action'   => AdminLog::ACTION_DEPLOYMENT_WARMUP,
+            'action' => AdminLog::ACTION_DEPLOYMENT_WARMUP,
             'resource' => AdminLog::RESOURCE_SYSTEM,
         ]);
 
         $this->assertDatabaseHas('activity_logs', [
-            'user_id'    => $this->admin->id,
+            'user_id' => $this->admin->id,
             'event_type' => 'deployment.warmup',
-            'category'   => ActivityLog::CATEGORY_ADMIN,
+            'category' => ActivityLog::CATEGORY_ADMIN,
         ]);
     }
 
@@ -244,8 +245,8 @@ class DeploymentOptimizationTest extends TestCase
     public function test_artisan_deploy_optimize_command_executes_successfully(): void
     {
         $this->artisan('hafrose:deploy:optimize', [
-            '--force'  => true,
-            '--clear'  => true,
+            '--force' => true,
+            '--clear' => true,
             '--warmup' => true,
         ])
             ->assertExitCode(0);

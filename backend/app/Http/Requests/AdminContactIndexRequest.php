@@ -23,10 +23,10 @@ class AdminContactIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'   => 'nullable|string|max:255',
-            'is_read'  => 'nullable|boolean',
+            'search' => 'nullable|string|max:255',
+            'is_read' => 'nullable|boolean',
             'per_page' => 'nullable|integer|min:1|max:100',
-            'page'     => 'nullable|integer|min:1',
+            'page' => 'nullable|integer|min:1',
         ];
     }
 
@@ -36,13 +36,13 @@ class AdminContactIndexRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'search.max'       => 'Le terme de recherche ne doit pas dépasser 255 caractères.',
-            'is_read.boolean'  => 'Le filtre de lecture doit être vrai ou faux.',
+            'search.max' => 'Le terme de recherche ne doit pas dépasser 255 caractères.',
+            'is_read.boolean' => 'Le filtre de lecture doit être vrai ou faux.',
             'per_page.integer' => 'Le nombre d\'éléments par page doit être un entier.',
-            'per_page.min'     => 'Le nombre d\'éléments par page doit être au moins 1.',
-            'per_page.max'     => 'Le nombre d\'éléments par page ne peut pas dépasser 100.',
-            'page.integer'     => 'Le numéro de page doit être un entier.',
-            'page.min'         => 'Le numéro de page doit être au moins 1.',
+            'per_page.min' => 'Le nombre d\'éléments par page doit être au moins 1.',
+            'per_page.max' => 'Le nombre d\'éléments par page ne peut pas dépasser 100.',
+            'page.integer' => 'Le numéro de page doit être un entier.',
+            'page.min' => 'Le numéro de page doit être au moins 1.',
         ];
     }
 }

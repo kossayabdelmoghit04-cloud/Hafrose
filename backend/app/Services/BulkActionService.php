@@ -26,11 +26,11 @@ class BulkActionService
     /**
      * Exécuter une action groupée sur une liste d'identifiants de ressources.
      *
-     * @param Request $request La requête HTTP courante pour les informations de traçabilité.
-     * @param string $resource Type de ressource ('products', 'categories', 'reviews', 'contacts', 'orders').
-     * @param string $action Nom de l'action ('delete', 'activate', 'deactivate', 'publish', 'unpublish', 'approve', 'reject', 'mark_read', 'status_update', 'archive').
-     * @param array $ids Liste des identifiants numériques.
-     * @param array $params Paramètres supplémentaires (ex: 'status' pour status_update).
+     * @param  Request  $request  La requête HTTP courante pour les informations de traçabilité.
+     * @param  string  $resource  Type de ressource ('products', 'categories', 'reviews', 'contacts', 'orders').
+     * @param  string  $action  Nom de l'action ('delete', 'activate', 'deactivate', 'publish', 'unpublish', 'approve', 'reject', 'mark_read', 'status_update', 'archive').
+     * @param  array  $ids  Liste des identifiants numériques.
+     * @param  array  $params  Paramètres supplémentaires (ex: 'status' pour status_update).
      * @return array Rapport d'exécution [action, resource, count_modified, count_ignored, errors].
      */
     public function executeBulkAction(Request $request, string $resource, string $action, array $ids, array $params = []): array
@@ -62,14 +62,14 @@ class BulkActionService
                         $modifiedIds[] = (int) $id;
                     } else {
                         $countIgnored++;
-                        if (!empty($result['error'])) {
-                            $errors[] = "ID {$id}: " . $result['error'];
+                        if (! empty($result['error'])) {
+                            $errors[] = "ID {$id}: ".$result['error'];
                         }
                     }
                 } catch (\Throwable $e) {
                     $countIgnored++;
-                    $errors[] = "ID {$id}: " . $e->getMessage();
-                    Log::error("BulkAction error for {$normalizedResource} #{$id}: " . $e->getMessage());
+                    $errors[] = "ID {$id}: ".$e->getMessage();
+                    Log::error("BulkAction error for {$normalizedResource} #{$id}: ".$e->getMessage());
                 }
             }
 
@@ -150,30 +150,33 @@ class BulkActionService
             'orders', 'order' => $this->handleOrderAction($action, $id, $params),
             'reviews', 'review' => $this->handleReviewAction($action, $id, $params),
             'contacts', 'contact' => $this->handleContactAction($action, $id, $params),
-            default => ['success' => false, 'error' => "Ressource non reconnue."],
+            default => ['success' => false, 'error' => 'Ressource non reconnue.'],
         };
     }
 
     protected function handleProductAction(string $action, int $id, array $params): array
     {
         $product = Product::find($id);
-        if (!$product) {
-            return ['success' => false, 'error' => "Produit introuvable."];
+        if (! $product) {
+            return ['success' => false, 'error' => 'Produit introuvable.'];
         }
 
         switch ($action) {
             case 'delete':
                 $product->delete();
+
                 return ['success' => true];
 
             case 'activate':
             case 'publish':
                 $product->update(['is_featured' => true]);
+
                 return ['success' => true];
 
             case 'deactivate':
             case 'unpublish':
                 $product->update(['is_featured' => false]);
+
                 return ['success' => true];
 
             default:
@@ -184,17 +187,18 @@ class BulkActionService
     protected function handleCategoryAction(string $action, int $id, array $params): array
     {
         $category = Category::find($id);
-        if (!$category) {
-            return ['success' => false, 'error' => "Catégorie introuvable."];
+        if (! $category) {
+            return ['success' => false, 'error' => 'Catégorie introuvable.'];
         }
 
         switch ($action) {
             case 'delete':
                 // Empêcher la suppression si des produits y sont rattachés
                 if ($category->products()->count() > 0) {
-                    return ['success' => false, 'error' => "Impossible de supprimer une catégorie contenant des produits."];
+                    return ['success' => false, 'error' => 'Impossible de supprimer une catégorie contenant des produits.'];
                 }
                 $category->delete();
+
                 return ['success' => true];
 
             default:
@@ -205,25 +209,28 @@ class BulkActionService
     protected function handleOrderAction(string $action, int $id, array $params): array
     {
         $order = Order::find($id);
-        if (!$order) {
-            return ['success' => false, 'error' => "Commande introuvable."];
+        if (! $order) {
+            return ['success' => false, 'error' => 'Commande introuvable.'];
         }
 
         switch ($action) {
             case 'delete':
                 $order->delete();
+
                 return ['success' => true];
 
             case 'archive':
                 $order->update(['status' => Order::STATUS_CANCELLED]);
+
                 return ['success' => true];
 
             case 'status_update':
                 $newStatus = $params['status'] ?? null;
-                if (!$newStatus) {
-                    return ['success' => false, 'error' => "Le statut cible est obligatoire."];
+                if (! $newStatus) {
+                    return ['success' => false, 'error' => 'Le statut cible est obligatoire.'];
                 }
                 $order->update(['status' => $newStatus]);
+
                 return ['success' => true];
 
             default:
@@ -234,21 +241,24 @@ class BulkActionService
     protected function handleReviewAction(string $action, int $id, array $params): array
     {
         $review = Review::find($id);
-        if (!$review) {
-            return ['success' => false, 'error' => "Avis introuvable."];
+        if (! $review) {
+            return ['success' => false, 'error' => 'Avis introuvable.'];
         }
 
         switch ($action) {
             case 'delete':
                 $review->delete();
+
                 return ['success' => true];
 
             case 'approve':
                 $review->update(['is_approved' => true]);
+
                 return ['success' => true];
 
             case 'reject':
                 $review->update(['is_approved' => false]);
+
                 return ['success' => true];
 
             default:
@@ -259,21 +269,24 @@ class BulkActionService
     protected function handleContactAction(string $action, int $id, array $params): array
     {
         $contact = Contact::find($id);
-        if (!$contact) {
-            return ['success' => false, 'error' => "Contact introuvable."];
+        if (! $contact) {
+            return ['success' => false, 'error' => 'Contact introuvable.'];
         }
 
         switch ($action) {
             case 'delete':
                 $contact->delete();
+
                 return ['success' => true];
 
             case 'mark_read':
                 $contact->update(['is_read' => true]);
+
                 return ['success' => true];
 
             case 'mark_unread':
                 $contact->update(['is_read' => false]);
+
                 return ['success' => true];
 
             default:

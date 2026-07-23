@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Models\Product;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductService
 {
@@ -32,8 +35,8 @@ class ProductService
     {
         $product = $this->productRepository->findBySlug($slug);
 
-        if (!$product) {
-            throw new ModelNotFoundException("Product not found");
+        if (! $product) {
+            throw new ModelNotFoundException('Product not found');
         }
 
         return $product;
@@ -46,8 +49,8 @@ class ProductService
     {
         $product = $this->productRepository->find($id);
 
-        if (!$product) {
-            throw new ModelNotFoundException("Product not found");
+        if (! $product) {
+            throw new ModelNotFoundException('Product not found');
         }
 
         return $product;
@@ -56,19 +59,19 @@ class ProductService
     /**
      * Créer un produit avec ses images (principale et galerie).
      */
-    public function createProduct(array $data, ?\Illuminate\Http\UploadedFile $imageFile = null, array $galleryFiles = []): Product
+    public function createProduct(array $data, ?UploadedFile $imageFile = null, array $galleryFiles = []): Product
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($data, $imageFile, $galleryFiles) {
+        return DB::transaction(function () use ($data, $imageFile, $galleryFiles) {
             // Gérer l'image principale
             if ($imageFile) {
                 $path = $imageFile->store('products', 'public');
-                $data['image'] = \Illuminate\Support\Facades\Storage::url($path);
-            } elseif (!empty($data['image_path'])) {
-                $data['image'] = \Illuminate\Support\Facades\Storage::url($data['image_path']);
+                $data['image'] = Storage::url($path);
+            } elseif (! empty($data['image_path'])) {
+                $data['image'] = Storage::url($data['image_path']);
             }
 
             // Assurer la valeur par défaut pour is_featured
-            $data['is_featured'] = isset($data['is_featured']) ? (bool)$data['is_featured'] : false;
+            $data['is_featured'] = isset($data['is_featured']) ? (bool) $data['is_featured'] : false;
 
             // Créer le produit
             $product = $this->productRepository->create($data);
@@ -83,9 +86,9 @@ class ProductService
     /**
      * Mettre à jour un produit et ses images.
      */
-    public function updateProduct(Product $product, array $data, ?\Illuminate\Http\UploadedFile $imageFile = null, array $galleryFiles = [], array $deletedGalleryIds = []): Product
+    public function updateProduct(Product $product, array $data, ?UploadedFile $imageFile = null, array $galleryFiles = [], array $deletedGalleryIds = []): Product
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($product, $data, $imageFile, $galleryFiles, $deletedGalleryIds) {
+        return DB::transaction(function () use ($product, $data, $imageFile, $galleryFiles, $deletedGalleryIds) {
             // Gérer l'image principale
             if ($imageFile) {
                 // Supprimer l'ancienne image si elle existe
@@ -93,19 +96,19 @@ class ProductService
                     $this->deletePhysicalImage($product->image);
                 }
                 $path = $imageFile->store('products', 'public');
-                $data['image'] = \Illuminate\Support\Facades\Storage::url($path);
-            } elseif (!empty($data['image_path'])) {
-                $data['image'] = \Illuminate\Support\Facades\Storage::url($data['image_path']);
+                $data['image'] = Storage::url($path);
+            } elseif (! empty($data['image_path'])) {
+                $data['image'] = Storage::url($data['image_path']);
             }
 
             // Mettre à jour is_featured
-            $data['is_featured'] = isset($data['is_featured']) ? (bool)$data['is_featured'] : false;
+            $data['is_featured'] = isset($data['is_featured']) ? (bool) $data['is_featured'] : false;
 
             // Mettre à jour les informations du produit
             $product = $this->productRepository->update($product, $data);
 
             // Supprimer les images de la galerie sélectionnées
-            if (!empty($deletedGalleryIds)) {
+            if (! empty($deletedGalleryIds)) {
                 $this->deleteGalleryImages($product, $deletedGalleryIds);
             }
 
@@ -121,7 +124,7 @@ class ProductService
      */
     public function deleteProduct(Product $product): bool
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($product) {
+        return DB::transaction(function () use ($product) {
             // Supprimer l'image principale
             if ($product->image) {
                 $this->deletePhysicalImage($product->image);
@@ -145,19 +148,19 @@ class ProductService
     {
         // Enregistrer les fichiers uploadés
         foreach ($galleryFiles as $file) {
-            if ($file instanceof \Illuminate\Http\UploadedFile) {
+            if ($file instanceof UploadedFile) {
                 $path = $file->store('products/gallery', 'public');
                 $product->galleries()->create([
-                    'image' => \Illuminate\Support\Facades\Storage::url($path)
+                    'image' => Storage::url($path),
                 ]);
             }
         }
 
         // Enregistrer les chemins d'accès réutilisés
         foreach ($galleryPaths as $path) {
-            if (!empty($path)) {
+            if (! empty($path)) {
                 $product->galleries()->create([
-                    'image' => \Illuminate\Support\Facades\Storage::url($path)
+                    'image' => Storage::url($path),
                 ]);
             }
         }
@@ -185,9 +188,9 @@ class ProductService
         // Nous voulons extraire products/filename.jpg
         $path = parse_url($url, PHP_URL_PATH);
         $relativePath = str_replace('/storage/', '', $path);
-        
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($relativePath)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($relativePath);
+
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
         }
     }
 
@@ -202,10 +205,6 @@ class ProductService
     /**
      * Obtenir les produits similaires à un produit donné.
      * Le nombre de résultats est configurable (défaut : 4).
-     *
-     * @param  \App\Models\Product  $product
-     * @param  int                  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getRelatedProducts(Product $product, int $limit = 4): Collection
     {
@@ -215,9 +214,6 @@ class ProductService
     /**
      * Obtenir les produits les plus populaires.
      * Le nombre de résultats est configurable (défaut : 8).
-     *
-     * @param  int  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getPopularProducts(int $limit = 8): Collection
     {

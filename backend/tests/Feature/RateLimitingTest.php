@@ -44,8 +44,8 @@ class RateLimitingTest extends TestCase
     private function validContactPayload(string $suffix = ''): array
     {
         return [
-            'name'    => 'Test User' . $suffix,
-            'email'   => "test{$suffix}@example.com",
+            'name' => 'Test User'.$suffix,
+            'email' => "test{$suffix}@example.com",
             'subject' => 'Sujet de test',
             'message' => 'Bonjour, voici un message de test suffisamment long.',
         ];
@@ -54,10 +54,10 @@ class RateLimitingTest extends TestCase
     private function validReviewPayload(int $productId): array
     {
         return [
-            'product_id'    => $productId,
+            'product_id' => $productId,
             'customer_name' => 'Jean Dupont',
-            'rating'        => 5,
-            'comment'       => 'Ce produit est absolument fantastique et je le recommande vivement.',
+            'rating' => 5,
+            'comment' => 'Ce produit est absolument fantastique et je le recommande vivement.',
         ];
     }
 
@@ -65,10 +65,10 @@ class RateLimitingTest extends TestCase
     {
         return [
             'customer' => 'Jean Dupont',
-            'phone'    => '0612345678',
-            'address'  => '123 Rue de la Paix',
-            'city'     => 'Paris',
-            'items'    => [
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [
                 ['product_id' => $productId, 'quantity' => 1],
             ],
         ];
@@ -82,9 +82,9 @@ class RateLimitingTest extends TestCase
     private function createAdmin(): User
     {
         return User::factory()->create([
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => bcrypt('Admin@Hafrose2024!'),
-            'role'     => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -115,12 +115,12 @@ class RateLimitingTest extends TestCase
         $response = $this->postJson('/api/contact', $this->validContactPayload('overflow'));
 
         $response->assertStatus(429)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Too many requests',
-                     'errors'  => null,
-                     'data'    => null,
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Too many requests',
+                'errors' => null,
+                'data' => null,
+            ]);
     }
 
     /**
@@ -133,7 +133,7 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/contact', $this->validContactPayload((string) $i));
         }
         $this->postJson('/api/contact', $this->validContactPayload('overflow'))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         // Simuler l'expiration de la fenêtre en vidant le compteur
         RateLimiter::clear(md5('contact127.0.0.1'));
@@ -153,11 +153,11 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/contact', $this->validContactPayload((string) $i));
         }
         $this->postJson('/api/contact', $this->validContactPayload('overflow'))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         // Depuis une autre IP, la requête doit passer
         $response = $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.1'])
-                         ->postJson('/api/contact', $this->validContactPayload('other_ip'));
+            ->postJson('/api/contact', $this->validContactPayload('other_ip'));
         $response->assertStatus(201);
     }
 
@@ -191,10 +191,10 @@ class RateLimitingTest extends TestCase
 
         $response = $this->postJson('/api/reviews', $this->validReviewPayload($products[10]->id));
         $response->assertStatus(429)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Too many requests',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Too many requests',
+            ]);
     }
 
     /**
@@ -208,13 +208,13 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/reviews', $this->validReviewPayload($products[$i]->id));
         }
         $this->postJson('/api/reviews', $this->validReviewPayload($products[10]->id))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         RateLimiter::clear(md5('reviews127.0.0.1'));
 
         $extra = Product::factory()->create();
         $this->postJson('/api/reviews', $this->validReviewPayload($extra->id))
-             ->assertStatus(201);
+            ->assertStatus(201);
     }
 
     /**
@@ -229,13 +229,13 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/reviews', $this->validReviewPayload($products[$i]->id));
         }
         $this->postJson('/api/reviews', $this->validReviewPayload($products[10]->id))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         // Depuis une autre IP, l'avis doit passer
         $extra = Product::factory()->create();
         $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.2'])
-             ->postJson('/api/reviews', $this->validReviewPayload($extra->id))
-             ->assertStatus(201);
+            ->postJson('/api/reviews', $this->validReviewPayload($extra->id))
+            ->assertStatus(201);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -269,10 +269,10 @@ class RateLimitingTest extends TestCase
 
         $response = $this->postJson('/api/orders', $this->validOrderPayload($products[20]->id));
         $response->assertStatus(429)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Too many requests',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Too many requests',
+            ]);
     }
 
     /**
@@ -286,13 +286,13 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/orders', $this->validOrderPayload($products[$i]->id));
         }
         $this->postJson('/api/orders', $this->validOrderPayload($products[20]->id))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         RateLimiter::clear(md5('orders127.0.0.1'));
 
         $extra = Product::factory()->create(['stock' => 50, 'price' => 10.00]);
         $this->postJson('/api/orders', $this->validOrderPayload($extra->id))
-             ->assertStatus(201);
+            ->assertStatus(201);
     }
 
     /**
@@ -306,12 +306,12 @@ class RateLimitingTest extends TestCase
             $this->postJson('/api/orders', $this->validOrderPayload($products[$i]->id));
         }
         $this->postJson('/api/orders', $this->validOrderPayload($products[20]->id))
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         $extra = Product::factory()->create(['stock' => 50, 'price' => 10.00]);
         $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.3'])
-             ->postJson('/api/orders', $this->validOrderPayload($extra->id))
-             ->assertStatus(201);
+            ->postJson('/api/orders', $this->validOrderPayload($extra->id))
+            ->assertStatus(201);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -324,16 +324,16 @@ class RateLimitingTest extends TestCase
      */
     public function test_wishlist_allows_requests_under_limit(): void
     {
-        $user    = $this->createUser();
-        $token   = $user->createToken('token')->plainTextToken;
+        $user = $this->createUser();
+        $token = $user->createToken('token')->plainTextToken;
         $product = Product::factory()->create();
 
         // Vidage du compteur de cet utilisateur
-        RateLimiter::clear('wishlist|' . $user->id);
+        RateLimiter::clear('wishlist|'.$user->id);
 
         for ($i = 0; $i < 30; $i++) {
             $response = $this->withToken($token)
-                             ->getJson("/api/wishlist/check/{$product->id}");
+                ->getJson("/api/wishlist/check/{$product->id}");
             $response->assertStatus(200);
         }
     }
@@ -343,11 +343,11 @@ class RateLimitingTest extends TestCase
      */
     public function test_wishlist_returns_429_when_limit_exceeded(): void
     {
-        $user    = $this->createUser();
-        $token   = $user->createToken('token')->plainTextToken;
+        $user = $this->createUser();
+        $token = $user->createToken('token')->plainTextToken;
         $product = Product::factory()->create();
 
-        RateLimiter::clear('wishlist|' . $user->id);
+        RateLimiter::clear('wishlist|'.$user->id);
 
         for ($i = 0; $i < 30; $i++) {
             $this->withToken($token)->getJson("/api/wishlist/check/{$product->id}");
@@ -355,10 +355,10 @@ class RateLimitingTest extends TestCase
 
         $response = $this->withToken($token)->getJson("/api/wishlist/check/{$product->id}");
         $response->assertStatus(429)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Too many requests',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Too many requests',
+            ]);
     }
 
     /**
@@ -366,22 +366,22 @@ class RateLimitingTest extends TestCase
      */
     public function test_wishlist_rate_limit_resets_after_clear(): void
     {
-        $user    = $this->createUser();
-        $token   = $user->createToken('token')->plainTextToken;
+        $user = $this->createUser();
+        $token = $user->createToken('token')->plainTextToken;
         $product = Product::factory()->create();
 
-        RateLimiter::clear('wishlist|' . $user->id);
+        RateLimiter::clear('wishlist|'.$user->id);
 
         for ($i = 0; $i < 30; $i++) {
             $this->withToken($token)->getJson("/api/wishlist/check/{$product->id}");
         }
         $this->withToken($token)->getJson("/api/wishlist/check/{$product->id}")
-             ->assertStatus(429);
+            ->assertStatus(429);
 
-        RateLimiter::clear(md5('wishlist' . $user->id));
+        RateLimiter::clear(md5('wishlist'.$user->id));
 
         $this->withToken($token)->getJson("/api/wishlist/check/{$product->id}")
-             ->assertStatus(200);
+            ->assertStatus(200);
     }
 
     /**
@@ -389,28 +389,28 @@ class RateLimitingTest extends TestCase
      */
     public function test_wishlist_rate_limit_is_per_user(): void
     {
-        $userA   = $this->createUser();
-        $userB   = $this->createUser();
-        $tokenA  = $userA->createToken('tokenA')->plainTextToken;
-        $tokenB  = $userB->createToken('tokenB')->plainTextToken;
+        $userA = $this->createUser();
+        $userB = $this->createUser();
+        $tokenA = $userA->createToken('tokenA')->plainTextToken;
+        $tokenB = $userB->createToken('tokenB')->plainTextToken;
         $product = Product::factory()->create();
 
-        RateLimiter::clear('wishlist|' . $userA->id);
-        RateLimiter::clear('wishlist|' . $userB->id);
+        RateLimiter::clear('wishlist|'.$userA->id);
+        RateLimiter::clear('wishlist|'.$userB->id);
 
         // Épuiser la limite de userA
         for ($i = 0; $i < 30; $i++) {
             $this->withToken($tokenA)->getJson("/api/wishlist/check/{$product->id}");
         }
         $this->withToken($tokenA)->getJson("/api/wishlist/check/{$product->id}")
-             ->assertStatus(429);
+            ->assertStatus(429);
 
         // Oublier les guards pour forcer la ré-authentification avec le token de userB
         $this->app['auth']->forgetGuards();
 
         // userB a son propre compteur → doit passer
         $this->withToken($tokenB)->getJson("/api/wishlist/check/{$product->id}")
-             ->assertStatus(200);
+            ->assertStatus(200);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -427,8 +427,8 @@ class RateLimitingTest extends TestCase
 
         for ($i = 0; $i < 5; $i++) {
             $response = $this->postJson('/api/admin/login', [
-                'email'    => 'admin@hafrose.com',
-                'password' => 'wrong_password_' . $i,
+                'email' => 'admin@hafrose.com',
+                'password' => 'wrong_password_'.$i,
             ]);
             // 401 est une réponse légitime (mauvais mdp) — pas un 429
             $response->assertStatus(401);
@@ -444,21 +444,21 @@ class RateLimitingTest extends TestCase
 
         for ($i = 0; $i < 5; $i++) {
             $this->postJson('/api/admin/login', [
-                'email'    => 'admin@hafrose.com',
-                'password' => 'wrong_password_' . $i,
+                'email' => 'admin@hafrose.com',
+                'password' => 'wrong_password_'.$i,
             ]);
         }
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'Admin@Hafrose2024!',
         ]);
 
         $response->assertStatus(429)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Too many requests',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Too many requests',
+            ]);
     }
 
     /**
@@ -470,19 +470,19 @@ class RateLimitingTest extends TestCase
 
         for ($i = 0; $i < 5; $i++) {
             $this->postJson('/api/admin/login', [
-                'email'    => 'admin@hafrose.com',
-                'password' => 'wrong_' . $i,
+                'email' => 'admin@hafrose.com',
+                'password' => 'wrong_'.$i,
             ]);
         }
         $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'Admin@Hafrose2024!',
         ])->assertStatus(429);
 
         RateLimiter::clear(md5('admin-login127.0.0.1'));
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'Admin@Hafrose2024!',
         ]);
         $response->assertStatus(200);
@@ -498,21 +498,21 @@ class RateLimitingTest extends TestCase
         // Épuiser depuis 127.0.0.1
         for ($i = 0; $i < 5; $i++) {
             $this->postJson('/api/admin/login', [
-                'email'    => 'admin@hafrose.com',
-                'password' => 'wrong_' . $i,
+                'email' => 'admin@hafrose.com',
+                'password' => 'wrong_'.$i,
             ]);
         }
         $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'wrong',
         ])->assertStatus(429);
 
         // Depuis une autre IP, la connexion réussit
         $response = $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.4'])
-                         ->postJson('/api/admin/login', [
-                             'email'    => 'admin@hafrose.com',
-                             'password' => 'Admin@Hafrose2024!',
-                         ]);
+            ->postJson('/api/admin/login', [
+                'email' => 'admin@hafrose.com',
+                'password' => 'Admin@Hafrose2024!',
+            ]);
         $response->assertStatus(200);
     }
 }

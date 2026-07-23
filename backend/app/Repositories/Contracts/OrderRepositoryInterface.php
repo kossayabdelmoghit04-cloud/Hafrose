@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface OrderRepositoryInterface
 {
@@ -20,7 +21,7 @@ interface OrderRepositoryInterface
     /**
      * Obtenir les commandes avec pagination et filtres.
      */
-    public function paginateWithFilters(array $filters, int $perPage = 10): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+    public function paginateWithFilters(array $filters, int $perPage = 10): LengthAwarePaginator;
 
     /**
      * Trouver une commande par son identifiant.

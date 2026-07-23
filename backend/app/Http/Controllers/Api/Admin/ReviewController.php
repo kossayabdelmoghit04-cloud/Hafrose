@@ -17,8 +17,8 @@ class ReviewController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected ReviewService    $reviewService,
-        protected AdminLogService  $adminLogService,
+        protected ReviewService $reviewService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -32,13 +32,13 @@ class ReviewController extends Controller
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => ReviewResource::collection($reviews),
-            'meta'    => [
+            'errors' => null,
+            'data' => ReviewResource::collection($reviews),
+            'meta' => [
                 'current_page' => $reviews->currentPage(),
-                'last_page'    => $reviews->lastPage(),
-                'per_page'     => $reviews->perPage(),
-                'total'        => $reviews->total(),
+                'last_page' => $reviews->lastPage(),
+                'per_page' => $reviews->perPage(),
+                'total' => $reviews->total(),
             ],
         ]);
     }
@@ -48,16 +48,16 @@ class ReviewController extends Controller
      */
     public function approve(Request $request, int $id): JsonResponse
     {
-        $review  = $this->reviewService->getReviewById($id);
+        $review = $this->reviewService->getReviewById($id);
         $updated = $this->reviewService->approveReview($review);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_APPROVE,
-            resource:   AdminLog::RESOURCE_REVIEW,
+            request: $request,
+            action: AdminLog::ACTION_APPROVE,
+            resource: AdminLog::RESOURCE_REVIEW,
             resourceId: $review->id,
-            oldValues:  ['is_approved' => $review->is_approved],
-            newValues:  ['is_approved' => true],
+            oldValues: ['is_approved' => $review->is_approved],
+            newValues: ['is_approved' => true],
         );
 
         return $this->successResponse(
@@ -71,16 +71,16 @@ class ReviewController extends Controller
      */
     public function reject(Request $request, int $id): JsonResponse
     {
-        $review  = $this->reviewService->getReviewById($id);
+        $review = $this->reviewService->getReviewById($id);
         $updated = $this->reviewService->rejectReview($review);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_REJECT,
-            resource:   AdminLog::RESOURCE_REVIEW,
+            request: $request,
+            action: AdminLog::ACTION_REJECT,
+            resource: AdminLog::RESOURCE_REVIEW,
             resourceId: $review->id,
-            oldValues:  ['is_approved' => $review->is_approved],
-            newValues:  ['is_approved' => false],
+            oldValues: ['is_approved' => $review->is_approved],
+            newValues: ['is_approved' => false],
         );
 
         return $this->successResponse(
@@ -94,17 +94,17 @@ class ReviewController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $review   = $this->reviewService->getReviewById($id);
+        $review = $this->reviewService->getReviewById($id);
         $snapshot = $this->adminLogService->extractModelValues($review, ['id', 'customer_name', 'rating', 'is_approved']);
 
         $this->reviewService->deleteReview($review);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_DELETE,
-            resource:   AdminLog::RESOURCE_REVIEW,
+            request: $request,
+            action: AdminLog::ACTION_DELETE,
+            resource: AdminLog::RESOURCE_REVIEW,
             resourceId: $id,
-            oldValues:  $snapshot,
+            oldValues: $snapshot,
         );
 
         return $this->successResponse(null, 'Avis supprimé avec succès.');

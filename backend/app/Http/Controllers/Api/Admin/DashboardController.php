@@ -31,11 +31,11 @@ class DashboardController extends Controller
         $latestMessages = $this->dashboardService->getLatestMessages(5);
 
         return $this->successResponse([
-            'metrics'          => $metrics,
-            'sales_chart'      => $salesChart,
+            'metrics' => $metrics,
+            'sales_chart' => $salesChart,
             'popular_products' => $popularProducts,
-            'latest_orders'    => $latestOrders,
-            'latest_messages'  => $latestMessages,
+            'latest_orders' => $latestOrders,
+            'latest_messages' => $latestMessages,
         ], 'Données du tableau de bord chargées.');
     }
 }

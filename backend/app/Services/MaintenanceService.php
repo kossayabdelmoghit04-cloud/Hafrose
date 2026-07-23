@@ -23,17 +23,17 @@ class MaintenanceService
     /**
      * Activer le mode maintenance.
      *
-     * @param  string|null  $secret     Secret pour bypasser la maintenance.
-     * @param  array|null   $allowedIps Liste d'IPs autorisées pendant la maintenance.
-     * @param  string|null  $message    Message à afficher.
-     * @param  int|null     $retryAfter Temps estimé en secondes avant retour du service.
-     * @return array        Résultat de l'opération.
+     * @param  string|null  $secret  Secret pour bypasser la maintenance.
+     * @param  array|null  $allowedIps  Liste d'IPs autorisées pendant la maintenance.
+     * @param  string|null  $message  Message à afficher.
+     * @param  int|null  $retryAfter  Temps estimé en secondes avant retour du service.
+     * @return array Résultat de l'opération.
      */
     public function enable(
-        ?string $secret     = null,
-        ?array  $allowedIps = null,
-        ?string $message    = null,
-        ?int    $retryAfter = null,
+        ?string $secret = null,
+        ?array $allowedIps = null,
+        ?string $message = null,
+        ?int $retryAfter = null,
     ): array {
         try {
             if ($this->isDown()) {
@@ -50,10 +50,10 @@ class MaintenanceService
             Log::info('MaintenanceService: mode maintenance activé.', $options);
 
             return [
-                'success'       => true,
-                'message'       => 'Mode maintenance activé.',
-                'options'       => $options,
-                'activated_at'  => now()->toIso8601String(),
+                'success' => true,
+                'message' => 'Mode maintenance activé.',
+                'options' => $options,
+                'activated_at' => now()->toIso8601String(),
             ];
 
         } catch (\Throwable $e) {
@@ -63,7 +63,7 @@ class MaintenanceService
 
             return [
                 'success' => false,
-                'message' => 'Échec de l\'activation de la maintenance : ' . $e->getMessage(),
+                'message' => 'Échec de l\'activation de la maintenance : '.$e->getMessage(),
             ];
         }
     }
@@ -76,7 +76,7 @@ class MaintenanceService
     public function disable(): array
     {
         try {
-            if (!$this->isDown()) {
+            if (! $this->isDown()) {
                 return [
                     'success' => false,
                     'message' => 'L\'application n\'est pas en maintenance.',
@@ -88,9 +88,9 @@ class MaintenanceService
             Log::info('MaintenanceService: mode maintenance désactivé.');
 
             return [
-                'success'       => true,
-                'message'       => 'Mode maintenance désactivé. Application en ligne.',
-                'deactivated_at'=> now()->toIso8601String(),
+                'success' => true,
+                'message' => 'Mode maintenance désactivé. Application en ligne.',
+                'deactivated_at' => now()->toIso8601String(),
             ];
 
         } catch (\Throwable $e) {
@@ -100,7 +100,7 @@ class MaintenanceService
 
             return [
                 'success' => false,
-                'message' => 'Échec de la désactivation de la maintenance : ' . $e->getMessage(),
+                'message' => 'Échec de la désactivation de la maintenance : '.$e->getMessage(),
             ];
         }
     }
@@ -115,15 +115,15 @@ class MaintenanceService
      */
     public function enableSecure(): array
     {
-        $secret     = config('production.maintenance.secret');
+        $secret = config('production.maintenance.secret');
         $allowedIps = config('production.maintenance.allowed_ips', []);
-        $message    = config('production.maintenance.message');
+        $message = config('production.maintenance.message');
         $retryAfter = config('production.maintenance.retry_after', 0) ?: null;
 
         return $this->enable(
-            secret:     $secret ?: null,
-            allowedIps: !empty($allowedIps) ? $allowedIps : null,
-            message:    $message ?: null,
+            secret: $secret ?: null,
+            allowedIps: ! empty($allowedIps) ? $allowedIps : null,
+            message: $message ?: null,
             retryAfter: $retryAfter,
         );
     }
@@ -131,26 +131,26 @@ class MaintenanceService
     /**
      * Planifier une maintenance différée (dans N secondes).
      *
-     * @param  int           $inSeconds    Délai avant l'activation (secondes).
-     * @param  string|null   $secret       Secret de bypass.
-     * @param  string|null   $message      Message à afficher.
-     * @return array         Résultat.
+     * @param  int  $inSeconds  Délai avant l'activation (secondes).
+     * @param  string|null  $secret  Secret de bypass.
+     * @param  string|null  $message  Message à afficher.
+     * @return array Résultat.
      */
     public function schedule(int $inSeconds, ?string $secret = null, ?string $message = null): array
     {
         if ($inSeconds <= 0) {
             return $this->enable(
-                secret:  $secret,
+                secret: $secret,
                 message: $message,
             );
         }
 
         return [
-            'success'      => true,
-            'message'      => "Maintenance planifiée dans {$inSeconds} secondes.",
+            'success' => true,
+            'message' => "Maintenance planifiée dans {$inSeconds} secondes.",
             'scheduled_at' => now()->toIso8601String(),
-            'starts_at'    => now()->addSeconds($inSeconds)->toIso8601String(),
-            'note'         => 'Pour une maintenance différée automatique, configurez le scheduler Laravel.',
+            'starts_at' => now()->addSeconds($inSeconds)->toIso8601String(),
+            'note' => 'Pour une maintenance différée automatique, configurez le scheduler Laravel.',
         ];
     }
 
@@ -166,8 +166,6 @@ class MaintenanceService
 
     /**
      * Obtenir le statut détaillé de la maintenance.
-     *
-     * @return array
      */
     public function status(): array
     {
@@ -175,7 +173,7 @@ class MaintenanceService
 
         $data = [
             'in_maintenance' => $isDown,
-            'checked_at'     => now()->toIso8601String(),
+            'checked_at' => now()->toIso8601String(),
         ];
 
         if ($isDown) {
@@ -192,21 +190,21 @@ class MaintenanceService
      */
     private function buildArtisanOptions(
         ?string $secret,
-        ?array  $allowedIps,
+        ?array $allowedIps,
         ?string $message,
-        ?int    $retryAfter,
+        ?int $retryAfter,
     ): array {
         $options = [];
 
-        if (!empty($secret)) {
+        if (! empty($secret)) {
             $options['--secret'] = $secret;
         }
 
-        if (!empty($allowedIps)) {
+        if (! empty($allowedIps)) {
             $options['--allow'] = $allowedIps;
         }
 
-        if (!empty($message)) {
+        if (! empty($message)) {
             // Laravel >= 9 : --message non supporté nativement, stocker dans le fichier
         }
 
@@ -219,8 +217,6 @@ class MaintenanceService
 
     /**
      * Lire les données du fichier de maintenance Laravel.
-     *
-     * @return array
      */
     private function readMaintenanceData(): array
     {
@@ -232,7 +228,8 @@ class MaintenanceService
         foreach ($paths as $path) {
             if (File::exists($path)) {
                 $content = File::get($path);
-                $data    = json_decode($content, true);
+                $data = json_decode($content, true);
+
                 return $data ?? [];
             }
         }

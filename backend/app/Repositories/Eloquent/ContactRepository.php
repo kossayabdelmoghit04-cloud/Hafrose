@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Contact;
 use App\Repositories\Contracts\ContactRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ContactRepository implements ContactRepositoryInterface
 {
@@ -18,22 +19,22 @@ class ContactRepository implements ContactRepositoryInterface
     /**
      * Obtenir tous les messages de contact (avec pagination et recherche).
      */
-    public function paginate(array $filters, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         $query = Contact::query();
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%")
-                  ->orWhere('message', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%");
             });
         }
 
         if (isset($filters['is_read']) && $filters['is_read'] !== '') {
-            $query->where('is_read', (bool)$filters['is_read']);
+            $query->where('is_read', (bool) $filters['is_read']);
         }
 
         return $query->latest()->paginate($perPage);
@@ -53,6 +54,7 @@ class ContactRepository implements ContactRepositoryInterface
     public function update(Contact $contact, array $data): Contact
     {
         $contact->update($data);
+
         return $contact;
     }
 

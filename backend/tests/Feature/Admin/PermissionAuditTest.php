@@ -5,7 +5,6 @@ namespace Tests\Feature\Admin;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
@@ -36,6 +35,7 @@ class PermissionAuditTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -43,6 +43,7 @@ class PermissionAuditTest extends TestCase
     private function customerToken(): string
     {
         $user = User::factory()->create(['role' => 'customer']);
+
         return $user->createToken('user-token')->plainTextToken;
     }
 
@@ -164,10 +165,10 @@ class PermissionAuditTest extends TestCase
     {
         $category = Category::factory()->create();
         $response = $this->withToken($this->customerToken())->postJson('/api/admin/products', [
-            'name'        => 'Produit Test',
-            'slug'        => 'produit-test',
-            'price'       => 99.99,
-            'stock'       => 10,
+            'name' => 'Produit Test',
+            'slug' => 'produit-test',
+            'price' => 99.99,
+            'stock' => 10,
             'category_id' => $category->id,
             'description' => 'Description.',
         ]);

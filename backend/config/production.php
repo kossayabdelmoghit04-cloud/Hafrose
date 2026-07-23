@@ -123,7 +123,7 @@ return [
          */
         'allowed_ips' => array_filter(
             explode(',', env('MAINTENANCE_ALLOWED_IPS', '')),
-            fn (string $ip) => !empty(trim($ip))
+            fn (string $ip) => ! empty(trim($ip))
         ),
 
         /**

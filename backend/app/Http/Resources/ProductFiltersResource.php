@@ -17,10 +17,10 @@ class ProductFiltersResource extends JsonResource
         return [
             'categories' => collect($this['categories'])->map(function ($category) {
                 return [
-                    'id'             => $category->id,
-                    'name'           => $category->name,
-                    'slug'           => $category->slug,
-                    'count'          => (int) $category->products_count,
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'count' => (int) $category->products_count,
                     'products_count' => (int) $category->products_count,
                 ];
             })->toArray(),
@@ -29,8 +29,8 @@ class ProductFiltersResource extends JsonResource
                 'max' => $this['price']['max'] !== null ? (float) $this['price']['max'] : 0,
             ],
             'products_count' => (int) $this['products_count'],
-            'brands'         => $this['brands'] ?? [],
-            'statistics'     => $this['statistics'] ?? [],
+            'brands' => $this['brands'] ?? [],
+            'statistics' => $this['statistics'] ?? [],
         ];
     }
 }

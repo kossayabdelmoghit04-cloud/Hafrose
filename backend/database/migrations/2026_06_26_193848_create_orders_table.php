@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('city', 100);
             $table->decimal('total_price', 10, 2)->default(0.00);
             $table->enum('status', ['En attente', 'Confirmée', 'Expédiée', 'Livrée', 'Annulée'])
-                  ->default('En attente')
-                  ->index();
+                ->default('En attente')
+                ->index();
             $table->timestamps();
         });
     }

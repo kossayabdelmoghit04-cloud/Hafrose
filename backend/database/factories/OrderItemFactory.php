@@ -8,7 +8,7 @@ use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\OrderItem>
+ * @extends Factory<OrderItem>
  */
 class OrderItemFactory extends Factory
 {
@@ -23,7 +23,7 @@ class OrderItemFactory extends Factory
     {
         $order = Order::inRandomOrder()->first() ?? Order::factory()->create();
         $product = Product::inRandomOrder()->first() ?? Product::factory()->create();
-        
+
         return [
             'order_id' => $order->id,
             'product_id' => $product->id,

@@ -14,6 +14,7 @@ class ContactControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -27,7 +28,7 @@ class ContactControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/contacts');
 
         $response->assertOk()
-                 ->assertJsonStructure(['data' => [['id', 'name', 'email', 'subject', 'is_read']]]);
+            ->assertJsonStructure(['data' => [['id', 'name', 'email', 'subject', 'is_read']]]);
     }
 
     public function test_contacts_can_be_filtered_by_is_read(): void
@@ -49,13 +50,13 @@ class ContactControllerTest extends TestCase
 
     public function test_can_mark_contact_as_read(): void
     {
-        $token   = $this->adminToken();
+        $token = $this->adminToken();
         $contact = Contact::factory()->create(['is_read' => false]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/contacts/{$contact->id}/read");
 
         $response->assertOk()
-                 ->assertJsonPath('data.is_read', true);
+            ->assertJsonPath('data.is_read', true);
 
         $this->assertDatabaseHas('contacts', ['id' => $contact->id, 'is_read' => true]);
     }
@@ -64,7 +65,7 @@ class ContactControllerTest extends TestCase
 
     public function test_can_delete_contact_message(): void
     {
-        $token   = $this->adminToken();
+        $token = $this->adminToken();
         $contact = Contact::factory()->create();
 
         $response = $this->withToken($token)->deleteJson("/api/admin/contacts/{$contact->id}");

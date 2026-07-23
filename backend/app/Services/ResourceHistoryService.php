@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AdminLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 /**
  * Service d'agrégation et de consultation de l'historique des modifications par ressource.
@@ -21,36 +22,36 @@ class ResourceHistoryService
             ->with('admin')
             ->where(function ($q) use ($normalizedResource) {
                 $q->where('resource', $normalizedResource)
-                  ->orWhere('resource', \Illuminate\Support\Str::singular($normalizedResource))
-                  ->orWhere('resource', \Illuminate\Support\Str::plural($normalizedResource));
+                    ->orWhere('resource', Str::singular($normalizedResource))
+                    ->orWhere('resource', Str::plural($normalizedResource));
             })
-            ->where(function ($q) use ($resourceId, $filters) {
+            ->where(function ($q) use ($resourceId) {
                 $q->where('resource_id', $resourceId)
-                  ->orWhereJsonContains('old_values->ids', $resourceId)
-                  ->orWhereJsonContains('new_values->modified_ids', $resourceId);
+                    ->orWhereJsonContains('old_values->ids', $resourceId)
+                    ->orWhereJsonContains('new_values->modified_ids', $resourceId);
             });
 
         // Recherche textuelle dans la description ou les détails
-        if (!empty($filters['search'])) {
-            $search = '%' . $filters['search'] . '%';
+        if (! empty($filters['search'])) {
+            $search = '%'.$filters['search'].'%';
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', $search)
-                  ->orWhere('action', 'like', $search)
-                  ->orWhere('ip_address', 'like', $search);
+                    ->orWhere('action', 'like', $search)
+                    ->orWhere('ip_address', 'like', $search);
             });
         }
 
         // Filtre par type d'action
-        if (!empty($filters['action'])) {
+        if (! empty($filters['action'])) {
             $query->where('action', $filters['action']);
         }
 
         // Filtres par plage de dates
-        if (!empty($filters['start_date'])) {
+        if (! empty($filters['start_date'])) {
             $query->where('created_at', '>=', $filters['start_date']);
         }
 
-        if (!empty($filters['end_date'])) {
+        if (! empty($filters['end_date'])) {
             $query->where('created_at', '<=', $filters['end_date']);
         }
 

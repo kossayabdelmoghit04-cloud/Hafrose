@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
@@ -27,16 +27,16 @@ class SystemHealthService
     public function getHealthReport(): array
     {
         $warnings = [];
-        $errors   = [];
+        $errors = [];
 
-        $dbCheck         = $this->checkDatabase($warnings, $errors);
-        $cacheCheck      = $this->checkCache($warnings, $errors);
-        $fsCheck         = $this->checkFilesystem($warnings, $errors);
-        $queueCheck      = $this->checkQueue($warnings, $errors);
-        $schedulerCheck  = $this->checkScheduler($warnings, $errors);
-        $phpCheck        = $this->checkPhp($warnings, $errors);
-        $serverCheck     = $this->checkServer($warnings, $errors);
-        $appCheck        = $this->checkApplication($warnings, $errors);
+        $dbCheck = $this->checkDatabase($warnings, $errors);
+        $cacheCheck = $this->checkCache($warnings, $errors);
+        $fsCheck = $this->checkFilesystem($warnings, $errors);
+        $queueCheck = $this->checkQueue($warnings, $errors);
+        $schedulerCheck = $this->checkScheduler($warnings, $errors);
+        $phpCheck = $this->checkPhp($warnings, $errors);
+        $serverCheck = $this->checkServer($warnings, $errors);
+        $appCheck = $this->checkApplication($warnings, $errors);
 
         $status = 'healthy';
         if (count($errors) > 0) {
@@ -46,19 +46,19 @@ class SystemHealthService
         }
 
         return [
-            'status'   => $status,
-            'checks'   => [
-                'database'    => $dbCheck,
-                'cache'       => $cacheCheck,
-                'filesystem'  => $fsCheck,
-                'queue'       => $queueCheck,
-                'scheduler'   => $schedulerCheck,
-                'php'         => $phpCheck,
-                'server'      => $serverCheck,
+            'status' => $status,
+            'checks' => [
+                'database' => $dbCheck,
+                'cache' => $cacheCheck,
+                'filesystem' => $fsCheck,
+                'queue' => $queueCheck,
+                'scheduler' => $schedulerCheck,
+                'php' => $phpCheck,
+                'server' => $serverCheck,
                 'application' => $appCheck,
             ],
             'warnings' => array_values(array_unique($warnings)),
-            'errors'   => array_values(array_unique($errors)),
+            'errors' => array_values(array_unique($errors)),
         ];
     }
 
@@ -88,7 +88,7 @@ class SystemHealthService
             if ($driver === 'mysql') {
                 try {
                     $result = DB::select("SHOW STATUS LIKE 'Threads_connected'");
-                    if (!empty($result)) {
+                    if (! empty($result)) {
                         $connectionCount = (int) $result[0]->Value;
                     }
                 } catch (\Throwable $e) {
@@ -101,17 +101,17 @@ class SystemHealthService
                 $warnings[] = "Database response time ({$responseTimeMs}ms) exceeds threshold ({$slowQueryThreshold}ms).";
             }
         } catch (\Throwable $e) {
-            $errors[] = "Database connection error: " . $e->getMessage();
-            $this->logger->error("HealthCheck Database failure", ['exception' => $e->getMessage()]);
+            $errors[] = 'Database connection error: '.$e->getMessage();
+            $this->logger->error('HealthCheck Database failure', ['exception' => $e->getMessage()]);
         }
 
         return [
-            'status'            => $connected ? 'healthy' : 'unhealthy',
-            'driver'            => $driver,
-            'database'          => $databaseName,
-            'connected'         => $connected,
-            'response_time_ms'  => $responseTimeMs,
-            'connection_count'  => $connectionCount,
+            'status' => $connected ? 'healthy' : 'unhealthy',
+            'driver' => $driver,
+            'database' => $databaseName,
+            'connected' => $connected,
+            'response_time_ms' => $responseTimeMs,
+            'connection_count' => $connectionCount,
         ];
     }
 
@@ -121,32 +121,32 @@ class SystemHealthService
     public function checkCache(array &$warnings = [], array &$errors = []): array
     {
         $store = config('cache.default');
-        $testKey = 'health_check_' . uniqid();
-        $testValue = 'ok_' . time();
+        $testKey = 'health_check_'.uniqid();
+        $testValue = 'ok_'.time();
         $writeSuccess = false;
-        $readSuccess  = false;
+        $readSuccess = false;
         $deleteSuccess = false;
 
         try {
             $writeSuccess = Cache::put($testKey, $testValue, 10);
-            $retrieved    = Cache::get($testKey);
-            $readSuccess  = ($retrieved === $testValue);
+            $retrieved = Cache::get($testKey);
+            $readSuccess = ($retrieved === $testValue);
             $deleteSuccess = Cache::forget($testKey);
         } catch (\Throwable $e) {
-            $errors[] = "Cache operation failure ({$store}): " . $e->getMessage();
-            $this->logger->error("HealthCheck Cache failure", ['exception' => $e->getMessage()]);
+            $errors[] = "Cache operation failure ({$store}): ".$e->getMessage();
+            $this->logger->error('HealthCheck Cache failure', ['exception' => $e->getMessage()]);
         }
 
         $healthy = $writeSuccess && $readSuccess;
-        if (!$healthy) {
+        if (! $healthy) {
             $errors[] = "Cache test (put/get/forget) failed for store '{$store}'.";
         }
 
         return [
-            'status'         => $healthy ? 'healthy' : 'unhealthy',
-            'store'          => $store,
-            'write_success'  => $writeSuccess,
-            'read_success'   => $readSuccess,
+            'status' => $healthy ? 'healthy' : 'unhealthy',
+            'store' => $store,
+            'write_success' => $writeSuccess,
+            'read_success' => $readSuccess,
             'delete_success' => $deleteSuccess,
         ];
     }
@@ -156,11 +156,11 @@ class SystemHealthService
      */
     public function checkFilesystem(array &$warnings = [], array &$errors = []): array
     {
-        $backupPath = storage_path('app/' . config('production.backup.path', 'backups'));
+        $backupPath = storage_path('app/'.config('production.backup.path', 'backups'));
 
         $paths = [
             'storage' => storage_path(),
-            'public'  => public_path(),
+            'public' => public_path(),
             'backups' => $backupPath,
         ];
 
@@ -169,7 +169,7 @@ class SystemHealthService
 
         foreach ($paths as $name => $path) {
             $exists = File::exists($path) || is_dir($path);
-            if (!$exists && $name === 'backups') {
+            if (! $exists && $name === 'backups') {
                 try {
                     File::makeDirectory($path, 0755, true, true);
                     $exists = true;
@@ -182,25 +182,25 @@ class SystemHealthService
             $freeSpace = $exists ? @disk_free_space($path) : false;
             $totalSpace = $exists ? @disk_total_space($path) : false;
 
-            if (!$exists) {
+            if (! $exists) {
                 $errors[] = "Directory '{$name}' at {$path} does not exist.";
                 $allHealthy = false;
-            } elseif (!$writable) {
+            } elseif (! $writable) {
                 $errors[] = "Directory '{$name}' at {$path} is not writable.";
                 $allHealthy = false;
             }
 
             $details[$name] = [
-                'path'            => $path,
-                'exists'          => $exists,
-                'writable'        => $writable,
-                'free_space_mb'   => $freeSpace !== false ? round($freeSpace / 1024 / 1024, 2) : null,
-                'total_space_mb'  => $totalSpace !== false ? round($totalSpace / 1024 / 1024, 2) : null,
+                'path' => $path,
+                'exists' => $exists,
+                'writable' => $writable,
+                'free_space_mb' => $freeSpace !== false ? round($freeSpace / 1024 / 1024, 2) : null,
+                'total_space_mb' => $totalSpace !== false ? round($totalSpace / 1024 / 1024, 2) : null,
             ];
         }
 
         return [
-            'status'  => $allHealthy ? 'healthy' : 'unhealthy',
+            'status' => $allHealthy ? 'healthy' : 'unhealthy',
             'details' => $details,
         ];
     }
@@ -237,16 +237,16 @@ class SystemHealthService
                 $warnings[] = "High number of failed queue jobs detected ({$failedJobs}).";
             }
         } catch (\Throwable $e) {
-            $warnings[] = "Queue check encountered an error: " . $e->getMessage();
+            $warnings[] = 'Queue check encountered an error: '.$e->getMessage();
         }
 
         return [
-            'status'         => ($active && $stuckJobsCount === 0) ? 'healthy' : 'warning',
-            'driver'         => $driver,
-            'active'         => $active,
-            'pending_jobs'   => $pendingJobs,
-            'failed_jobs'    => $failedJobs,
-            'stuck_jobs'     => $stuckJobsCount,
+            'status' => ($active && $stuckJobsCount === 0) ? 'healthy' : 'warning',
+            'driver' => $driver,
+            'active' => $active,
+            'pending_jobs' => $pendingJobs,
+            'failed_jobs' => $failedJobs,
+            'stuck_jobs' => $stuckJobsCount,
         ];
     }
 
@@ -259,7 +259,7 @@ class SystemHealthService
         $lastRun = Cache::get('scheduler:last_run');
         $markerFile = storage_path('framework/scheduler_last_run');
 
-        if (!$lastRun && File::exists($markerFile)) {
+        if (! $lastRun && File::exists($markerFile)) {
             $lastRun = date('Y-m-d H:i:s', File::lastModified($markerFile));
         }
 
@@ -274,11 +274,11 @@ class SystemHealthService
         }
 
         return [
-            'status'         => $isActive ? 'healthy' : 'warning',
-            'enabled'        => $schedulerEnabled,
-            'active'         => $isActive,
-            'last_run'       => $lastRun ?: 'Never / Not recorded',
-            'next_run_est'   => 'Every minute',
+            'status' => $isActive ? 'healthy' : 'warning',
+            'enabled' => $schedulerEnabled,
+            'active' => $isActive,
+            'last_run' => $lastRun ?: 'Never / Not recorded',
+            'next_run_est' => 'Every minute',
         ];
     }
 
@@ -294,21 +294,21 @@ class SystemHealthService
         foreach ($requiredExtensions as $ext) {
             $loaded = extension_loaded($ext);
             $extensionsStatus[$ext] = $loaded;
-            if (!$loaded) {
+            if (! $loaded) {
                 $missingExt[] = $ext;
             }
         }
 
         if (count($missingExt) > 0) {
-            $errors[] = "Missing PHP extensions: " . implode(', ', $missingExt);
+            $errors[] = 'Missing PHP extensions: '.implode(', ', $missingExt);
         }
 
         return [
-            'status'             => empty($missingExt) ? 'healthy' : 'unhealthy',
-            'version'            => PHP_VERSION,
-            'memory_limit'       => ini_get('memory_limit'),
+            'status' => empty($missingExt) ? 'healthy' : 'unhealthy',
+            'version' => PHP_VERSION,
+            'memory_limit' => ini_get('memory_limit'),
             'max_execution_time' => ini_get('max_execution_time'),
-            'extensions'         => $extensionsStatus,
+            'extensions' => $extensionsStatus,
         ];
     }
 
@@ -349,16 +349,16 @@ class SystemHealthService
         }
 
         return [
-            'status'             => ($diskPercentage >= $diskCriticalThreshold) ? 'unhealthy' : (($diskPercentage >= $diskWarningThreshold) ? 'warning' : 'healthy'),
-            'hostname'           => gethostname() ?: 'unknown',
-            'os'                 => PHP_OS_FAMILY . ' (' . php_uname('s') . ' ' . php_uname('r') . ')',
-            'disk_total_mb'      => $totalSpaceMb = $totalDisk ? round($totalDisk / 1024 / 1024, 2) : null,
-            'disk_free_mb'       => $freeDisk !== false ? round($freeDisk / 1024 / 1024, 2) : null,
+            'status' => ($diskPercentage >= $diskCriticalThreshold) ? 'unhealthy' : (($diskPercentage >= $diskWarningThreshold) ? 'warning' : 'healthy'),
+            'hostname' => gethostname() ?: 'unknown',
+            'os' => PHP_OS_FAMILY.' ('.php_uname('s').' '.php_uname('r').')',
+            'disk_total_mb' => $totalSpaceMb = $totalDisk ? round($totalDisk / 1024 / 1024, 2) : null,
+            'disk_free_mb' => $freeDisk !== false ? round($freeDisk / 1024 / 1024, 2) : null,
             'disk_used_percentage' => $diskPercentage,
-            'memory_current_mb'  => $memoryAllocatedMb,
-            'memory_peak_mb'     => $memoryPeakMb,
-            'load_average'       => $loadAvg,
-            'uptime'             => $uptime,
+            'memory_current_mb' => $memoryAllocatedMb,
+            'memory_peak_mb' => $memoryPeakMb,
+            'load_average' => $loadAvg,
+            'uptime' => $uptime,
         ];
     }
 
@@ -368,14 +368,14 @@ class SystemHealthService
     public function checkApplication(array &$warnings = [], array &$errors = []): array
     {
         return [
-            'status'          => 'healthy',
-            'name'            => config('app.name', 'Hafrose'),
-            'environment'     => config('app.env', 'production'),
-            'debug_mode'      => (bool) config('app.debug', false),
-            'app_version'     => config('app.version', '1.0.0'),
+            'status' => 'healthy',
+            'name' => config('app.name', 'Hafrose'),
+            'environment' => config('app.env', 'production'),
+            'debug_mode' => (bool) config('app.debug', false),
+            'app_version' => config('app.version', '1.0.0'),
             'laravel_version' => app()->version(),
-            'timezone'        => config('app.timezone', 'UTC'),
-            'locale'          => config('app.locale', 'en'),
+            'timezone' => config('app.timezone', 'UTC'),
+            'locale' => config('app.locale', 'en'),
         ];
     }
 }

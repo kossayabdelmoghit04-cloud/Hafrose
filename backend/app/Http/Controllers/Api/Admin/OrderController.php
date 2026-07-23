@@ -10,16 +10,18 @@ use App\Models\AdminLog;
 use App\Services\AdminLogService;
 use App\Services\OrderService;
 use App\Traits\HttpResponses;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class OrderController extends Controller
 {
     use HttpResponses;
 
     public function __construct(
-        protected OrderService     $orderService,
-        protected AdminLogService  $adminLogService,
+        protected OrderService $orderService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -28,10 +30,10 @@ class OrderController extends Controller
     public function index(AdminOrderIndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $filters   = array_filter([
+        $filters = array_filter([
             'search' => $validated['search'] ?? null,
             'status' => $validated['status'] ?? null,
-            'date'   => $validated['date']   ?? null,
+            'date' => $validated['date'] ?? null,
         ], fn ($v) => $v !== null);
         $perPage = (int) ($validated['per_page'] ?? 10);
 
@@ -40,13 +42,13 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => OrderResource::collection($orders),
-            'meta'    => [
+            'errors' => null,
+            'data' => OrderResource::collection($orders),
+            'meta' => [
                 'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-                'per_page'     => $orders->perPage(),
-                'total'        => $orders->total(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
             ],
         ]);
     }
@@ -57,6 +59,7 @@ class OrderController extends Controller
     public function show(int $id): JsonResponse
     {
         $order = $this->orderService->getOrderById($id);
+
         return $this->successResponse(new OrderResource($order));
     }
 
@@ -65,19 +68,19 @@ class OrderController extends Controller
      */
     public function updateStatus(UpdateOrderStatusRequest $request, int $id): JsonResponse
     {
-        $order     = $this->orderService->getOrderById($id);
+        $order = $this->orderService->getOrderById($id);
         $oldStatus = $order->status;
         $newStatus = $request->validated()['status'];
 
         $updated = $this->orderService->updateOrderStatus($order, $newStatus);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_STATUS_CHANGE,
-            resource:   AdminLog::RESOURCE_ORDER,
+            request: $request,
+            action: AdminLog::ACTION_STATUS_CHANGE,
+            resource: AdminLog::RESOURCE_ORDER,
             resourceId: $order->id,
-            oldValues:  ['status' => $oldStatus],
-            newValues:  ['status' => $newStatus],
+            oldValues: ['status' => $oldStatus],
+            newValues: ['status' => $newStatus],
         );
 
         return $this->successResponse(
@@ -89,21 +92,21 @@ class OrderController extends Controller
     /**
      * Exporter une commande au format PDF (facture).
      */
-    public function exportPdf(Request $request, int $id): \Illuminate\Http\Response
+    public function exportPdf(Request $request, int $id): Response
     {
         $order = $this->orderService->getOrderById($id);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_EXPORT,
-            resource:   AdminLog::RESOURCE_ORDER,
+            request: $request,
+            action: AdminLog::ACTION_EXPORT,
+            resource: AdminLog::RESOURCE_ORDER,
             resourceId: $order->id,
-            newValues:  ['format' => 'pdf'],
+            newValues: ['format' => 'pdf'],
         );
 
         $html = view('pdf.invoice', ['order' => $order])->render();
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+        $pdf = Pdf::loadHTML($html);
         $pdf->setPaper('A4', 'portrait');
 
         return $pdf->download("facture-commande-{$order->id}.pdf");

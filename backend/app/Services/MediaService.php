@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Models\Media;
 use App\Repositories\Contracts\MediaRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class MediaService
 {
     protected MediaRepositoryInterface $mediaRepository;
+
     protected ImageOptimizationService $imageOptimizationService;
 
     public function __construct(
@@ -37,10 +38,10 @@ class MediaService
     {
         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
-        
+
         // Créer un nom unique nettoyé
-        $safeFilename = str_replace(' ', '_', strtolower($filename)) . '_' . time() . '.' . $extension;
-        
+        $safeFilename = str_replace(' ', '_', strtolower($filename)).'_'.time().'.'.$extension;
+
         // Optimiser et stocker les déclinaisons si c'est une image
         $mimeType = $file->getMimeType();
         if (str_starts_with($mimeType, 'image/')) {
@@ -52,10 +53,10 @@ class MediaService
 
         // Créer l'enregistrement en base de données
         return $this->mediaRepository->create([
-            'filename'  => $file->getClientOriginalName(),
-            'path'      => $path,
+            'filename' => $file->getClientOriginalName(),
+            'path' => $path,
             'mime_type' => $mimeType,
-            'size'      => $file->getSize(),
+            'size' => $file->getSize(),
         ]);
     }
 
@@ -66,8 +67,8 @@ class MediaService
     {
         $media = $this->mediaRepository->find($id);
 
-        if (!$media) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Media not found");
+        if (! $media) {
+            throw new ModelNotFoundException('Media not found');
         }
 
         // Supprimer l'original et ses déclinaisons

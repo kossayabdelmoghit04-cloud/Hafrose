@@ -16,9 +16,9 @@ return new class extends Migration
 
             // Utilisateur concerné (nullable pour actions publiques/visiteurs ou suppression)
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             // Type d'événement (auth.login, order.created, etc.)
             $table->string('event_type', 50);

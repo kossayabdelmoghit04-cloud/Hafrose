@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\AdminLog;
-use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Order;
 use App\Models\Product;

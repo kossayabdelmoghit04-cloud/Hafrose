@@ -48,13 +48,13 @@ class SettingRepository implements SettingRepositoryInterface
             return;
         }
 
-        $now  = now();
+        $now = now();
         $rows = [];
 
         foreach ($settings as $key => $value) {
             $rows[] = [
-                'key'        => $key,
-                'value'      => $value,
+                'key' => $key,
+                'value' => $value,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

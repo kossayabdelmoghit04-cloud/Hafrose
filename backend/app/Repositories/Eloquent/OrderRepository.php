@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Services\PerformanceCacheManager;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class OrderRepository implements OrderRepositoryInterface
 {
@@ -16,6 +17,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $order = Order::create($data);
         PerformanceCacheManager::invalidateDashboard();
+
         return $order;
     }
 
@@ -30,33 +32,33 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * Obtenir les commandes avec pagination et filtres.
      */
-    public function paginateWithFilters(array $filters, int $perPage = 10): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function paginateWithFilters(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
         $perPage = min(max(1, $perPage), $maxPerPage);
 
         $query = Order::query()->with(['orderItems' => function ($q) {
             $q->select('id', 'order_id', 'product_id', 'quantity', 'unit_price')
-              ->with(['product' => function ($p) {
-                  $p->select('id', 'name', 'slug', 'price');
-              }]);
+                ->with(['product' => function ($p) {
+                    $p->select('id', 'name', 'slug', 'price');
+                }]);
         }]);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('city', 'like', "%{$search}%");
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%");
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['date'])) {
+        if (! empty($filters['date'])) {
             $query->whereDate('created_at', $filters['date']);
         }
 
@@ -70,9 +72,9 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return Order::with(['orderItems' => function ($q) {
             $q->select('id', 'order_id', 'product_id', 'quantity', 'unit_price')
-              ->with(['product' => function ($p) {
-                  $p->select('id', 'name', 'slug', 'price');
-              }]);
+                ->with(['product' => function ($p) {
+                    $p->select('id', 'name', 'slug', 'price');
+                }]);
         }])->find($id);
     }
 
@@ -83,6 +85,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         $order->update($data);
         PerformanceCacheManager::invalidateDashboard();
+
         return $order;
     }
 }

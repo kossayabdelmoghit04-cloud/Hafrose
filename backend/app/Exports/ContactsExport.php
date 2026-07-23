@@ -10,9 +10,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle, WithStyles, ShouldAutoSize
+class ContactsExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(protected array $filters = []) {}
 
@@ -20,12 +21,12 @@ class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
     {
         $query = Contact::query();
 
-        if (!empty($this->filters['search'])) {
-            $search = '%' . $this->filters['search'] . '%';
+        if (! empty($this->filters['search'])) {
+            $search = '%'.$this->filters['search'].'%';
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', $search)
-                  ->orWhere('email', 'like', $search)
-                  ->orWhere('subject', 'like', $search);
+                    ->orWhere('email', 'like', $search)
+                    ->orWhere('subject', 'like', $search);
             });
         }
 
@@ -54,7 +55,7 @@ class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
     }
 
     /**
-     * @param Contact $contact
+     * @param  Contact  $contact
      */
     public function map($contact): array
     {
@@ -81,7 +82,7 @@ class ContactsExport implements FromQuery, WithHeadings, WithMapping, WithTitle,
             1 => [
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => '1E293B'],
                 ],
             ],

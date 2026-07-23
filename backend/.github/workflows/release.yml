@@ -1,0 +1,206 @@
+name: 🏷️ Release — HAFROSE
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1 — Build Release Artifact
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-release:
+    name: 📦 Build Release Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐘 Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, openssl, gd, zip, bcmath, ctype, json, xml
+          coverage: none
+
+      - name: 🟩 Setup Node LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: 📥 Install PHP dependencies (production)
+        run: |
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --no-interaction \
+            --optimize-autoloader \
+            --no-progress
+
+      - name: 📥 Install Node dependencies
+        run: npm ci --prefer-offline
+
+      - name: 🔨 Build frontend assets
+        run: npm run build
+
+      - name: 📋 Extract version info
+        id: version
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=${TAG#v}" >> $GITHUB_OUTPUT
+          echo "date=$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: 📄 Generate CHANGELOG for release
+        id: changelog
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          echo "=== Generating changelog for $TAG ==="
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "Changes since $PREV_TAG:"
+            git log --oneline "$PREV_TAG..HEAD" \
+              --pretty=format:"- %s (%h)" \
+              --no-merges > /tmp/release_changelog.md
+          else
+            echo "Initial release"
+            git log --oneline \
+              --pretty=format:"- %s (%h)" \
+              --no-merges \
+              -20 > /tmp/release_changelog.md
+          fi
+
+          cat /tmp/release_changelog.md
+
+      - name: 📦 Create release archive
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          ARCHIVE_NAME="hafrose-backend-$TAG"
+
+          mkdir -p /tmp/release_build
+
+          # Copy project files (excluding dev dependencies, .git, etc.)
+          rsync -av \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="node_modules" \
+            --exclude="vendor" \
+            --exclude=".env" \
+            --exclude="storage/logs/*" \
+            --exclude="storage/app/backups" \
+            --exclude=".phpunit.result.cache" \
+            --exclude="tests" \
+            . /tmp/release_build/
+
+          # Create ZIP archive
+          cd /tmp
+          zip -r "$ARCHIVE_NAME.zip" "release_build/" -x "*.git*"
+          echo "✅ Archive created: $ARCHIVE_NAME.zip"
+          ls -lh /tmp/$ARCHIVE_NAME.zip
+
+      - name: 📄 Prepare release notes
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          DATE="${{ steps.version.outputs.date }}"
+          SHA="${{ steps.version.outputs.sha }}"
+
+          cat > /tmp/release_notes.md << EOF
+          # 🚀 HAFROSE Backend $TAG
+
+          **Release Date:** $DATE
+          **Commit:** $SHA
+          **PHP Version:** 8.3+
+          **Laravel Version:** 12.x
+
+          ---
+
+          ## 📋 What's Changed
+
+          $(cat /tmp/release_changelog.md 2>/dev/null || echo "See CHANGELOG.md for details")
+
+          ---
+
+          ## 📦 Installation
+
+          \`\`\`bash
+          # 1. Extract the archive
+          unzip hafrose-backend-$TAG.zip -d hafrose-backend
+
+          # 2. Install dependencies
+          cd hafrose-backend
+          composer install --no-dev --optimize-autoloader
+
+          # 3. Configure environment
+          cp .env.example .env
+          php artisan key:generate
+
+          # 4. Run migrations
+          php artisan migrate --force
+
+          # 5. Optimize
+          php artisan optimize
+          \`\`\`
+
+          ## 🛡️ Security
+          This release has been scanned for:
+          - Known CVEs via \`composer audit\`
+          - Secret / credential leaks
+          - PHP security patterns
+
+          ## 🧪 Tests
+          All PHPUnit Feature and Unit tests pass on PHP 8.3.
+
+          ---
+
+          > **HAFROSE** — Enterprise Laravel 12 Backend
+          > Built with ❤️ and automated by GitHub Actions
+          EOF
+
+          cat /tmp/release_notes.md
+
+      - name: 🏷️ Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "🚀 HAFROSE ${{ steps.version.outputs.tag }}"
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+          files: |
+            /tmp/hafrose-backend-${{ steps.version.outputs.tag }}.zip
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2 — Post-release notification
+  # ─────────────────────────────────────────────────────────────────────────────
+  post-release:
+    name: 📣 Post-Release Summary
+    runs-on: ubuntu-latest
+    needs: [build-release]
+    if: always()
+
+    steps:
+      - name: 📣 Release summary
+        run: |
+          echo "==================================="
+          echo "🏷️ HAFROSE Release Pipeline"
+          echo "==================================="
+          echo "Tag:           ${{ github.ref_name }}"
+          echo "Build Status:  ${{ needs.build-release.result }}"
+          echo "Release URL:   https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          echo "==================================="

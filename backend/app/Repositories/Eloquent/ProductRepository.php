@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\PerformanceCacheManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class ProductRepository implements ProductRepositoryInterface
@@ -22,10 +23,10 @@ class ProductRepository implements ProductRepositoryInterface
         $query = Product::query();
 
         // Filtre par catégorie (ID ou Slug)
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $query->whereHas('category', function ($q) use ($filters) {
                 $q->where('slug', $filters['category'])
-                  ->orWhere('id', $filters['category']);
+                    ->orWhere('id', $filters['category']);
             });
         }
 
@@ -42,24 +43,24 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         // Filtre par couleur
-        if (!empty($filters['color'])) {
+        if (! empty($filters['color'])) {
             $query->where('color', $filters['color']);
         }
 
         // Filtre par matière
-        if (!empty($filters['material'])) {
+        if (! empty($filters['material'])) {
             $query->where('material', $filters['material']);
         }
 
         // Filtre par recherche textuelle
         $search = $filters['q'] ?? $filters['search'] ?? null;
-        if (!empty($search)) {
+        if (! empty($search)) {
             $hasShortDescription = Schema::hasColumn('products', 'short_description');
-            $hasSku              = Schema::hasColumn('products', 'sku');
+            $hasSku = Schema::hasColumn('products', 'sku');
 
             $query->where(function ($q) use ($search, $hasShortDescription, $hasSku) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%");
 
                 if ($hasShortDescription) {
                     $q->orWhere('short_description', 'like', "%{$search}%");
@@ -80,7 +81,7 @@ class ProductRepository implements ProductRepositoryInterface
         $allowedSorts = ['price', 'created_at', 'name'];
         $sortBy = $filters['sort'] ?? $filters['sort_by'] ?? 'created_at';
         $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
-        
+
         $sortOrder = $filters['direction'] ?? $filters['sort_order'] ?? 'desc';
         $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
 
@@ -127,6 +128,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
         $product = Product::create($data);
         PerformanceCacheManager::invalidateProducts();
+
         return $product;
     }
 
@@ -137,6 +139,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
         $product->update($data);
         PerformanceCacheManager::invalidateProducts();
+
         return $product;
     }
 
@@ -147,6 +150,7 @@ class ProductRepository implements ProductRepositoryInterface
     {
         $deleted = $product->delete();
         PerformanceCacheManager::invalidateProducts();
+
         return $deleted;
     }
 
@@ -165,12 +169,12 @@ class ProductRepository implements ProductRepositoryInterface
                     $query->where('is_active', true);
                 }
             })
-            ->withCount(['products' => function ($query) use ($hasActiveCheck) {
-                if ($hasActiveCheck) {
-                    $query->where('is_active', true);
-                }
-            }])
-            ->get();
+                ->withCount(['products' => function ($query) use ($hasActiveCheck) {
+                    if ($hasActiveCheck) {
+                        $query->where('is_active', true);
+                    }
+                }])
+                ->get();
 
             $stats = Product::query()
                 ->when($hasActiveCheck, function ($query) {
@@ -200,16 +204,16 @@ class ProductRepository implements ProductRepositoryInterface
             return [
                 'categories' => $categories,
                 'price' => [
-                    'min' => $stats ? (float)$stats->min_price : 0,
-                    'max' => $stats ? (float)$stats->max_price : 0,
+                    'min' => $stats ? (float) $stats->min_price : 0,
+                    'max' => $stats ? (float) $stats->max_price : 0,
                 ],
-                'products_count' => $stats ? (int)$stats->total_count : 0,
+                'products_count' => $stats ? (int) $stats->total_count : 0,
                 'brands' => $brands,
                 'statistics' => [
                     'average_price' => $stats ? round((float) $stats->avg_price, 2) : 0,
-                    'total_stock'   => $stats ? (int) $stats->total_stock : 0,
+                    'total_stock' => $stats ? (int) $stats->total_stock : 0,
                     'featured_count' => $featuredCount,
-                ]
+                ],
             ];
         }, ['filters', 'products']);
     }
@@ -217,7 +221,7 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * Obtenir les produits similaires à un produit donné.
      */
-    public function getRelatedProducts(Product $product, int $limit = 4): \Illuminate\Database\Eloquent\Collection
+    public function getRelatedProducts(Product $product, int $limit = 4): Collection
     {
         $related = Product::query()
             ->where('category_id', $product->category_id)
@@ -247,7 +251,7 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * Obtenir les produits les plus populaires avec mise en cache.
      */
-    public function getPopularProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    public function getPopularProducts(int $limit = 8): Collection
     {
         $ttl = config('cache-performance.ttls.popular_products', 3600);
         $key = "popular_products_list_{$limit}";
@@ -264,7 +268,7 @@ class ProductRepository implements ProductRepositoryInterface
         }, ['popular', 'products']);
 
         if (empty($productIds)) {
-            return new \Illuminate\Database\Eloquent\Collection();
+            return new Collection;
         }
 
         // Conserver l'ordre exact des IDs du cache
@@ -279,7 +283,7 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * Obtenir les produits similaires de la même catégorie.
      */
-    public function getSimilarProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection
+    public function getSimilarProducts(Product $product, int $limit = 8): Collection
     {
         $hasActiveCheck = Schema::hasColumn('products', 'is_active');
 
@@ -298,7 +302,7 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * Obtenir les produits populaires avec score pondéré.
      */
-    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): \Illuminate\Database\Eloquent\Collection
+    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): Collection
     {
         $ttl = config('cache-performance.ttls.popular_products', 3600);
         $key = "popular_products_list_{$limit}";
@@ -306,8 +310,8 @@ class ProductRepository implements ProductRepositoryInterface
         $productIds = PerformanceCacheManager::remember($key, $ttl, function () use ($limit, $weights) {
             $hasActiveCheck = Schema::hasColumn('products', 'is_active');
 
-            $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
-            $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
+            $wOrders = $weights['orders'] ?? config('recommendations.popularity_weights.orders', 3.0);
+            $wRating = $weights['rating'] ?? config('recommendations.popularity_weights.rating', 5.0);
             $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
 
             return Product::query()
@@ -321,7 +325,7 @@ class ProductRepository implements ProductRepositoryInterface
                 ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
                     $q->where('is_approved', true);
                 }], 'rating')
-                ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
+                ->orderByRaw('((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC', [$wOrders, $wRating, $wReviews])
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->pluck('id')
@@ -329,7 +333,7 @@ class ProductRepository implements ProductRepositoryInterface
         }, ['popular', 'products']);
 
         if (empty($productIds)) {
-            return new \Illuminate\Database\Eloquent\Collection();
+            return new Collection;
         }
 
         return Product::whereIn('id', $productIds)
@@ -354,24 +358,24 @@ class ProductRepository implements ProductRepositoryInterface
             $q->where('is_active', true);
         });
 
-        if (!empty($params['q'])) {
+        if (! empty($params['q'])) {
             $search = $params['q'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%")
-                  ->orWhereHas('category', function ($catQ) use ($search) {
-                      $catQ->where('name', 'like', "%{$search}%")
-                           ->orWhere('slug', 'like', "%{$search}%");
-                  });
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($catQ) use ($search) {
+                        $catQ->where('name', 'like', "%{$search}%")
+                            ->orWhere('slug', 'like', "%{$search}%");
+                    });
             });
         }
 
-        if (!empty($params['category'])) {
+        if (! empty($params['category'])) {
             $category = $params['category'];
             $query->whereHas('category', function ($q) use ($category) {
                 $q->where('slug', $category)
-                  ->orWhere('id', $category);
+                    ->orWhere('id', $category);
             });
         }
 
@@ -383,7 +387,7 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('price', '<=', (float) $params['price_max']);
         }
 
-        if (!empty($params['brand'])) {
+        if (! empty($params['brand'])) {
             $query->where('brand', $params['brand']);
         }
 
@@ -401,11 +405,11 @@ class ProductRepository implements ProductRepositoryInterface
             $query->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
                 $q->where('is_approved', true);
             }], 'rating')
-            ->orderByRaw('COALESCE(approved_reviews_avg_rating, 0) DESC')
-            ->orderBy('created_at', 'desc');
+                ->orderByRaw('COALESCE(approved_reviews_avg_rating, 0) DESC')
+                ->orderBy('created_at', 'desc');
         } elseif ($sort === 'popular') {
-            $wOrders  = $weights['orders']  ?? config('recommendations.popularity_weights.orders', 3.0);
-            $wRating  = $weights['rating']  ?? config('recommendations.popularity_weights.rating', 5.0);
+            $wOrders = $weights['orders'] ?? config('recommendations.popularity_weights.orders', 3.0);
+            $wRating = $weights['rating'] ?? config('recommendations.popularity_weights.rating', 5.0);
             $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
 
             $query->withCount('orderItems')
@@ -415,7 +419,7 @@ class ProductRepository implements ProductRepositoryInterface
                 ->withAvg(['reviews as approved_reviews_avg_rating' => function ($q) {
                     $q->where('is_approved', true);
                 }], 'rating')
-                ->orderByRaw("((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC", [$wOrders, $wRating, $wReviews])
+                ->orderByRaw('((order_items_count * ?) + (COALESCE(approved_reviews_avg_rating, 0) * ?) + (approved_reviews_count * ?)) DESC', [$wOrders, $wRating, $wReviews])
                 ->orderBy('created_at', 'desc');
         }
 

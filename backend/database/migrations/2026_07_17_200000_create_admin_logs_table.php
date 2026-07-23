@@ -16,9 +16,9 @@ return new class extends Migration
 
             // Administrateur ayant effectué l'action (nullable pour logs système)
             $table->foreignId('admin_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
 
             // Type d'action réalisée (login, logout, create, update, delete…)
             $table->string('action', 50);

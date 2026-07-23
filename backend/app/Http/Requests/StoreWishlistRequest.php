@@ -43,9 +43,9 @@ class StoreWishlistRequest extends FormRequest
     {
         return [
             'product_id.required' => 'Le produit est obligatoire.',
-            'product_id.integer'  => 'L\'identifiant du produit doit être un entier.',
-            'product_id.exists'   => 'Le produit sélectionné n\'existe pas.',
-            'product_id.unique'   => 'Ce produit est déjà dans vos favoris.',
+            'product_id.integer' => 'L\'identifiant du produit doit être un entier.',
+            'product_id.exists' => 'Le produit sélectionné n\'existe pas.',
+            'product_id.unique' => 'Ce produit est déjà dans vos favoris.',
         ];
     }
 }

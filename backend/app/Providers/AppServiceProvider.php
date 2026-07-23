@@ -2,6 +2,16 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\Contact;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Review;
+use App\Observers\CategoryObserver;
+use App\Observers\ContactObserver;
+use App\Observers\OrderObserver;
+use App\Observers\ProductObserver;
+use App\Observers\ReviewObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -43,11 +53,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // ── Observers pour invalidation automatique du cache ───────────────────
-        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
-        \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
-        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
-        \App\Models\Review::observe(\App\Observers\ReviewObserver::class);
-        \App\Models\Contact::observe(\App\Observers\ContactObserver::class);
+        Product::observe(ProductObserver::class);
+        Category::observe(CategoryObserver::class);
+        Order::observe(OrderObserver::class);
+        Review::observe(ReviewObserver::class);
+        Contact::observe(ContactObserver::class);
 
         // ── Routes publiques générales ─────────────────────────────────────────
         RateLimiter::for('api', function (Request $request) {

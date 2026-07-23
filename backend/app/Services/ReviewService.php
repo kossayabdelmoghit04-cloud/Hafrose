@@ -2,14 +2,17 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\ReviewRepositoryInterface;
-use App\Models\Review;
 use App\Models\ActivityLog;
+use App\Models\Review;
+use App\Repositories\Contracts\ReviewRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReviewService
 {
     protected ReviewRepositoryInterface $reviewRepository;
+
     protected ActivityLogService $activityLogService;
 
     public function __construct(
@@ -38,14 +41,14 @@ class ReviewService
 
         // Enregistrer l'activité de soumission d'un avis
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_REVIEW_SUBMITTED,
-            category:   ActivityLog::CATEGORY_REVIEW,
-            resource:   'reviews',
+            eventType: ActivityLog::EVENT_REVIEW_SUBMITTED,
+            category: ActivityLog::CATEGORY_REVIEW,
+            resource: 'reviews',
             resourceId: $review->id,
-            metadata:   [
+            metadata: [
                 'customer_name' => $review->customer_name,
-                'rating'        => $review->rating,
-                'product_id'    => $review->product_id,
+                'rating' => $review->rating,
+                'product_id' => $review->product_id,
             ]
         );
 
@@ -55,7 +58,7 @@ class ReviewService
     /**
      * Récupérer les avis paginés pour l'administration.
      */
-    public function getPaginatedReviews(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getPaginatedReviews(int $perPage = 15): LengthAwarePaginator
     {
         return $this->reviewRepository->paginate($perPage);
     }
@@ -67,8 +70,8 @@ class ReviewService
     {
         $review = $this->reviewRepository->find($id);
 
-        if (!$review) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Review not found");
+        if (! $review) {
+            throw new ModelNotFoundException('Review not found');
         }
 
         return $review;
@@ -83,13 +86,13 @@ class ReviewService
 
         // Enregistrer l'activité d'approbation d'un avis
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_REVIEW_APPROVED,
-            category:   ActivityLog::CATEGORY_REVIEW,
-            resource:   'reviews',
+            eventType: ActivityLog::EVENT_REVIEW_APPROVED,
+            category: ActivityLog::CATEGORY_REVIEW,
+            resource: 'reviews',
             resourceId: $updatedReview->id,
-            metadata:   [
+            metadata: [
                 'customer_name' => $updatedReview->customer_name,
-                'rating'        => $updatedReview->rating,
+                'rating' => $updatedReview->rating,
             ]
         );
 
@@ -105,13 +108,13 @@ class ReviewService
 
         // Enregistrer l'activité de rejet d'un avis
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_REVIEW_REJECTED,
-            category:   ActivityLog::CATEGORY_REVIEW,
-            resource:   'reviews',
+            eventType: ActivityLog::EVENT_REVIEW_REJECTED,
+            category: ActivityLog::CATEGORY_REVIEW,
+            resource: 'reviews',
             resourceId: $updatedReview->id,
-            metadata:   [
+            metadata: [
                 'customer_name' => $updatedReview->customer_name,
-                'rating'        => $updatedReview->rating,
+                'rating' => $updatedReview->rating,
             ]
         );
 
@@ -128,13 +131,13 @@ class ReviewService
         if ($deleted) {
             // Enregistrer l'activité de suppression d'un avis
             $this->activityLogService->log(
-                eventType:  ActivityLog::EVENT_REVIEW_DELETED,
-                category:   ActivityLog::CATEGORY_REVIEW,
-                resource:   'reviews',
+                eventType: ActivityLog::EVENT_REVIEW_DELETED,
+                category: ActivityLog::CATEGORY_REVIEW,
+                resource: 'reviews',
                 resourceId: $review->id,
-                metadata:   [
+                metadata: [
                     'customer_name' => $review->customer_name,
-                    'rating'        => $review->rating,
+                    'rating' => $review->rating,
                 ]
             );
         }

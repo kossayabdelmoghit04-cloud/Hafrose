@@ -41,6 +41,7 @@ class MediaRepository implements MediaRepositoryInterface
         if ($media) {
             return $media->delete();
         }
+
         return false;
     }
 }

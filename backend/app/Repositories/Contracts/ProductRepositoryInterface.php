@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 interface ProductRepositoryInterface
 {
@@ -44,38 +45,29 @@ interface ProductRepositoryInterface
 
     /**
      * Obtenir les données de filtres pour la boutique (catégories, min/max prix, count).
-     *
-     * @return array
      */
     public function getFiltersData(): array;
 
     /**
      * Obtenir les produits similaires à un produit donné (même catégorie, triés par proximité de prix).
      * Si la catégorie contient peu de résultats, complète avec les produits les plus récents.
-     *
-     * @param  \App\Models\Product  $product
-     * @param  int                  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getRelatedProducts(\App\Models\Product $product, int $limit = 4): \Illuminate\Database\Eloquent\Collection;
+    public function getRelatedProducts(Product $product, int $limit = 4): Collection;
 
     /**
      * Obtenir les produits les plus populaires (triés par nombre de commandes, puis is_featured, puis date).
-     *
-     * @param  int  $limit
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getPopularProducts(int $limit = 8): \Illuminate\Database\Eloquent\Collection;
+    public function getPopularProducts(int $limit = 8): Collection;
 
     /**
      * Obtenir les produits similaires de la même catégorie, triés aléatoirement.
      */
-    public function getSimilarProducts(Product $product, int $limit = 8): \Illuminate\Database\Eloquent\Collection;
+    public function getSimilarProducts(Product $product, int $limit = 8): Collection;
 
     /**
      * Obtenir les produits les plus populaires selon un calcul de score pondéré.
      */
-    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): \Illuminate\Database\Eloquent\Collection;
+    public function getPopularProductsWithWeights(int $limit = 8, array $weights = []): Collection;
 
     /**
      * Effectuer une recherche avancée multicritère avec tris personnalisés.

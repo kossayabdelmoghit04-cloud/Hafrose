@@ -2,8 +2,8 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Models\WishlistItem;
 use App\Models\User;
+use App\Models\WishlistItem;
 use App\Repositories\Contracts\WishlistRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -17,14 +17,14 @@ class WishlistRepository implements WishlistRepositoryInterface
         return WishlistItem::with([
             'product' => function ($q) {
                 $q->select('id', 'name', 'slug', 'price', 'category_id')
-                  ->with([
-                      'category' => fn ($c) => $c->select('id', 'name', 'slug'),
-                      'galleries',
-                  ]);
-            }
+                    ->with([
+                        'category' => fn ($c) => $c->select('id', 'name', 'slug'),
+                        'galleries',
+                    ]);
+            },
         ])
-        ->where('user_id', $user->id)
-        ->get();
+            ->where('user_id', $user->id)
+            ->get();
     }
 
     /**
@@ -54,7 +54,7 @@ class WishlistRepository implements WishlistRepositoryInterface
     public function createForUser(User $user, int $productId): WishlistItem
     {
         return WishlistItem::create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $productId,
         ]);
     }

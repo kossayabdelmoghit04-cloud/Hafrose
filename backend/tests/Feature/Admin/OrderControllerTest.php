@@ -15,6 +15,7 @@ class OrderControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -28,7 +29,7 @@ class OrderControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/orders');
 
         $response->assertOk()
-                 ->assertJsonStructure(['data' => [['id', 'customer_name', 'total_price', 'status']]]);
+            ->assertJsonStructure(['data' => [['id', 'customer_name', 'total_price', 'status']]]);
     }
 
     public function test_orders_can_be_filtered_by_status(): void
@@ -58,7 +59,7 @@ class OrderControllerTest extends TestCase
         $response = $this->withToken($token)->getJson("/api/admin/orders/{$order->id}");
 
         $response->assertOk()
-                 ->assertJsonFragment(['id' => $order->id]);
+            ->assertJsonFragment(['id' => $order->id]);
     }
 
     public function test_view_nonexistent_order_returns_404(): void
@@ -80,10 +81,10 @@ class OrderControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-                 ->assertJsonFragment(['status' => Order::STATUS_CONFIRMED]);
+            ->assertJsonFragment(['status' => Order::STATUS_CONFIRMED]);
 
         $this->assertDatabaseHas('orders', [
-            'id'     => $order->id,
+            'id' => $order->id,
             'status' => Order::STATUS_CONFIRMED,
         ]);
     }
@@ -102,11 +103,11 @@ class OrderControllerTest extends TestCase
 
     public function test_cancelling_order_restores_stock(): void
     {
-        $token   = $this->adminToken();
+        $token = $this->adminToken();
         $product = Product::factory()->create(['stock' => 10]);
-        $order   = Order::factory()->hasOrderItems(1, [
+        $order = Order::factory()->hasOrderItems(1, [
             'product_id' => $product->id,
-            'quantity'   => 3,
+            'quantity' => 3,
             'unit_price' => $product->price,
         ])->create(['status' => Order::STATUS_CONFIRMED]);
 
@@ -115,7 +116,7 @@ class OrderControllerTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('products', [
-            'id'    => $product->id,
+            'id' => $product->id,
             'stock' => 13, // 10 original + 3 restored
         ]);
     }

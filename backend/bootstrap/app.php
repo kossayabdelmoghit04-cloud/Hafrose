@@ -1,8 +1,26 @@
 <?php
 
+use App\Http\Middleware\BlockSpamHoneypot;
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\MonitoringMiddleware;
+use App\Http\Middleware\PerformanceMonitoringMiddleware;
+use App\Http\Middleware\VerifyTurnstileToken;
+use Illuminate\Auth\AccessDeniedException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,52 +31,52 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
-            'honeypot' => \App\Http\Middleware\BlockSpamHoneypot::class,
-            'turnstile' => \App\Http\Middleware\VerifyTurnstileToken::class,
-            'perf.monitor' => \App\Http\Middleware\PerformanceMonitoringMiddleware::class,
-            'monitoring' => \App\Http\Middleware\MonitoringMiddleware::class,
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'admin' => EnsureUserIsAdmin::class,
+            'honeypot' => BlockSpamHoneypot::class,
+            'turnstile' => VerifyTurnstileToken::class,
+            'perf.monitor' => PerformanceMonitoringMiddleware::class,
+            'monitoring' => MonitoringMiddleware::class,
         ]);
 
         $middleware->api(append: [
-            \App\Http\Middleware\MonitoringMiddleware::class,
+            MonitoringMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $status = 500;
                 $message = $e->getMessage() ?: 'Server Error';
                 $errors = null;
                 $data = null;
 
-                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                if ($e instanceof ValidationException) {
                     $status = 422;
                     $message = 'Validation failed';
                     $errors = $e->errors();
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException || 
-                           $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                } elseif ($e instanceof NotFoundHttpException ||
+                           $e instanceof ModelNotFoundException) {
                     $status = 404;
                     $message = 'Resource not found';
-                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                } elseif ($e instanceof AuthenticationException) {
                     $status = 401;
                     $message = 'Unauthenticated';
-                } elseif ($e instanceof \Illuminate\Auth\AccessDeniedException || 
-                           $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                } elseif ($e instanceof AccessDeniedException ||
+                           $e instanceof AccessDeniedHttpException) {
                     $status = 403;
                     $message = 'Forbidden';
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException) {
+                } elseif ($e instanceof MethodNotAllowedHttpException) {
                     $status = 405;
                     $message = 'Method not allowed';
-                } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\ThrottleRequestsException ||
-                           $e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException ||
+                } elseif ($e instanceof Symfony\Component\HttpKernel\Exception\ThrottleRequestsException ||
+                           $e instanceof ThrottleRequestsException ||
                            (method_exists($e, 'getStatusCode') && $e->getStatusCode() === 429)) {
                     $status = 429;
                     $message = 'Too many requests';
-                } elseif ($e instanceof \Illuminate\Database\QueryException && $e->getCode() == 23000) {
+                } elseif ($e instanceof QueryException && $e->getCode() == 23000) {
                     $status = 409;
                     $message = 'Conflict detected';
                 }
@@ -67,7 +85,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'success' => false,
                     'message' => $message,
                     'errors' => $errors,
-                    'data' => $data
+                    'data' => $data,
                 ], $status);
             }
         });

@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ProductionLogService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\ProductionLogService;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,18 +27,18 @@ class MonitoringMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         $monitoringEnabled = config('monitoring.enabled', true);
-        if (!$monitoringEnabled) {
+        if (! $monitoringEnabled) {
             return $next($request);
         }
 
-        $startTime   = microtime(true);
+        $startTime = microtime(true);
         $startMemory = memory_get_usage(true);
 
         DB::enableQueryLog();
 
         $response = $next($request);
 
-        $executionMs  = round((microtime(true) - $startTime) * 1000, 2);
+        $executionMs = round((microtime(true) - $startTime) * 1000, 2);
         $memoryPeakMb = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
         $queries = DB::getQueryLog();
@@ -59,22 +59,22 @@ class MonitoringMiddleware
         $slowThresholdMs = config('monitoring.slow_request_threshold', 1000);
         if ($executionMs > $slowThresholdMs) {
             $this->logger->warning("Requête lente détectée ({$executionMs} ms)", [
-                'url'            => $request->fullUrl(),
-                'method'         => $request->method(),
-                'execution_ms'   => $executionMs,
-                'threshold_ms'   => $slowThresholdMs,
-                'sql_queries'    => $sqlCount,
-                'sql_time_ms'    => $sqlTimeMs,
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'execution_ms' => $executionMs,
+                'threshold_ms' => $slowThresholdMs,
+                'sql_queries' => $sqlCount,
+                'sql_time_ms' => $sqlTimeMs,
                 'memory_peak_mb' => $memoryPeakMb,
-                'response_size'  => $responseSizeBytes,
+                'response_size' => $responseSizeBytes,
             ]);
         }
 
         // En environnement local ou non-production, ajouter des en-têtes HTTP de debug
-        if (!app()->isProduction()) {
-            $response->headers->set('X-Request-Time', $executionMs . 'ms');
-            $response->headers->set('X-Memory', $memoryPeakMb . 'MB');
-            $response->headers->set('X-SQL-Time', $sqlTimeMs . 'ms');
+        if (! app()->isProduction()) {
+            $response->headers->set('X-Request-Time', $executionMs.'ms');
+            $response->headers->set('X-Memory', $memoryPeakMb.'MB');
+            $response->headers->set('X-SQL-Time', $sqlTimeMs.'ms');
             $response->headers->set('X-SQL-Queries', (string) $sqlCount);
         }
 

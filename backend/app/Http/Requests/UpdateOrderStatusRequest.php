@@ -33,7 +33,7 @@ class UpdateOrderStatusRequest extends FormRequest
         ]);
 
         return [
-            'status' => 'required|string|in:' . $validStatuses,
+            'status' => 'required|string|in:'.$validStatuses,
         ];
     }
 
@@ -52,8 +52,8 @@ class UpdateOrderStatusRequest extends FormRequest
 
         return [
             'status.required' => 'Le statut de la commande est obligatoire.',
-            'status.string'   => 'Le statut doit être une chaîne de caractères.',
-            'status.in'       => "Le statut est invalide. Valeurs autorisées : {$validStatuses}.",
+            'status.string' => 'Le statut doit être une chaîne de caractères.',
+            'status.in' => "Le statut est invalide. Valeurs autorisées : {$validStatuses}.",
         ];
     }
 }

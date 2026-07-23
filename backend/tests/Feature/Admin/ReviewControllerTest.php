@@ -14,6 +14,7 @@ class ReviewControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -27,20 +28,20 @@ class ReviewControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/reviews');
 
         $response->assertOk()
-                 ->assertJsonStructure(['data' => [['id', 'customer_name', 'rating', 'is_approved']]]);
+            ->assertJsonStructure(['data' => [['id', 'customer_name', 'rating', 'is_approved']]]);
     }
 
     // ─── Approve ──────────────────────────────────────────────────────────────
 
     public function test_can_approve_review(): void
     {
-        $token  = $this->adminToken();
+        $token = $this->adminToken();
         $review = Review::factory()->create(['is_approved' => false]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/reviews/{$review->id}/approve");
 
         $response->assertOk()
-                 ->assertJsonFragment(['is_approved' => true]);
+            ->assertJsonFragment(['is_approved' => true]);
 
         $this->assertDatabaseHas('reviews', ['id' => $review->id, 'is_approved' => true]);
     }
@@ -49,13 +50,13 @@ class ReviewControllerTest extends TestCase
 
     public function test_can_reject_review(): void
     {
-        $token  = $this->adminToken();
+        $token = $this->adminToken();
         $review = Review::factory()->create(['is_approved' => true]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/reviews/{$review->id}/reject");
 
         $response->assertOk()
-                 ->assertJsonFragment(['is_approved' => false]);
+            ->assertJsonFragment(['is_approved' => false]);
 
         $this->assertDatabaseHas('reviews', ['id' => $review->id, 'is_approved' => false]);
     }
@@ -64,7 +65,7 @@ class ReviewControllerTest extends TestCase
 
     public function test_can_delete_review(): void
     {
-        $token  = $this->adminToken();
+        $token = $this->adminToken();
         $review = Review::factory()->create();
 
         $response = $this->withToken($token)->deleteJson("/api/admin/reviews/{$review->id}");

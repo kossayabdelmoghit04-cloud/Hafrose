@@ -17,6 +17,7 @@ class ProductControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -30,7 +31,7 @@ class ProductControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/products');
 
         $response->assertOk()
-                 ->assertJsonStructure(['data' => [['id', 'name', 'price', 'stock']]]);
+            ->assertJsonStructure(['data' => [['id', 'name', 'price', 'stock']]]);
     }
 
     public function test_products_are_paginated(): void
@@ -41,7 +42,7 @@ class ProductControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/products');
 
         $response->assertOk()
-                 ->assertJsonStructure(['meta' => ['current_page', 'last_page', 'total']]);
+            ->assertJsonStructure(['meta' => ['current_page', 'last_page', 'total']]);
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
@@ -49,22 +50,22 @@ class ProductControllerTest extends TestCase
     public function test_can_create_product(): void
     {
         Storage::fake('public');
-        $token    = $this->adminToken();
+        $token = $this->adminToken();
         $category = Category::factory()->create();
 
         $response = $this->withToken($token)->postJson('/api/admin/products', [
-            'name'        => 'Parfum Oud Royal',
-            'slug'        => 'parfum-oud-royal',
-            'price'       => 299.99,
-            'stock'       => 50,
+            'name' => 'Parfum Oud Royal',
+            'slug' => 'parfum-oud-royal',
+            'price' => 299.99,
+            'stock' => 50,
             'category_id' => $category->id,
             'description' => 'Un parfum d\'exception.',
             'is_featured' => true,
-            'is_active'   => true,
+            'is_active' => true,
         ]);
 
         $response->assertCreated()
-                 ->assertJsonFragment(['name' => 'Parfum Oud Royal']);
+            ->assertJsonFragment(['name' => 'Parfum Oud Royal']);
 
         $this->assertDatabaseHas('products', ['slug' => 'parfum-oud-royal']);
     }
@@ -75,8 +76,8 @@ class ProductControllerTest extends TestCase
         Category::factory()->create();
 
         $response = $this->withToken($token)->postJson('/api/admin/products', [
-            'name'  => 'Test',
-            'slug'  => 'test',
+            'name' => 'Test',
+            'slug' => 'test',
             'price' => -10,
             'stock' => 5,
         ]);
@@ -87,19 +88,19 @@ class ProductControllerTest extends TestCase
     public function test_can_create_product_with_image(): void
     {
         Storage::fake('public');
-        $token    = $this->adminToken();
+        $token = $this->adminToken();
         $category = Category::factory()->create();
 
         $image = UploadedFile::fake()->create('product.jpg', 200, 'image/jpeg');
 
         $response = $this->withToken($token)->post('/api/admin/products', [
-            'name'        => 'Produit Test',
-            'slug'        => 'produit-test',
-            'price'       => 99.99,
-            'stock'       => 10,
+            'name' => 'Produit Test',
+            'slug' => 'produit-test',
+            'price' => 99.99,
+            'stock' => 10,
             'category_id' => $category->id,
             'description' => 'Description du produit de test.',
-            'image'       => $image,
+            'image' => $image,
         ], ['Accept' => 'application/json']);
 
         $response->assertCreated();
@@ -110,22 +111,22 @@ class ProductControllerTest extends TestCase
     public function test_can_update_product(): void
     {
         Storage::fake('public');
-        $token   = $this->adminToken();
+        $token = $this->adminToken();
         $product = Product::factory()->create(['price' => 100.00]);
 
         $category = Category::factory()->create();
 
         $response = $this->withToken($token)->postJson("/api/admin/products/{$product->id}", [
-            'name'        => $product->name,
-            'slug'        => $product->slug,
-            'price'       => 150.00,
-            'stock'       => $product->stock,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'price' => 150.00,
+            'stock' => $product->stock,
             'category_id' => $category->id,
             'description' => 'Description mise à jour.',
         ]);
 
         $response->assertOk()
-                 ->assertJsonPath('data.price', '150.00');
+            ->assertJsonPath('data.price', '150.00');
     }
 
     // ─── Destroy ──────────────────────────────────────────────────────────────
@@ -133,7 +134,7 @@ class ProductControllerTest extends TestCase
     public function test_can_delete_product(): void
     {
         Storage::fake('public');
-        $token   = $this->adminToken();
+        $token = $this->adminToken();
         $product = Product::factory()->create();
 
         $response = $this->withToken($token)->deleteJson("/api/admin/products/{$product->id}");

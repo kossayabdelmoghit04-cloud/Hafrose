@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Models\Category;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryService
 {
@@ -31,8 +33,8 @@ class CategoryService
     {
         $category = $this->categoryRepository->findBySlug($slug);
 
-        if (!$category) {
-            throw new ModelNotFoundException("Category not found");
+        if (! $category) {
+            throw new ModelNotFoundException('Category not found');
         }
 
         return $category;
@@ -45,8 +47,8 @@ class CategoryService
     {
         $category = $this->categoryRepository->find($id);
 
-        if (!$category) {
-            throw new ModelNotFoundException("Category not found");
+        if (! $category) {
+            throw new ModelNotFoundException('Category not found');
         }
 
         return $category;
@@ -55,13 +57,13 @@ class CategoryService
     /**
      * Créer une catégorie avec image.
      */
-    public function createCategory(array $data, ?\Illuminate\Http\UploadedFile $imageFile = null): Category
+    public function createCategory(array $data, ?UploadedFile $imageFile = null): Category
     {
         if ($imageFile) {
             $path = $imageFile->store('categories', 'public');
-            $data['image'] = \Illuminate\Support\Facades\Storage::url($path);
-        } elseif (!empty($data['image_path'])) {
-            $data['image'] = \Illuminate\Support\Facades\Storage::url($data['image_path']);
+            $data['image'] = Storage::url($path);
+        } elseif (! empty($data['image_path'])) {
+            $data['image'] = Storage::url($data['image_path']);
         }
 
         return $this->categoryRepository->create($data);
@@ -70,7 +72,7 @@ class CategoryService
     /**
      * Mettre à jour une catégorie et son image.
      */
-    public function updateCategory(Category $category, array $data, ?\Illuminate\Http\UploadedFile $imageFile = null): Category
+    public function updateCategory(Category $category, array $data, ?UploadedFile $imageFile = null): Category
     {
         if ($imageFile) {
             // Supprimer l'ancienne image
@@ -78,9 +80,9 @@ class CategoryService
                 $this->deletePhysicalImage($category->image);
             }
             $path = $imageFile->store('categories', 'public');
-            $data['image'] = \Illuminate\Support\Facades\Storage::url($path);
-        } elseif (!empty($data['image_path'])) {
-            $data['image'] = \Illuminate\Support\Facades\Storage::url($data['image_path']);
+            $data['image'] = Storage::url($path);
+        } elseif (! empty($data['image_path'])) {
+            $data['image'] = Storage::url($data['image_path']);
         }
 
         return $this->categoryRepository->update($category, $data);
@@ -105,9 +107,9 @@ class CategoryService
     {
         $path = parse_url($url, PHP_URL_PATH);
         $relativePath = str_replace('/storage/', '', $path);
-        
-        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($relativePath)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($relativePath);
+
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
         }
     }
 }

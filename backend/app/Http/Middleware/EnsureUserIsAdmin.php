@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
 use App\Models\User;
+use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,12 +21,12 @@ class EnsureUserIsAdmin
         $user = $request->user();
 
         // Cas 1 : utilisateur non authentifié (token absent, invalide ou expiré)
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Non authentifié. Veuillez vous connecter.',
-                'errors'  => null,
-                'data'    => null,
+                'errors' => null,
+                'data' => null,
             ], 401);
         }
 
@@ -34,12 +34,12 @@ class EnsureUserIsAdmin
         // On accepte le rôle via la colonne DB (role = 'admin') OU via Spatie Permission
         $isAdmin = ($user->role === User::ROLE_ADMIN) || $user->hasRole('admin');
 
-        if (!$isAdmin) {
+        if (! $isAdmin) {
             return response()->json([
                 'success' => false,
                 'message' => 'Accès interdit. Réservé aux administrateurs.',
-                'errors'  => null,
-                'data'    => null,
+                'errors' => null,
+                'data' => null,
             ], 403);
         }
 

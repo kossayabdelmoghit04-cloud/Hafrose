@@ -34,8 +34,8 @@ class PopularProductsRequest extends FormRequest
     {
         return [
             'limit.integer' => 'La limite doit être un nombre entier.',
-            'limit.min'     => 'La limite doit être au moins de 1.',
-            'limit.max'     => 'La limite ne peut pas dépasser 50.',
+            'limit.min' => 'La limite doit être au moins de 1.',
+            'limit.max' => 'La limite ne peut pas dépasser 50.',
         ];
     }
 }

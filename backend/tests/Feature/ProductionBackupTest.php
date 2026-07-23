@@ -8,9 +8,10 @@ use App\Models\User;
 use App\Services\MaintenanceService;
 use App\Services\ProductionBackupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Artisan;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -38,7 +39,7 @@ class ProductionBackupTest extends TestCase
     {
         return User::factory()->create([
             'email' => 'admin-backup-test@hafrose.com',
-            'role'  => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -49,7 +50,7 @@ class ProductionBackupTest extends TestCase
     {
         return User::factory()->create([
             'email' => 'user-backup-test@hafrose.com',
-            'role'  => 'customer',
+            'role' => 'customer',
         ]);
     }
 
@@ -57,13 +58,13 @@ class ProductionBackupTest extends TestCase
     // 1. Configuration de production
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function production_config_file_exists(): void
     {
         $this->assertFileExists(config_path('production.php'));
     }
 
-    /** @test */
+    #[Test]
     public function production_config_has_required_sections(): void
     {
         $sections = ['backup', 'retention', 'compression', 'maintenance', 'storage', 'health', 'scheduler'];
@@ -76,7 +77,7 @@ class ProductionBackupTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function production_config_backup_defaults_are_sensible(): void
     {
         $this->assertTrue(config('production.backup.enabled'));
@@ -86,7 +87,7 @@ class ProductionBackupTest extends TestCase
         $this->assertGreaterThan(0, config('production.backup.min_disk_space_mb'));
     }
 
-    /** @test */
+    #[Test]
     public function production_config_retention_defaults_are_sensible(): void
     {
         $this->assertEquals(7, config('production.retention.daily'));
@@ -99,7 +100,7 @@ class ProductionBackupTest extends TestCase
     // 2. Variables d'environnement
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function env_example_contains_backup_variables(): void
     {
         $envExample = file_get_contents(base_path('.env.example'));
@@ -139,7 +140,7 @@ class ProductionBackupTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function production_config_reads_from_env(): void
     {
         Config::set('production.backup.enabled', false);
@@ -153,14 +154,14 @@ class ProductionBackupTest extends TestCase
     // 3. ProductionBackupService — Dry Run
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function backup_service_dry_run_succeeds(): void
     {
         Config::set('production.backup.enabled', true);
 
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
-        $report  = $service->run(dryRun: true, verbose: true);
+        $report = $service->run(dryRun: true, verbose: true);
 
         $this->assertTrue($report['success'], 'Le dry-run doit réussir.');
         $this->assertTrue($report['dry_run']);
@@ -168,13 +169,13 @@ class ProductionBackupTest extends TestCase
         $this->assertNotEmpty($report['steps']);
     }
 
-    /** @test */
+    #[Test]
     public function backup_service_dry_run_creates_no_files(): void
     {
         Config::set('production.backup.enabled', true);
 
         $backupDir = storage_path('app/backups');
-        $before    = File::isDirectory($backupDir) ? count(File::files($backupDir)) : 0;
+        $before = File::isDirectory($backupDir) ? count(File::files($backupDir)) : 0;
 
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
@@ -185,41 +186,41 @@ class ProductionBackupTest extends TestCase
         $this->assertEquals($before, $after, 'Un dry-run ne doit créer aucun fichier.');
     }
 
-    /** @test */
+    #[Test]
     public function backup_service_disabled_throws_runtime_exception(): void
     {
         Config::set('production.backup.enabled', false);
 
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
-        $report  = $service->run(dryRun: true);
+        $report = $service->run(dryRun: true);
 
         $this->assertFalse($report['success']);
         $this->assertNotEmpty($report['errors']);
         $this->assertStringContainsString('désactivées', $report['errors'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function backup_service_disk_check_step_is_present(): void
     {
         Config::set('production.backup.enabled', true);
 
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
-        $report  = $service->run(dryRun: true);
+        $report = $service->run(dryRun: true);
 
         $stepNames = array_column($report['steps'], 'name');
         $this->assertContains('disk_check', $stepNames, 'L\'étape disk_check doit être présente.');
     }
 
-    /** @test */
+    #[Test]
     public function backup_service_report_has_all_required_keys(): void
     {
         Config::set('production.backup.enabled', true);
 
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
-        $report  = $service->run(dryRun: true);
+        $report = $service->run(dryRun: true);
 
         $requiredKeys = ['success', 'dry_run', 'started_at', 'steps', 'archive', 'errors'];
         foreach ($requiredKeys as $key) {
@@ -231,7 +232,7 @@ class ProductionBackupTest extends TestCase
     // 4. Rotation des sauvegardes
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function rotation_keeps_backups_within_limits(): void
     {
         Config::set('production.backup.enabled', true);
@@ -244,8 +245,8 @@ class ProductionBackupTest extends TestCase
 
         // Créer 10 fichiers ZIP factices avec timestamps différents
         for ($i = 0; $i < 10; $i++) {
-            $filename = $backupDir . "/hafrose-backup_2026-01-" . str_pad($i + 1, 2, '0', STR_PAD_LEFT) . "_00-00-00.zip";
-            file_put_contents($filename, 'fake backup ' . $i);
+            $filename = $backupDir.'/hafrose-backup_2026-01-'.str_pad($i + 1, 2, '0', STR_PAD_LEFT).'_00-00-00.zip';
+            file_put_contents($filename, 'fake backup '.$i);
             // Modifier le timestamp de modification
             touch($filename, mktime(0, 0, 0, 1, $i + 1, 2026));
         }
@@ -264,7 +265,7 @@ class ProductionBackupTest extends TestCase
         $this->assertGreaterThan(0, $remainingFiles, 'La rotation ne doit pas tout supprimer.');
     }
 
-    /** @test */
+    #[Test]
     public function list_backups_returns_array(): void
     {
         /** @var ProductionBackupService $service */
@@ -274,7 +275,7 @@ class ProductionBackupTest extends TestCase
         $this->assertIsArray($backups);
     }
 
-    /** @test */
+    #[Test]
     public function delete_backup_throws_for_nonexistent_id(): void
     {
         $this->expectException(\RuntimeException::class);
@@ -285,21 +286,21 @@ class ProductionBackupTest extends TestCase
         $service->deleteBackup('nonexistent-backup-id');
     }
 
-    /** @test */
+    #[Test]
     public function verify_integrity_returns_false_for_nonexistent(): void
     {
         /** @var ProductionBackupService $service */
         $service = app(ProductionBackupService::class);
-        $result  = $service->verifyBackupIntegrity('nonexistent-id');
+        $result = $service->verifyBackupIntegrity('nonexistent-id');
 
         $this->assertFalse($result);
     }
 
-    /** @test */
+    #[Test]
     public function restore_method_returns_not_implemented_response(): void
     {
         /** @var ProductionBackupService $service */
-        $service  = app(ProductionBackupService::class);
+        $service = app(ProductionBackupService::class);
         $response = $service->restore('some-backup-id');
 
         $this->assertFalse($response['success']);
@@ -311,19 +312,19 @@ class ProductionBackupTest extends TestCase
     // 5. MaintenanceService
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function maintenance_service_can_check_status(): void
     {
         /** @var MaintenanceService $service */
         $service = app(MaintenanceService::class);
-        $status  = $service->status();
+        $status = $service->status();
 
         $this->assertArrayHasKey('in_maintenance', $status);
         $this->assertArrayHasKey('checked_at', $status);
         $this->assertIsBool($status['in_maintenance']);
     }
 
-    /** @test */
+    #[Test]
     public function maintenance_service_is_down_returns_bool(): void
     {
         /** @var MaintenanceService $service */
@@ -332,11 +333,11 @@ class ProductionBackupTest extends TestCase
         $this->assertIsBool($service->isDown());
     }
 
-    /** @test */
+    #[Test]
     public function maintenance_schedule_returns_scheduled_response(): void
     {
         /** @var MaintenanceService $service */
-        $service  = app(MaintenanceService::class);
+        $service = app(MaintenanceService::class);
         $response = $service->schedule(300, secret: 'test-secret', message: 'Maintenance dans 5 minutes');
 
         $this->assertTrue($response['success']);
@@ -349,14 +350,14 @@ class ProductionBackupTest extends TestCase
     // 6. Commande Artisan hafrose:backup
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function artisan_backup_command_exists(): void
     {
         $this->artisan('hafrose:backup', ['--dry-run' => true])
             ->assertExitCode(0);
     }
 
-    /** @test */
+    #[Test]
     public function artisan_backup_command_dry_run_exits_with_success(): void
     {
         Config::set('production.backup.enabled', true);
@@ -365,7 +366,7 @@ class ProductionBackupTest extends TestCase
             ->assertExitCode(0);
     }
 
-    /** @test */
+    #[Test]
     public function artisan_backup_command_disabled_exits_with_failure(): void
     {
         Config::set('production.backup.enabled', false);
@@ -374,7 +375,7 @@ class ProductionBackupTest extends TestCase
             ->assertExitCode(1);
     }
 
-    /** @test */
+    #[Test]
     public function artisan_backup_command_force_flag_overrides_disabled(): void
     {
         Config::set('production.backup.enabled', false);
@@ -383,7 +384,7 @@ class ProductionBackupTest extends TestCase
             ->assertExitCode(0);
     }
 
-    /** @test */
+    #[Test]
     public function artisan_backup_command_detailed_flag_works(): void
     {
         Config::set('production.backup.enabled', true);
@@ -396,24 +397,24 @@ class ProductionBackupTest extends TestCase
     // 7. API Admin — POST /api/admin/system/backup
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function unauthenticated_cannot_trigger_backup(): void
     {
         $this->postJson('/api/admin/system/backup')
             ->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_trigger_backup(): void
     {
-        $user  = $this->regularUser();
+        $user = $this->regularUser();
         $token = $user->createToken('test')->plainTextToken;
 
         $this->postJson('/api/admin/system/backup', [], ['Authorization' => "Bearer {$token}"])
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_trigger_dry_run_backup(): void
     {
         Config::set('production.backup.enabled', true);
@@ -441,7 +442,7 @@ class ProductionBackupTest extends TestCase
             ->assertJsonPath('data.dry_run', true);
     }
 
-    /** @test */
+    #[Test]
     public function backup_create_logs_admin_action(): void
     {
         Config::set('production.backup.enabled', true);
@@ -456,13 +457,13 @@ class ProductionBackupTest extends TestCase
         )->assertStatus(200);
 
         $this->assertDatabaseHas('admin_logs', [
-            'action'   => 'backup_create',
+            'action' => 'backup_create',
             'resource' => 'system',
             'admin_id' => $admin->id,
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function backup_create_logs_activity(): void
     {
         Config::set('production.backup.enabled', true);
@@ -478,8 +479,8 @@ class ProductionBackupTest extends TestCase
 
         $this->assertDatabaseHas('activity_logs', [
             'event_type' => 'backup.create',
-            'category'   => ActivityLog::CATEGORY_ADMIN,
-            'resource'   => AdminLog::RESOURCE_SYSTEM,
+            'category' => ActivityLog::CATEGORY_ADMIN,
+            'resource' => AdminLog::RESOURCE_SYSTEM,
         ]);
     }
 
@@ -487,24 +488,24 @@ class ProductionBackupTest extends TestCase
     // 8. API Admin — GET /api/admin/system/backups
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function unauthenticated_cannot_list_backups(): void
     {
         $this->getJson('/api/admin/system/backups')
             ->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_list_backups(): void
     {
-        $user  = $this->regularUser();
+        $user = $this->regularUser();
         $token = $user->createToken('test')->plainTextToken;
 
         $this->getJson('/api/admin/system/backups', ['Authorization' => "Bearer {$token}"])
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_list_backups(): void
     {
         $admin = $this->adminUser();
@@ -530,24 +531,24 @@ class ProductionBackupTest extends TestCase
     // 9. API Admin — DELETE /api/admin/system/backups/{id}
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function unauthenticated_cannot_delete_backup(): void
     {
         $this->deleteJson('/api/admin/system/backups/some-id')
             ->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_delete_backup(): void
     {
-        $user  = $this->regularUser();
+        $user = $this->regularUser();
         $token = $user->createToken('test')->plainTextToken;
 
         $this->deleteJson('/api/admin/system/backups/some-id', [], ['Authorization' => "Bearer {$token}"])
             ->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_deleting_nonexistent_backup_returns_404(): void
     {
         $admin = $this->adminUser();
@@ -560,7 +561,7 @@ class ProductionBackupTest extends TestCase
         )->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function delete_backup_invalid_id_returns_422(): void
     {
         $admin = $this->adminUser();
@@ -573,15 +574,15 @@ class ProductionBackupTest extends TestCase
         )->assertStatus(422);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_delete_existing_backup(): void
     {
         // Créer un faux backup ZIP
         $backupDir = storage_path('app/backups');
         File::ensureDirectoryExists($backupDir, 0755);
 
-        $backupId   = 'hafrose-backup_test_delete_backup';
-        $backupFile = $backupDir . '/' . $backupId . '.zip';
+        $backupId = 'hafrose-backup_test_delete_backup';
+        $backupFile = $backupDir.'/'.$backupId.'.zip';
         file_put_contents($backupFile, 'fake zip content for delete test');
 
         $admin = $this->adminUser();
@@ -592,20 +593,20 @@ class ProductionBackupTest extends TestCase
             [],
             ['Authorization' => "Bearer {$token}"]
         )->assertStatus(200)
-         ->assertJsonPath('success', true);
+            ->assertJsonPath('success', true);
 
         $this->assertFileDoesNotExist($backupFile);
     }
 
-    /** @test */
+    #[Test]
     public function delete_backup_logs_admin_action(): void
     {
         // Créer un faux backup ZIP
         $backupDir = storage_path('app/backups');
         File::ensureDirectoryExists($backupDir, 0755);
 
-        $backupId   = 'hafrose-backup_test_delete_log';
-        $backupFile = $backupDir . '/' . $backupId . '.zip';
+        $backupId = 'hafrose-backup_test_delete_log';
+        $backupFile = $backupDir.'/'.$backupId.'.zip';
         file_put_contents($backupFile, 'fake zip content');
 
         $admin = $this->adminUser();
@@ -618,7 +619,7 @@ class ProductionBackupTest extends TestCase
         )->assertStatus(200);
 
         $this->assertDatabaseHas('admin_logs', [
-            'action'   => 'backup_delete',
+            'action' => 'backup_delete',
             'resource' => 'system',
             'admin_id' => $admin->id,
         ]);
@@ -628,28 +629,28 @@ class ProductionBackupTest extends TestCase
     // 10. Aucune régression des routes existantes
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function public_products_route_still_works(): void
     {
         $this->getJson('/api/products')
             ->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function public_categories_route_still_works(): void
     {
         $this->getJson('/api/categories')
             ->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function admin_dashboard_route_still_protected(): void
     {
         $this->getJson('/api/admin/dashboard')
             ->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function admin_cache_clear_route_still_works(): void
     {
         $admin = $this->adminUser();
@@ -660,7 +661,7 @@ class ProductionBackupTest extends TestCase
             ->assertJsonPath('success', true);
     }
 
-    /** @test */
+    #[Test]
     public function admin_logs_route_still_works(): void
     {
         $admin = $this->adminUser();
@@ -674,14 +675,14 @@ class ProductionBackupTest extends TestCase
     // 11. Permissions & sécurité
     // =========================================================================
 
-    /** @test */
+    #[Test]
     public function backup_path_is_configurable(): void
     {
         Config::set('production.backup.path', 'custom-backups');
         $this->assertEquals('custom-backups', config('production.backup.path'));
     }
 
-    /** @test */
+    #[Test]
     public function admin_log_model_has_backup_constants(): void
     {
         $this->assertEquals('backup_create', AdminLog::ACTION_BACKUP_CREATE);
@@ -689,14 +690,14 @@ class ProductionBackupTest extends TestCase
         $this->assertEquals('system', AdminLog::RESOURCE_SYSTEM);
     }
 
-    /** @test */
+    #[Test]
     public function production_backup_service_is_injectable(): void
     {
         $service = app(ProductionBackupService::class);
         $this->assertInstanceOf(ProductionBackupService::class, $service);
     }
 
-    /** @test */
+    #[Test]
     public function maintenance_service_is_injectable(): void
     {
         $service = app(MaintenanceService::class);

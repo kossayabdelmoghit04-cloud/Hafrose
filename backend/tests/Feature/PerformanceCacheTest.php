@@ -3,17 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Contact;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Models\Review;
 use App\Models\User;
 use App\Services\DashboardStatsService;
 use App\Services\ImageOptimizationService;
 use App\Services\PerformanceCacheManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -46,7 +43,7 @@ class PerformanceCacheTest extends TestCase
         parent::setUp();
         $this->admin = User::factory()->create([
             'email' => 'admin@hafrose.com',
-            'role'  => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -111,17 +108,17 @@ class PerformanceCacheTest extends TestCase
     public function test_filters_cache_is_invalidated_on_product_update(): void
     {
         $category = Category::factory()->create();
-        $product  = Product::factory()->create(['category_id' => $category->id]);
+        $product = Product::factory()->create(['category_id' => $category->id]);
 
         $this->getJson('/api/products/filters');
         $this->assertTrue(Cache::has('products_filters_data'));
 
         $this->actingAs($this->admin, 'sanctum')->postJson("/api/admin/products/{$product->id}", [
-            'name'        => 'Produit Modifié',
-            'slug'        => $product->slug,
+            'name' => 'Produit Modifié',
+            'slug' => $product->slug,
             'description' => 'Description modifiée',
-            'price'       => 99.99,
-            'stock'       => 10,
+            'price' => 99.99,
+            'stock' => 10,
             'category_id' => $category->id,
         ]);
 
@@ -148,7 +145,7 @@ class PerformanceCacheTest extends TestCase
     public function test_popular_products_cache_invalidated_on_order_create(): void
     {
         $category = Category::factory()->create();
-        $product  = Product::factory()->create(['category_id' => $category->id, 'stock' => 10]);
+        $product = Product::factory()->create(['category_id' => $category->id, 'stock' => 10]);
         $order = Order::factory()->create();
         OrderItem::factory()->create(['order_id' => $order->id, 'product_id' => $product->id, 'quantity' => 2]);
 
@@ -178,7 +175,7 @@ class PerformanceCacheTest extends TestCase
     public function test_dashboard_cache_invalidated_after_product_deleted(): void
     {
         $category = Category::factory()->create();
-        $product  = Product::factory()->create(['category_id' => $category->id]);
+        $product = Product::factory()->create(['category_id' => $category->id]);
 
         $this->actingAs($this->admin)->getJson('/api/admin/dashboard');
         $this->assertTrue(Cache::has('dashboard_metrics'));
@@ -209,7 +206,7 @@ class PerformanceCacheTest extends TestCase
     public function test_dashboard_stats_service_sales_chart_returns_correct_days(): void
     {
         $service = app(DashboardStatsService::class);
-        $chart   = $service->getSalesChartData(7);
+        $chart = $service->getSalesChartData(7);
 
         $this->assertCount(7, $chart);
         $this->assertArrayHasKey('date', $chart[0]);
@@ -227,25 +224,25 @@ class PerformanceCacheTest extends TestCase
             ->postJson('/api/admin/cache/dashboard/refresh');
 
         $response->assertStatus(200)
-                 ->assertJson(['success' => true])
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'data' => [
-                         'metrics',
-                         'sales_chart',
-                         'popular_products',
-                         'latest_orders',
-                         'latest_messages',
-                         'refreshed_at',
-                     ],
-                 ]);
+            ->assertJson(['success' => true])
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'metrics',
+                    'sales_chart',
+                    'popular_products',
+                    'latest_orders',
+                    'latest_messages',
+                    'refreshed_at',
+                ],
+            ]);
     }
 
     public function test_unauthenticated_cannot_refresh_dashboard_cache(): void
     {
         $this->postJson('/api/admin/cache/dashboard/refresh')
-             ->assertStatus(401);
+            ->assertStatus(401);
     }
 
     public function test_non_admin_cannot_refresh_dashboard_cache(): void
@@ -253,8 +250,8 @@ class PerformanceCacheTest extends TestCase
         $user = User::factory()->create(['role' => 'customer']);
 
         $this->actingAs($user)
-             ->postJson('/api/admin/cache/dashboard/refresh')
-             ->assertStatus(403);
+            ->postJson('/api/admin/cache/dashboard/refresh')
+            ->assertStatus(403);
     }
 
     // =========================================================================
@@ -270,8 +267,8 @@ class PerformanceCacheTest extends TestCase
             ->postJson('/api/admin/cache/clear');
 
         $response->assertStatus(200)
-                 ->assertJson(['success' => true])
-                 ->assertJsonStructure(['success', 'message', 'cleared_at']);
+            ->assertJson(['success' => true])
+            ->assertJsonStructure(['success', 'message', 'cleared_at']);
     }
 
     public function test_unauthenticated_cannot_clear_cache(): void
@@ -295,19 +292,19 @@ class PerformanceCacheTest extends TestCase
             ->getJson('/api/admin/cache/status');
 
         $response->assertStatus(200)
-                 ->assertJson(['success' => true])
-                 ->assertJsonStructure([
-                     'success',
-                     'data' => [
-                         'driver',
-                         'supports_tags',
-                         'enabled',
-                         'ttls',
-                         'monitoring',
-                         'keys_status',
-                         'checked_at',
-                     ],
-                 ]);
+            ->assertJson(['success' => true])
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'driver',
+                    'supports_tags',
+                    'enabled',
+                    'ttls',
+                    'monitoring',
+                    'keys_status',
+                    'checked_at',
+                ],
+            ]);
     }
 
     public function test_unauthenticated_cannot_get_cache_status(): void
@@ -362,19 +359,22 @@ class PerformanceCacheTest extends TestCase
     {
         Storage::fake('public');
 
-        if (!extension_loaded('gd')) {
+        if (! extension_loaded('gd')) {
             $this->markTestSkipped('GD extension not available');
         }
 
         $service = app(ImageOptimizationService::class);
 
         $gdImg = imagecreatetruecolor(400, 300);
-        $red   = imagecolorallocate($gdImg, 255, 0, 0);
+        $red = imagecolorallocate($gdImg, 255, 0, 0);
         imagefilledrectangle($gdImg, 0, 0, 400, 300, $red);
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'test_img') . '.jpg';
+        $tmpFile = tempnam(sys_get_temp_dir(), 'test_img').'.jpg';
         imagejpeg($gdImg, $tmpFile, 85);
-        imagedestroy($gdImg);
+        if (PHP_VERSION_ID < 80500 && function_exists('imagedestroy')) {
+            @imagedestroy($gdImg);
+        }
+        unset($gdImg);
 
         Storage::disk('public')->put('media/test_image.jpg', file_get_contents($tmpFile));
         unlink($tmpFile);
@@ -396,7 +396,7 @@ class PerformanceCacheTest extends TestCase
 
     public function test_image_optimization_service_get_variant_paths(): void
     {
-        $service  = app(ImageOptimizationService::class);
+        $service = app(ImageOptimizationService::class);
         $variants = $service->getVariantPaths('media/my_photo.jpg');
 
         $this->assertArrayHasKey('thumbnail', $variants);

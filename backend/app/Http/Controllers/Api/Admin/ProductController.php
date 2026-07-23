@@ -19,8 +19,8 @@ class ProductController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected ProductService   $productService,
-        protected AdminLogService  $adminLogService,
+        protected ProductService $productService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -31,31 +31,31 @@ class ProductController extends Controller
         $validated = $request->validated();
 
         $filters = array_filter([
-            'category'    => $validated['category']    ?? null,
-            'search'      => $validated['search']      ?? null,
-            'min_price'   => $validated['min_price']   ?? null,
-            'max_price'   => $validated['max_price']   ?? null,
-            'color'       => $validated['color']       ?? null,
-            'material'    => $validated['material']    ?? null,
-            'brand'       => $validated['brand']       ?? null,
+            'category' => $validated['category'] ?? null,
+            'search' => $validated['search'] ?? null,
+            'min_price' => $validated['min_price'] ?? null,
+            'max_price' => $validated['max_price'] ?? null,
+            'color' => $validated['color'] ?? null,
+            'material' => $validated['material'] ?? null,
+            'brand' => $validated['brand'] ?? null,
             'is_featured' => $validated['is_featured'] ?? null,
-            'sort_by'     => $validated['sort_by']     ?? null,
-            'sort_order'  => $validated['sort_order']  ?? null,
+            'sort_by' => $validated['sort_by'] ?? null,
+            'sort_order' => $validated['sort_order'] ?? null,
         ], fn ($v) => $v !== null);
 
-        $perPage  = (int) ($validated['per_page'] ?? 15);
+        $perPage = (int) ($validated['per_page'] ?? 15);
         $products = $this->productService->getPaginatedProducts($filters, $perPage);
 
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => ProductResource::collection($products),
-            'meta'    => [
+            'errors' => null,
+            'data' => ProductResource::collection($products),
+            'meta' => [
                 'current_page' => $products->currentPage(),
-                'last_page'    => $products->lastPage(),
-                'per_page'     => $products->perPage(),
-                'total'        => $products->total(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
             ],
         ]);
     }
@@ -65,18 +65,18 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request): JsonResponse
     {
-        $data         = $request->validated();
-        $imageFile    = $request->file('image');
+        $data = $request->validated();
+        $imageFile = $request->file('image');
         $galleryFiles = $request->file('galleries', []);
 
         $product = $this->productService->createProduct($data, $imageFile, $galleryFiles);
 
         $this->adminLogService->log(
-            request:     $request,
-            action:      AdminLog::ACTION_CREATE,
-            resource:    AdminLog::RESOURCE_PRODUCT,
-            resourceId:  $product->id,
-            newValues:   $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            request: $request,
+            action: AdminLog::ACTION_CREATE,
+            resource: AdminLog::RESOURCE_PRODUCT,
+            resourceId: $product->id,
+            newValues: $this->adminLogService->sanitize($data, ['image', 'galleries']),
             description: "Création du produit : {$product->name}",
         );
 
@@ -92,14 +92,14 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, int $id): JsonResponse
     {
-        $product           = $this->productService->getProductById($id);
-        $oldValues         = $this->adminLogService->extractModelValues(
+        $product = $this->productService->getProductById($id);
+        $oldValues = $this->adminLogService->extractModelValues(
             $product,
             ['name', 'slug', 'price', 'stock', 'is_active', 'is_featured', 'category_id']
         );
-        $data              = $request->validated();
-        $imageFile         = $request->file('image');
-        $galleryFiles      = $request->file('galleries', []);
+        $data = $request->validated();
+        $imageFile = $request->file('image');
+        $galleryFiles = $request->file('galleries', []);
         $deletedGalleryIds = $request->input('deleted_gallery_ids', []);
 
         $updated = $this->productService->updateProduct(
@@ -107,12 +107,12 @@ class ProductController extends Controller
         );
 
         $this->adminLogService->log(
-            request:     $request,
-            action:      AdminLog::ACTION_UPDATE,
-            resource:    AdminLog::RESOURCE_PRODUCT,
-            resourceId:  $product->id,
-            oldValues:   $oldValues,
-            newValues:   $this->adminLogService->sanitize($data, ['image', 'galleries']),
+            request: $request,
+            action: AdminLog::ACTION_UPDATE,
+            resource: AdminLog::RESOURCE_PRODUCT,
+            resourceId: $product->id,
+            oldValues: $oldValues,
+            newValues: $this->adminLogService->sanitize($data, ['image', 'galleries']),
             description: "Modification du produit : {$updated->name}",
         );
 
@@ -127,17 +127,17 @@ class ProductController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $product  = $this->productService->getProductById($id);
+        $product = $this->productService->getProductById($id);
         $snapshot = $this->adminLogService->extractModelValues($product, ['id', 'name', 'slug']);
 
         $this->productService->deleteProduct($product);
 
         $this->adminLogService->log(
-            request:     $request,
-            action:      AdminLog::ACTION_DELETE,
-            resource:    AdminLog::RESOURCE_PRODUCT,
-            resourceId:  $id,
-            oldValues:   $snapshot,
+            request: $request,
+            action: AdminLog::ACTION_DELETE,
+            resource: AdminLog::RESOURCE_PRODUCT,
+            resourceId: $id,
+            oldValues: $snapshot,
             description: "Suppression du produit : {$product->name}",
         );
 

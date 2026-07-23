@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BackupResource;
+use App\Models\ActivityLog;
 use App\Models\AdminLog;
 use App\Services\ActivityLogService;
 use App\Services\AdminLogService;
@@ -12,7 +12,6 @@ use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Models\ActivityLog;
 
 /**
  * Contrôleur de gestion des sauvegardes système — Administration HAFROSE.
@@ -31,8 +30,8 @@ class SystemBackupController extends Controller
 
     public function __construct(
         protected ProductionBackupService $backupService,
-        protected AdminLogService         $adminLogService,
-        protected ActivityLogService      $activityLogService,
+        protected AdminLogService $adminLogService,
+        protected ActivityLogService $activityLogService,
     ) {}
 
     // ─── POST /api/admin/system/backup ───────────────────────────────────────
@@ -49,7 +48,7 @@ class SystemBackupController extends Controller
      */
     public function create(Request $request): JsonResponse
     {
-        $dryRun  = (bool) $request->input('dry_run', false);
+        $dryRun = (bool) $request->input('dry_run', false);
         $verbose = (bool) $request->input('verbose', false);
 
         try {
@@ -57,9 +56,9 @@ class SystemBackupController extends Controller
 
             // ── Journalisation AdminLog ──────────────────────────────────────
             $this->adminLogService->log(
-                request:     $request,
-                action:      AdminLog::ACTION_BACKUP_CREATE,
-                resource:    AdminLog::RESOURCE_SYSTEM,
+                request: $request,
+                action: AdminLog::ACTION_BACKUP_CREATE,
+                resource: AdminLog::RESOURCE_SYSTEM,
                 description: $dryRun
                     ? 'Simulation de sauvegarde système (dry-run)'
                     : 'Sauvegarde système lancée manuellement',
@@ -72,18 +71,18 @@ class SystemBackupController extends Controller
 
             // ── Journalisation ActivityLog ───────────────────────────────────
             $this->activityLogService->log(
-                eventType:  'backup.create',
-                category:   ActivityLog::CATEGORY_ADMIN,
-                resource:   AdminLog::RESOURCE_SYSTEM,
-                metadata:   [
+                eventType: 'backup.create',
+                category: ActivityLog::CATEGORY_ADMIN,
+                resource: AdminLog::RESOURCE_SYSTEM,
+                metadata: [
                     'dry_run' => $dryRun,
                     'success' => $report['success'],
                     'archive' => $report['archive'] ?? null,
-                    'errors'  => $report['errors'],
+                    'errors' => $report['errors'],
                 ],
             );
 
-            if (!$report['success']) {
+            if (! $report['success']) {
                 $errorMessages = implode('; ', $report['errors']);
 
                 return $this->errorResponse(
@@ -123,12 +122,12 @@ class SystemBackupController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => null,
-                'errors'  => null,
-                'data'    => $backups,
-                'meta'    => [
-                    'total'       => count($backups),
+                'errors' => null,
+                'data' => $backups,
+                'meta' => [
+                    'total' => count($backups),
                     'backup_path' => config('production.backup.path', 'backups'),
-                    'disk'        => config('production.storage.disk', 'local'),
+                    'disk' => config('production.storage.disk', 'local'),
                 ],
             ]);
 
@@ -169,19 +168,19 @@ class SystemBackupController extends Controller
 
             // ── Journalisation AdminLog ──────────────────────────────────────
             $this->adminLogService->log(
-                request:     $request,
-                action:      AdminLog::ACTION_BACKUP_DELETE,
-                resource:    AdminLog::RESOURCE_SYSTEM,
+                request: $request,
+                action: AdminLog::ACTION_BACKUP_DELETE,
+                resource: AdminLog::RESOURCE_SYSTEM,
                 description: "Suppression de la sauvegarde : {$safeId}",
-                oldValues:   ['backup_id' => $safeId],
+                oldValues: ['backup_id' => $safeId],
             );
 
             // ── Journalisation ActivityLog ───────────────────────────────────
             $this->activityLogService->log(
-                eventType:  'backup.delete',
-                category:   ActivityLog::CATEGORY_ADMIN,
-                resource:   AdminLog::RESOURCE_SYSTEM,
-                metadata:   ['backup_id' => $safeId],
+                eventType: 'backup.delete',
+                category: ActivityLog::CATEGORY_ADMIN,
+                resource: AdminLog::RESOURCE_SYSTEM,
+                metadata: ['backup_id' => $safeId],
             );
 
             return $this->successResponse(null, "Sauvegarde '{$safeId}' supprimée avec succès.");
@@ -192,7 +191,7 @@ class SystemBackupController extends Controller
         } catch (\Throwable $e) {
             Log::error('SystemBackupController: erreur suppression backup.', [
                 'error' => $e->getMessage(),
-                'id'    => $id,
+                'id' => $id,
             ]);
 
             return $this->errorResponse('Erreur interne lors de la suppression.', 500);

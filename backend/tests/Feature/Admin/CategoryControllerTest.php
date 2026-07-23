@@ -17,6 +17,7 @@ class CategoryControllerTest extends TestCase
     private function adminToken(): string
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
         return $admin->createToken('admin-token')->plainTextToken;
     }
 
@@ -30,7 +31,7 @@ class CategoryControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/categories');
 
         $response->assertOk()
-                 ->assertJsonStructure(['data' => [['id', 'name', 'slug']]]);
+            ->assertJsonStructure(['data' => [['id', 'name', 'slug']]]);
     }
 
     public function test_categories_list_requires_auth(): void
@@ -46,13 +47,13 @@ class CategoryControllerTest extends TestCase
         $token = $this->adminToken();
 
         $response = $this->withToken($token)->postJson('/api/admin/categories', [
-            'name'        => 'Parfums',
-            'slug'        => 'parfums',
+            'name' => 'Parfums',
+            'slug' => 'parfums',
             'description' => 'Collection de parfums de luxe.',
         ]);
 
         $response->assertCreated()
-                 ->assertJsonFragment(['name' => 'Parfums']);
+            ->assertJsonFragment(['name' => 'Parfums']);
 
         $this->assertDatabaseHas('categories', ['slug' => 'parfums']);
     }
@@ -64,7 +65,7 @@ class CategoryControllerTest extends TestCase
         $response = $this->withToken($token)->postJson('/api/admin/categories', []);
 
         $response->assertUnprocessable()
-                 ->assertJsonStructure(['errors']);
+            ->assertJsonStructure(['errors']);
     }
 
     public function test_create_category_validates_unique_slug(): void
@@ -89,8 +90,8 @@ class CategoryControllerTest extends TestCase
         $file = UploadedFile::fake()->create('category.jpg', 200, 'image/jpeg');
 
         $response = $this->withToken($token)->post('/api/admin/categories', [
-            'name'  => 'Bijoux',
-            'slug'  => 'bijoux',
+            'name' => 'Bijoux',
+            'slug' => 'bijoux',
             'image' => $file,
         ], ['Accept' => 'application/json']);
 
@@ -102,7 +103,7 @@ class CategoryControllerTest extends TestCase
     public function test_can_update_category(): void
     {
         Storage::fake('public');
-        $token    = $this->adminToken();
+        $token = $this->adminToken();
         $category = Category::factory()->create(['name' => 'Old Name', 'slug' => 'old-slug']);
 
         $response = $this->withToken($token)->postJson("/api/admin/categories/{$category->id}", [
@@ -111,7 +112,7 @@ class CategoryControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-                 ->assertJsonFragment(['name' => 'New Name']);
+            ->assertJsonFragment(['name' => 'New Name']);
 
         $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => 'New Name']);
     }
@@ -121,7 +122,7 @@ class CategoryControllerTest extends TestCase
     public function test_can_delete_category_without_products(): void
     {
         Storage::fake('public');
-        $token    = $this->adminToken();
+        $token = $this->adminToken();
         $category = Category::factory()->create();
 
         $response = $this->withToken($token)->deleteJson("/api/admin/categories/{$category->id}");
@@ -132,7 +133,7 @@ class CategoryControllerTest extends TestCase
 
     public function test_cannot_delete_category_with_products(): void
     {
-        $token    = $this->adminToken();
+        $token = $this->adminToken();
         $category = Category::factory()->create();
         Product::factory()->create(['category_id' => $category->id]);
 

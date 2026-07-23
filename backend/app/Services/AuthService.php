@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,12 +25,12 @@ class AuthService
     {
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw new AuthenticationException('Identifiants incorrects.');
         }
 
         // Vérifier si l'utilisateur est administrateur
-        if ($user->role !== User::ROLE_ADMIN && !$user->hasRole('admin')) {
+        if ($user->role !== User::ROLE_ADMIN && ! $user->hasRole('admin')) {
             throw new AuthenticationException('Accès interdit. Réservé aux administrateurs.');
         }
 
@@ -39,17 +39,17 @@ class AuthService
 
         // Enregistrer l'activité de connexion
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_USER_LOGIN,
-            category:   ActivityLog::CATEGORY_AUTH,
-            resource:   'users',
+            eventType: ActivityLog::EVENT_USER_LOGIN,
+            category: ActivityLog::CATEGORY_AUTH,
+            resource: 'users',
             resourceId: $user->id,
-            metadata:   ['email' => $user->email],
-            userId:     $user->id
+            metadata: ['email' => $user->email],
+            userId: $user->id
         );
 
         return [
             'token' => $token,
-            'user'  => $user,
+            'user' => $user,
         ];
     }
 
@@ -60,14 +60,13 @@ class AuthService
     {
         // Enregistrer l'activité de déconnexion
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_USER_LOGOUT,
-            category:   ActivityLog::CATEGORY_AUTH,
-            resource:   'users',
+            eventType: ActivityLog::EVENT_USER_LOGOUT,
+            category: ActivityLog::CATEGORY_AUTH,
+            resource: 'users',
             resourceId: $user->id,
-            userId:     $user->id
+            userId: $user->id
         );
 
         $user->currentAccessToken()->delete();
     }
 }
-

@@ -18,8 +18,8 @@ class CategoryController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected CategoryService  $categoryService,
-        protected AdminLogService  $adminLogService,
+        protected CategoryService $categoryService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -28,6 +28,7 @@ class CategoryController extends Controller
     public function index(): JsonResponse
     {
         $categories = $this->categoryService->getAllCategories();
+
         return $this->successResponse(CategoryResource::collection($categories));
     }
 
@@ -36,17 +37,17 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $data      = $request->validated();
+        $data = $request->validated();
         $imageFile = $request->file('image');
 
         $category = $this->categoryService->createCategory($data, $imageFile);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_CREATE,
-            resource:   AdminLog::RESOURCE_CATEGORY,
+            request: $request,
+            action: AdminLog::ACTION_CREATE,
+            resource: AdminLog::RESOURCE_CATEGORY,
             resourceId: $category->id,
-            newValues:  $this->adminLogService->sanitize($data, ['image']),
+            newValues: $this->adminLogService->sanitize($data, ['image']),
         );
 
         return $this->successResponse(
@@ -61,20 +62,20 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, int $id): JsonResponse
     {
-        $category  = $this->categoryService->getCategoryById($id);
+        $category = $this->categoryService->getCategoryById($id);
         $oldValues = $this->adminLogService->extractModelValues($category, ['name', 'slug', 'description', 'is_active']);
-        $data      = $request->validated();
+        $data = $request->validated();
         $imageFile = $request->file('image');
 
         $updated = $this->categoryService->updateCategory($category, $data, $imageFile);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_UPDATE,
-            resource:   AdminLog::RESOURCE_CATEGORY,
+            request: $request,
+            action: AdminLog::ACTION_UPDATE,
+            resource: AdminLog::RESOURCE_CATEGORY,
             resourceId: $category->id,
-            oldValues:  $oldValues,
-            newValues:  $this->adminLogService->sanitize($data, ['image']),
+            oldValues: $oldValues,
+            newValues: $this->adminLogService->sanitize($data, ['image']),
         );
 
         return $this->successResponse(
@@ -103,11 +104,11 @@ class CategoryController extends Controller
         $this->categoryService->deleteCategory($category);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_DELETE,
-            resource:   AdminLog::RESOURCE_CATEGORY,
+            request: $request,
+            action: AdminLog::ACTION_DELETE,
+            resource: AdminLog::RESOURCE_CATEGORY,
             resourceId: $id,
-            oldValues:  $snapshot,
+            oldValues: $snapshot,
         );
 
         return $this->successResponse(null, 'Catégorie supprimée avec succès.');

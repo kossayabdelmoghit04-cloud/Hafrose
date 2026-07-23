@@ -81,7 +81,7 @@ class WishlistController extends Controller
         $isFavorite = $this->wishlistService->isFavorite($user, $product->id);
 
         return $this->successResponse([
-            'is_favorite' => $isFavorite
+            'is_favorite' => $isFavorite,
         ]);
     }
 }

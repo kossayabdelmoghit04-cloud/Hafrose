@@ -37,7 +37,7 @@ class DeployOptimizeCommand extends Command
 
     public function __construct(
         protected DeploymentOptimizationService $optimizationService,
-        protected DeploymentHealthService       $healthService,
+        protected DeploymentHealthService $healthService,
     ) {
         parent::__construct();
     }
@@ -47,23 +47,24 @@ class DeployOptimizeCommand extends Command
      */
     public function handle(): int
     {
-        $clear  = (bool) $this->option('clear');
+        $clear = (bool) $this->option('clear');
         $warmup = (bool) $this->option('warmup');
-        $force  = (bool) $this->option('force');
+        $force = (bool) $this->option('force');
 
         $this->printHeader();
 
         $env = config('app.env', 'production');
-        if ($env !== 'production' && !$force) {
+        if ($env !== 'production' && ! $force) {
             $this->warn("  [ATTENTION] Environnement actuel : {$env}.");
             $this->line("  Utilisez <fg=yellow>--force</> pour exécuter l'optimisation en environnement de développement ou de test.");
             $this->line('');
+
             return self::FAILURE;
         }
 
         // 1. Vidage des caches si --clear
         if ($clear) {
-            $this->info("  ⚡ Vidage préalable des caches...");
+            $this->info('  ⚡ Vidage préalable des caches...');
             $clearResult = $this->optimizationService->clearCaches();
 
             if ($clearResult['success']) {
@@ -75,20 +76,21 @@ class DeployOptimizeCommand extends Command
         }
 
         // 2. Optimisation globale
-        $this->info("  🚀 Optimisation du déploiement (config, routes, views, events)...");
+        $this->info('  🚀 Optimisation du déploiement (config, routes, views, events)...');
         $optResult = $this->optimizationService->optimize();
 
         if ($optResult['success']) {
             $this->line("  <fg=green>✓</> Optimisation globale terminée en {$optResult['duration']} ms.");
         } else {
             $this->error("  <fg=red>✗</> Échec de l'optimisation : {$optResult['message']}");
+
             return self::FAILURE;
         }
 
         // 3. Préchauffage si --warmup
         if ($warmup) {
             $this->line('');
-            $this->info("  🔥 Préchauffage des caches...");
+            $this->info('  🔥 Préchauffage des caches...');
             $warmupResult = $this->optimizationService->warmupCaches();
             if ($warmupResult['success']) {
                 $this->line("  <fg=green>✓</> Préchauffage terminé avec succès ({$warmupResult['duration']} ms).");
@@ -105,10 +107,10 @@ class DeployOptimizeCommand extends Command
         $rows = [];
         foreach ($health['checks'] as $key => $check) {
             $statusLabel = match ($check['status']) {
-                'ok'      => '<fg=green>PASS</>',
+                'ok' => '<fg=green>PASS</>',
                 'warning' => '<fg=yellow>WARN</>',
-                'error'   => '<fg=red>FAIL</>',
-                default   => $check['status'],
+                'error' => '<fg=red>FAIL</>',
+                default => $check['status'],
             };
 
             $rows[] = [
@@ -122,7 +124,7 @@ class DeployOptimizeCommand extends Command
 
         $this->line('');
         if ($health['overall_status'] === 'ok') {
-            $this->line("  <fg=green;options=bold>✔ APPLICATION ET INFRASTRUCTURE PRÊTES POUR LA PRODUCTION</>");
+            $this->line('  <fg=green;options=bold>✔ APPLICATION ET INFRASTRUCTURE PRÊTES POUR LA PRODUCTION</>');
         } else {
             $this->line("  <fg=yellow;options=bold>⚠ Statut global : {$health['overall_status']}. Des ajustements sont recommandés.</>");
         }

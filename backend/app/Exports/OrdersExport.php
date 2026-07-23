@@ -10,9 +10,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class OrdersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, WithStyles, ShouldAutoSize
+class OrdersExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(protected array $filters = []) {}
 
@@ -20,24 +21,24 @@ class OrdersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, W
     {
         $query = Order::query();
 
-        if (!empty($this->filters['search'])) {
-            $search = '%' . $this->filters['search'] . '%';
+        if (! empty($this->filters['search'])) {
+            $search = '%'.$this->filters['search'].'%';
             $query->where(function ($q) use ($search) {
                 $q->where('customer_name', 'like', $search)
-                  ->orWhere('phone', 'like', $search)
-                  ->orWhere('city', 'like', $search);
+                    ->orWhere('phone', 'like', $search)
+                    ->orWhere('city', 'like', $search);
             });
         }
 
-        if (!empty($this->filters['status'])) {
+        if (! empty($this->filters['status'])) {
             $query->where('status', $this->filters['status']);
         }
 
-        if (!empty($this->filters['start_date'])) {
+        if (! empty($this->filters['start_date'])) {
             $query->where('created_at', '>=', $this->filters['start_date']);
         }
 
-        if (!empty($this->filters['end_date'])) {
+        if (! empty($this->filters['end_date'])) {
             $query->where('created_at', '<=', $this->filters['end_date']);
         }
 
@@ -62,7 +63,7 @@ class OrdersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, W
     }
 
     /**
-     * @param Order $order
+     * @param  Order  $order
      */
     public function map($order): array
     {
@@ -72,7 +73,7 @@ class OrdersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, W
             $order->phone,
             $order->address,
             $order->city,
-            number_format((float) $order->total_price, 2, '.', '') . ' €',
+            number_format((float) $order->total_price, 2, '.', '').' €',
             $order->status,
             $order->created_at?->format('d/m/Y H:i'),
         ];
@@ -89,7 +90,7 @@ class OrdersExport implements FromQuery, WithHeadings, WithMapping, WithTitle, W
             1 => [
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => '1E293B'],
                 ],
             ],

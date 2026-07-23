@@ -25,6 +25,7 @@ class CategoryController extends Controller
     public function index(): JsonResponse
     {
         $categories = $this->categoryService->getAllCategories();
+
         return $this->successResponse(CategoryResource::collection($categories));
     }
 
@@ -34,6 +35,7 @@ class CategoryController extends Controller
     public function show(string $slug): JsonResponse
     {
         $category = $this->categoryService->getCategoryBySlug($slug);
+
         return $this->successResponse(new CategoryResource($category));
     }
 }

@@ -2,17 +2,21 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
+use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Models\Order;
-use App\Models\ActivityLog;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
     protected OrderRepositoryInterface $orderRepository;
+
     protected ProductRepositoryInterface $productRepository;
+
     protected ActivityLogService $activityLogService;
 
     public function __construct(
@@ -34,11 +38,11 @@ class OrderService
             // 1. Créer la commande initiale
             $order = $this->orderRepository->create([
                 'customer_name' => $data['customer'],
-                'phone'         => $data['phone'],
-                'address'       => $data['address'],
-                'city'          => $data['city'],
-                'total_price'   => 0.00,
-                'status'        => Order::STATUS_PENDING,
+                'phone' => $data['phone'],
+                'address' => $data['address'],
+                'city' => $data['city'],
+                'total_price' => 0.00,
+                'status' => Order::STATUS_PENDING,
             ]);
 
             // 2. Traiter chaque article de commande
@@ -46,12 +50,12 @@ class OrderService
                 // Verrou pessimiste (lockForUpdate) sur le produit
                 $product = $this->productRepository->findForUpdate($item['product_id']);
 
-                if (!$product) {
+                if (! $product) {
                     throw new HttpResponseException(response()->json([
                         'success' => false,
                         'message' => 'Product not found',
-                        'errors'  => ['product_id' => ["Le produit avec l'ID {$item['product_id']} n'existe pas."]],
-                        'data'    => null,
+                        'errors' => ['product_id' => ["Le produit avec l'ID {$item['product_id']} n'existe pas."]],
+                        'data' => null,
                     ], 404));
                 }
 
@@ -59,8 +63,8 @@ class OrderService
                     throw new HttpResponseException(response()->json([
                         'success' => false,
                         'message' => "Le stock est insuffisant pour le produit : {$product->name}",
-                        'errors'  => ['stock' => ["Le stock disponible est de {$product->stock} unité(s)."]],
-                        'data'    => null,
+                        'errors' => ['stock' => ["Le stock disponible est de {$product->stock} unité(s)."]],
+                        'data' => null,
                     ], 409));
                 }
 
@@ -70,7 +74,7 @@ class OrderService
                 // Créer la ligne de commande (le sous-total et le total de la commande se mettent à jour automatiquement via Eloquent)
                 $this->orderRepository->createItem($order, [
                     'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
+                    'quantity' => $item['quantity'],
                     'unit_price' => $product->price,
                 ]);
             }
@@ -80,14 +84,14 @@ class OrderService
 
             // Enregistrer l'activité de création de commande
             $this->activityLogService->log(
-                eventType:  ActivityLog::EVENT_ORDER_CREATED,
-                category:   ActivityLog::CATEGORY_ORDER,
-                resource:   'orders',
+                eventType: ActivityLog::EVENT_ORDER_CREATED,
+                category: ActivityLog::CATEGORY_ORDER,
+                resource: 'orders',
                 resourceId: $order->id,
-                metadata:   [
-                    'customer'    => $order->customer_name,
+                metadata: [
+                    'customer' => $order->customer_name,
                     'total_price' => $order->total_price,
-                    'city'        => $order->city,
+                    'city' => $order->city,
                 ]
             );
 
@@ -99,7 +103,7 @@ class OrderService
     /**
      * Obtenir les commandes paginées pour l'administration.
      */
-    public function getPaginatedOrders(array $filters, int $perPage = 10): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getPaginatedOrders(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->orderRepository->paginateWithFilters($filters, $perPage);
     }
@@ -111,8 +115,8 @@ class OrderService
     {
         $order = $this->orderRepository->find($id);
 
-        if (!$order) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Order not found");
+        if (! $order) {
+            throw new ModelNotFoundException('Order not found');
         }
 
         return $order;
@@ -152,8 +156,8 @@ class OrderService
                             throw new HttpResponseException(response()->json([
                                 'success' => false,
                                 'message' => "Le stock est insuffisant pour réactiver la commande (produit : {$product->name})",
-                                'errors'  => ['stock' => ["Le stock actuel est de {$product->stock}."]],
-                                'data'    => null,
+                                'errors' => ['stock' => ["Le stock actuel est de {$product->stock}."]],
+                                'data' => null,
                             ], 409));
                         }
                         $product->decrement('stock', $item->quantity);
@@ -165,11 +169,11 @@ class OrderService
 
             // Enregistrer l'activité de changement de statut de la commande
             $this->activityLogService->log(
-                eventType:  ActivityLog::EVENT_ORDER_STATUS_CHANGED,
-                category:   ActivityLog::CATEGORY_ORDER,
-                resource:   'orders',
+                eventType: ActivityLog::EVENT_ORDER_STATUS_CHANGED,
+                category: ActivityLog::CATEGORY_ORDER,
+                resource: 'orders',
                 resourceId: $updatedOrder->id,
-                metadata:   [
+                metadata: [
                     'old_status' => $oldStatus,
                     'new_status' => $status,
                 ]

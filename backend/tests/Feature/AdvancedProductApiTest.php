@@ -35,14 +35,14 @@ class AdvancedProductApiTest extends TestCase
         $response = $this->getJson("/api/products/{$current->id}/similar");
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'errors',
-                     'data' => [
-                         '*' => ['id', 'name', 'slug', 'price', 'category_id']
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'errors',
+                'data' => [
+                    '*' => ['id', 'name', 'slug', 'price', 'category_id'],
+                ],
+            ]);
 
         $returnedIds = collect($response['data'])->pluck('id')->all();
 
@@ -85,7 +85,7 @@ class AdvancedProductApiTest extends TestCase
         $order1 = Order::factory()->create();
         OrderItem::factory()->count(3)->create([
             'product_id' => $productA->id,
-            'order_id'   => $order1->id,
+            'order_id' => $order1->id,
         ]);
 
         // Product B: 1 order, 5 reviews with 5.0 rating (Score: 1 * 3 + 5 * 5 + 5 * 2 = 3 + 25 + 10 = 38)
@@ -93,19 +93,19 @@ class AdvancedProductApiTest extends TestCase
         $order2 = Order::factory()->create();
         OrderItem::factory()->create([
             'product_id' => $productB->id,
-            'order_id'   => $order2->id,
+            'order_id' => $order2->id,
         ]);
         Review::factory()->count(5)->create([
-            'product_id'  => $productB->id,
-            'rating'      => 5,
+            'product_id' => $productB->id,
+            'rating' => 5,
             'is_approved' => true,
         ]);
 
         // Product C: no orders, 1 review with 1.0 rating (Score: 0 * 3 + 1 * 5 + 1 * 2 = 7)
         $productC = Product::factory()->create(['category_id' => $category->id]);
         Review::factory()->create([
-            'product_id'  => $productC->id,
-            'rating'      => 1,
+            'product_id' => $productC->id,
+            'rating' => 1,
             'is_approved' => true,
         ]);
 
@@ -152,18 +152,18 @@ class AdvancedProductApiTest extends TestCase
         $response = $this->getJson('/api/products/search');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'errors',
-                     'data' => [
-                         'data' => [
-                             '*' => ['id', 'name', 'slug', 'price']
-                         ],
-                         'links',
-                         'meta'
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'errors',
+                'data' => [
+                    'data' => [
+                        '*' => ['id', 'name', 'slug', 'price'],
+                    ],
+                    'links',
+                    'meta',
+                ],
+            ]);
 
         $this->assertCount(5, $response['data']['data']);
     }
@@ -174,13 +174,13 @@ class AdvancedProductApiTest extends TestCase
 
         $product1 = Product::factory()->create([
             'category_id' => $category->id,
-            'name'        => 'Sac à main Signature',
+            'name' => 'Sac à main Signature',
             'description' => 'Un classique',
         ]);
 
         $product2 = Product::factory()->create([
             'category_id' => $category->id,
-            'name'        => 'Ceinture Noire',
+            'name' => 'Ceinture Noire',
             'description' => 'Matière cuir véritable',
         ]);
 
@@ -211,26 +211,26 @@ class AdvancedProductApiTest extends TestCase
 
         $product1 = Product::factory()->create([
             'category_id' => $category1->id,
-            'price'       => 1500.00,
-            'brand'       => 'Hafrose',
+            'price' => 1500.00,
+            'brand' => 'Hafrose',
         ]);
 
         $product2 = Product::factory()->create([
             'category_id' => $category1->id,
-            'price'       => 3000.00,
-            'brand'       => 'Hafrose',
+            'price' => 3000.00,
+            'brand' => 'Hafrose',
         ]);
 
         $product3 = Product::factory()->create([
             'category_id' => $category2->id,
-            'price'       => 1500.00,
-            'brand'       => 'Hafrose',
+            'price' => 1500.00,
+            'brand' => 'Hafrose',
         ]);
 
         $product4 = Product::factory()->create([
             'category_id' => $category1->id,
-            'price'       => 1500.00,
-            'brand'       => 'Autre Marque',
+            'price' => 1500.00,
+            'brand' => 'Autre Marque',
         ]);
 
         // Filter: Category=bijoux & price_min=1000 & price_max=2000 & brand=Hafrose -> matches only product1
@@ -248,20 +248,20 @@ class AdvancedProductApiTest extends TestCase
 
         $product1 = Product::factory()->create([
             'category_id' => $category->id,
-            'price'       => 500.00,
-            'created_at'  => now()->subDays(2),
+            'price' => 500.00,
+            'created_at' => now()->subDays(2),
         ]);
 
         $product2 = Product::factory()->create([
             'category_id' => $category->id,
-            'price'       => 1500.00,
-            'created_at'  => now()->subDay(),
+            'price' => 1500.00,
+            'created_at' => now()->subDay(),
         ]);
 
         $product3 = Product::factory()->create([
             'category_id' => $category->id,
-            'price'       => 1000.00,
-            'created_at'  => now(),
+            'price' => 1000.00,
+            'created_at' => now(),
         ]);
 
         // Sort: price_asc -> 1, 3, 2
@@ -304,36 +304,36 @@ class AdvancedProductApiTest extends TestCase
         $category = Category::factory()->create();
         Product::factory()->create([
             'category_id' => $category->id,
-            'price'       => 100.00,
-            'brand'       => 'Hafrose',
-            'stock'       => 50,
+            'price' => 100.00,
+            'brand' => 'Hafrose',
+            'stock' => 50,
             'is_featured' => true,
         ]);
         Product::factory()->create([
             'category_id' => $category->id,
-            'price'       => 200.00,
-            'brand'       => 'Maison H',
-            'stock'       => 100,
+            'price' => 200.00,
+            'brand' => 'Maison H',
+            'stock' => 100,
             'is_featured' => false,
         ]);
 
         $response = $this->getJson('/api/products/filters');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'data' => [
-                         'categories',
-                         'price' => ['min', 'max'],
-                         'products_count',
-                         'brands',
-                         'statistics' => [
-                             'average_price',
-                             'total_stock',
-                             'featured_count'
-                         ]
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'categories',
+                    'price' => ['min', 'max'],
+                    'products_count',
+                    'brands',
+                    'statistics' => [
+                        'average_price',
+                        'total_stock',
+                        'featured_count',
+                    ],
+                ],
+            ]);
 
         $this->assertEquals(100.0, $response['data']['price']['min']);
         $this->assertEquals(200.0, $response['data']['price']['max']);

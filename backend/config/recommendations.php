@@ -33,8 +33,8 @@ return [
     |
     */
     'popularity_weights' => [
-        'orders'  => (float) env('RECOMMENDATIONS_POPULARITY_WEIGHT_ORDERS', 3.0),
-        'rating'  => (float) env('RECOMMENDATIONS_POPULARITY_WEIGHT_RATING', 5.0),
+        'orders' => (float) env('RECOMMENDATIONS_POPULARITY_WEIGHT_ORDERS', 3.0),
+        'rating' => (float) env('RECOMMENDATIONS_POPULARITY_WEIGHT_RATING', 5.0),
         'reviews' => (float) env('RECOMMENDATIONS_POPULARITY_WEIGHT_REVIEWS', 2.0),
     ],
 

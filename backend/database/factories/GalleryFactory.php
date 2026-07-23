@@ -7,7 +7,7 @@ use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Gallery>
+ * @extends Factory<Gallery>
  */
 class GalleryFactory extends Factory
 {
@@ -23,8 +23,9 @@ class GalleryFactory extends Factory
     public function definition(): array
     {
         $product = Product::inRandomOrder()->first() ?? Product::factory()->create();
-        
+
         $num = self::$imageNumber++;
+
         return [
             'product_id' => $product->id,
             'image' => "products/gallery/img_{$num}.jpg",

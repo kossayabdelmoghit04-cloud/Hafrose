@@ -32,9 +32,9 @@ class DeploymentController extends Controller
 
     public function __construct(
         protected DeploymentOptimizationService $optimizationService,
-        protected DeploymentHealthService       $healthService,
-        protected AdminLogService                $adminLogService,
-        protected ActivityLogService             $activityLogService,
+        protected DeploymentHealthService $healthService,
+        protected AdminLogService $adminLogService,
+        protected ActivityLogService $activityLogService,
     ) {}
 
     /**
@@ -63,19 +63,19 @@ class DeploymentController extends Controller
 
             // Journalisation AdminLog
             $this->adminLogService->log(
-                request:     $request,
-                action:      AdminLog::ACTION_DEPLOYMENT_OPTIMIZE,
-                resource:    AdminLog::RESOURCE_SYSTEM,
+                request: $request,
+                action: AdminLog::ACTION_DEPLOYMENT_OPTIMIZE,
+                resource: AdminLog::RESOURCE_SYSTEM,
                 description: 'Optimisation de déploiement exécutée',
-                newValues:   $result,
+                newValues: $result,
             );
 
             // Journalisation ActivityLog
             $this->activityLogService->log(
-                eventType:  'deployment.optimize',
-                category:   ActivityLog::CATEGORY_ADMIN,
-                resource:   AdminLog::RESOURCE_SYSTEM,
-                metadata:   $result,
+                eventType: 'deployment.optimize',
+                category: ActivityLog::CATEGORY_ADMIN,
+                resource: AdminLog::RESOURCE_SYSTEM,
+                metadata: $result,
             );
 
             return $this->successResponse(
@@ -84,7 +84,7 @@ class DeploymentController extends Controller
             );
         } catch (Throwable $e) {
             return $this->errorResponse(
-                "Erreur lors de l'optimisation : " . $e->getMessage(),
+                "Erreur lors de l'optimisation : ".$e->getMessage(),
                 500
             );
         }
@@ -101,19 +101,19 @@ class DeploymentController extends Controller
 
             // Journalisation AdminLog
             $this->adminLogService->log(
-                request:     $request,
-                action:      AdminLog::ACTION_DEPLOYMENT_CLEAR,
-                resource:    AdminLog::RESOURCE_SYSTEM,
+                request: $request,
+                action: AdminLog::ACTION_DEPLOYMENT_CLEAR,
+                resource: AdminLog::RESOURCE_SYSTEM,
                 description: 'Vidage des caches de déploiement exécuté',
-                newValues:   $result,
+                newValues: $result,
             );
 
             // Journalisation ActivityLog
             $this->activityLogService->log(
-                eventType:  'deployment.clear',
-                category:   ActivityLog::CATEGORY_ADMIN,
-                resource:   AdminLog::RESOURCE_SYSTEM,
-                metadata:   $result,
+                eventType: 'deployment.clear',
+                category: ActivityLog::CATEGORY_ADMIN,
+                resource: AdminLog::RESOURCE_SYSTEM,
+                metadata: $result,
             );
 
             return $this->successResponse(
@@ -122,7 +122,7 @@ class DeploymentController extends Controller
             );
         } catch (Throwable $e) {
             return $this->errorResponse(
-                "Erreur lors du vidage des caches : " . $e->getMessage(),
+                'Erreur lors du vidage des caches : '.$e->getMessage(),
                 500
             );
         }
@@ -139,19 +139,19 @@ class DeploymentController extends Controller
 
             // Journalisation AdminLog
             $this->adminLogService->log(
-                request:     $request,
-                action:      AdminLog::ACTION_DEPLOYMENT_WARMUP,
-                resource:    AdminLog::RESOURCE_SYSTEM,
+                request: $request,
+                action: AdminLog::ACTION_DEPLOYMENT_WARMUP,
+                resource: AdminLog::RESOURCE_SYSTEM,
                 description: 'Préchauffage des caches de déploiement exécuté',
-                newValues:   $result,
+                newValues: $result,
             );
 
             // Journalisation ActivityLog
             $this->activityLogService->log(
-                eventType:  'deployment.warmup',
-                category:   ActivityLog::CATEGORY_ADMIN,
-                resource:   AdminLog::RESOURCE_SYSTEM,
-                metadata:   $result,
+                eventType: 'deployment.warmup',
+                category: ActivityLog::CATEGORY_ADMIN,
+                resource: AdminLog::RESOURCE_SYSTEM,
+                metadata: $result,
             );
 
             return $this->successResponse(
@@ -160,7 +160,7 @@ class DeploymentController extends Controller
             );
         } catch (Throwable $e) {
             return $this->errorResponse(
-                "Erreur lors du préchauffage des caches : " . $e->getMessage(),
+                'Erreur lors du préchauffage des caches : '.$e->getMessage(),
                 500
             );
         }

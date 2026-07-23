@@ -4,10 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\AdminLog;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\AdminLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +20,7 @@ class AdminLogApiTest extends TestCase
     {
         return User::factory()->create([
             'email' => 'admin@hafrose.com',
-            'role'  => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -35,18 +36,18 @@ class AdminLogApiTest extends TestCase
      */
     public function test_creating_product_generates_admin_log(): void
     {
-        $admin    = $this->createAdmin();
-        $token    = $admin->createToken('admin-token')->plainTextToken;
+        $admin = $this->createAdmin();
+        $token = $admin->createToken('admin-token')->plainTextToken;
         $category = Category::factory()->create();
 
         $response = $this->withToken($token)->postJson('/api/admin/products', [
-            'category_id'       => $category->id,
-            'name'              => 'Montre Chrono Or',
-            'slug'              => 'montre-chrono-or',
-            'description'       => 'Une montre d\'exception.',
+            'category_id' => $category->id,
+            'name' => 'Montre Chrono Or',
+            'slug' => 'montre-chrono-or',
+            'description' => 'Une montre d\'exception.',
             'short_description' => 'Montre de luxe.',
-            'price'             => 4990.00,
-            'stock'             => 5,
+            'price' => 4990.00,
+            'stock' => 5,
         ]);
 
         $response->assertCreated();
@@ -54,9 +55,9 @@ class AdminLogApiTest extends TestCase
         $productId = $response->json('data.id');
 
         $this->assertDatabaseHas('admin_logs', [
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_CREATE,
-            'resource'    => AdminLog::RESOURCE_PRODUCT,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_CREATE,
+            'resource' => AdminLog::RESOURCE_PRODUCT,
             'resource_id' => $productId,
         ]);
 
@@ -72,17 +73,17 @@ class AdminLogApiTest extends TestCase
      */
     public function test_updating_product_generates_admin_log_with_old_and_new_values(): void
     {
-        $admin   = $this->createAdmin();
-        $token   = $admin->createToken('admin-token')->plainTextToken;
+        $admin = $this->createAdmin();
+        $token = $admin->createToken('admin-token')->plainTextToken;
         $product = Product::factory()->create(['name' => 'Montre Classique', 'price' => 1000.00]);
 
         $response = $this->withToken($token)->postJson("/api/admin/products/{$product->id}", [
             'category_id' => $product->category_id,
-            'name'        => 'Montre Classique Édition Limitée',
-            'slug'        => $product->slug,
+            'name' => 'Montre Classique Édition Limitée',
+            'slug' => $product->slug,
             'description' => $product->description,
-            'price'       => 1200.00,
-            'stock'       => $product->stock,
+            'price' => 1200.00,
+            'stock' => $product->stock,
         ]);
 
         $response->assertOk();
@@ -103,11 +104,11 @@ class AdminLogApiTest extends TestCase
 
         $order = Order::create([
             'customer_name' => 'Client Test',
-            'phone'         => '0600000000',
-            'address'       => '10 Rue de Paris',
-            'city'          => 'Paris',
-            'total_price'   => 500.00,
-            'status'        => Order::STATUS_PENDING,
+            'phone' => '0600000000',
+            'address' => '10 Rue de Paris',
+            'city' => 'Paris',
+            'total_price' => 500.00,
+            'status' => Order::STATUS_PENDING,
         ]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/orders/{$order->id}/status", [
@@ -117,9 +118,9 @@ class AdminLogApiTest extends TestCase
         $response->assertOk();
 
         $this->assertDatabaseHas('admin_logs', [
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_STATUS_CHANGE,
-            'resource'    => AdminLog::RESOURCE_ORDER,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_STATUS_CHANGE,
+            'resource' => AdminLog::RESOURCE_ORDER,
             'resource_id' => $order->id,
         ]);
 
@@ -133,8 +134,8 @@ class AdminLogApiTest extends TestCase
      */
     public function test_approving_review_generates_admin_log(): void
     {
-        $admin  = $this->createAdmin();
-        $token  = $admin->createToken('admin-token')->plainTextToken;
+        $admin = $this->createAdmin();
+        $token = $admin->createToken('admin-token')->plainTextToken;
         $review = Review::factory()->create(['is_approved' => false]);
 
         $response = $this->withToken($token)->patchJson("/api/admin/reviews/{$review->id}/approve");
@@ -142,9 +143,9 @@ class AdminLogApiTest extends TestCase
         $response->assertOk();
 
         $this->assertDatabaseHas('admin_logs', [
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_APPROVE,
-            'resource'    => AdminLog::RESOURCE_REVIEW,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_APPROVE,
+            'resource' => AdminLog::RESOURCE_REVIEW,
             'resource_id' => $review->id,
         ]);
     }
@@ -162,36 +163,36 @@ class AdminLogApiTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/logs?per_page=10&page=1');
 
         $response->assertOk()
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'errors',
-                     'data' => [
-                         '*' => [
-                             'id',
-                             'admin',
-                             'admin_id',
-                             'action',
-                             'resource',
-                             'resource_type',
-                             'resource_id',
-                             'description',
-                             'old_values',
-                             'new_values',
-                             'ip_address',
-                             'user_agent',
-                             'url',
-                             'method',
-                             'created_at',
-                         ]
-                     ],
-                     'meta' => [
-                         'current_page',
-                         'last_page',
-                         'per_page',
-                         'total',
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'errors',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'admin',
+                        'admin_id',
+                        'action',
+                        'resource',
+                        'resource_type',
+                        'resource_id',
+                        'description',
+                        'old_values',
+                        'new_values',
+                        'ip_address',
+                        'user_agent',
+                        'url',
+                        'method',
+                        'created_at',
+                    ],
+                ],
+                'meta' => [
+                    'current_page',
+                    'last_page',
+                    'per_page',
+                    'total',
+                ],
+            ]);
 
         $this->assertCount(10, $response->json('data'));
         $this->assertEquals(20, $response->json('meta.total'));
@@ -206,16 +207,16 @@ class AdminLogApiTest extends TestCase
         $token = $admin->createToken('admin-token')->plainTextToken;
 
         AdminLog::create([
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_CREATE,
-            'resource'    => AdminLog::RESOURCE_PRODUCT,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_CREATE,
+            'resource' => AdminLog::RESOURCE_PRODUCT,
             'description' => 'Création du produit d\'exception Hafrose Royal',
         ]);
 
         AdminLog::create([
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_DELETE,
-            'resource'    => AdminLog::RESOURCE_CATEGORY,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_DELETE,
+            'resource' => AdminLog::RESOURCE_CATEGORY,
             'description' => 'Suppression de la catégorie Ancienne',
         ]);
 
@@ -246,26 +247,26 @@ class AdminLogApiTest extends TestCase
         $token = $admin->createToken('admin-token')->plainTextToken;
 
         $log = AdminLog::create([
-            'admin_id'    => $admin->id,
-            'action'      => AdminLog::ACTION_UPDATE,
-            'resource'    => AdminLog::RESOURCE_SETTING,
+            'admin_id' => $admin->id,
+            'action' => AdminLog::ACTION_UPDATE,
+            'resource' => AdminLog::RESOURCE_SETTING,
             'description' => 'Mise à jour des paramètres du site',
-            'old_values'  => ['site_name' => 'Hafrose Old'],
-            'new_values'  => ['site_name' => 'Hafrose New'],
+            'old_values' => ['site_name' => 'Hafrose Old'],
+            'new_values' => ['site_name' => 'Hafrose New'],
         ]);
 
         $response = $this->withToken($token)->getJson("/api/admin/logs/{$log->id}");
 
         $response->assertOk()
-                 ->assertJson([
-                     'success' => true,
-                     'data'    => [
-                         'id'          => $log->id,
-                         'action'      => AdminLog::ACTION_UPDATE,
-                         'resource'    => AdminLog::RESOURCE_SETTING,
-                         'description' => 'Mise à jour des paramètres du site',
-                     ]
-                 ]);
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'id' => $log->id,
+                    'action' => AdminLog::ACTION_UPDATE,
+                    'resource' => AdminLog::RESOURCE_SETTING,
+                    'description' => 'Mise à jour des paramètres du site',
+                ],
+            ]);
     }
 
     /**
@@ -279,7 +280,7 @@ class AdminLogApiTest extends TestCase
 
         // 2. Client ordinaire
         $customer = $this->createCustomer();
-        $token    = $customer->createToken('customer-token')->plainTextToken;
+        $token = $customer->createToken('customer-token')->plainTextToken;
 
         $customerRes = $this->withToken($token)->getJson('/api/admin/logs');
         $customerRes->assertForbidden();
@@ -292,10 +293,10 @@ class AdminLogApiTest extends TestCase
     {
         $admin = $this->createAdmin();
         $token = $admin->createToken('admin-token')->plainTextToken;
-        $log   = AdminLog::factory()->create();
+        $log = AdminLog::factory()->create();
 
         // Tentative de PUT/PATCH/DELETE
-        $patchRes  = $this->withToken($token)->patchJson("/api/admin/logs/{$log->id}", ['action' => 'fake']);
+        $patchRes = $this->withToken($token)->patchJson("/api/admin/logs/{$log->id}", ['action' => 'fake']);
         $deleteRes = $this->withToken($token)->deleteJson("/api/admin/logs/{$log->id}");
 
         $patchRes->assertStatus(405);
@@ -307,14 +308,14 @@ class AdminLogApiTest extends TestCase
      */
     public function test_sensitive_fields_are_automatically_sanitized(): void
     {
-        $service = app(\App\Services\AdminLogService::class);
+        $service = app(AdminLogService::class);
 
         $input = [
-            'name'                  => 'Admin User',
-            'email'                 => 'admin@hafrose.com',
-            'password'              => 'SecretPassword123!',
+            'name' => 'Admin User',
+            'email' => 'admin@hafrose.com',
+            'password' => 'SecretPassword123!',
             'password_confirmation' => 'SecretPassword123!',
-            'token'                 => 'bearer-secret-token',
+            'token' => 'bearer-secret-token',
         ];
 
         $sanitized = $service->sanitize($input);

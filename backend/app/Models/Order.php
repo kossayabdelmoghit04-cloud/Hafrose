@@ -14,9 +14,13 @@ class Order extends Model
      * Statuts possibles d'une commande
      */
     public const STATUS_PENDING = 'En attente';
+
     public const STATUS_CONFIRMED = 'Confirmée';
+
     public const STATUS_SHIPPED = 'Expédiée';
+
     public const STATUS_DELIVERED = 'Livrée';
+
     public const STATUS_CANCELLED = 'Annulée';
 
     /**

@@ -1,10 +1,23 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\ActivityLogController;
+use App\Http\Controllers\Api\Admin\AdminLogController;
+use App\Http\Controllers\Api\Admin\AuthController;
+use App\Http\Controllers\Api\Admin\BulkActionController;
+use App\Http\Controllers\Api\Admin\CacheAdminController;
+use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\DeploymentController;
+use App\Http\Controllers\Api\Admin\ExportController;
+use App\Http\Controllers\Api\Admin\HistoryController;
+use App\Http\Controllers\Api\Admin\MediaController;
+use App\Http\Controllers\Api\Admin\SettingController;
+use App\Http\Controllers\Api\Admin\SystemBackupController;
+use App\Http\Controllers\Api\Admin\SystemMonitoringController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -63,97 +76,96 @@ Route::prefix('admin')->group(function () {
 
     // Authentification admin : anti-brute-force dédié
     // throttle:admin-login  → 5 req/min par IP
-    Route::post('/login', [\App\Http\Controllers\Api\Admin\AuthController::class, 'login'])
+    Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:admin-login');
 
     // Routes admin protégées (auth:sanctum + rôle admin) ─ pas de throttle supplémentaire
     // car l'accès est déjà doublement restreint (token Sanctum + middleware admin).
     Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         // Profil
-        Route::post('/logout', [\App\Http\Controllers\Api\Admin\AuthController::class, 'logout']);
-        Route::get('/me', [\App\Http\Controllers\Api\Admin\AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me', [AuthController::class, 'me']);
 
         // Dashboard
-        Route::get('/dashboard', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'index']);
+        Route::get('/dashboard', [DashboardController::class, 'index']);
 
         // Exports CSV & Excel
-        Route::get('/export/{resource}/csv', [\App\Http\Controllers\Api\Admin\ExportController::class, 'exportCsv']);
-        Route::get('/export/{resource}/excel', [\App\Http\Controllers\Api\Admin\ExportController::class, 'exportExcel']);
+        Route::get('/export/{resource}/csv', [ExportController::class, 'exportCsv']);
+        Route::get('/export/{resource}/excel', [ExportController::class, 'exportExcel']);
 
         // Actions groupées (Bulk Actions) — Doit être déclaré avant /{resource}/{id} pour éviter les conflits
-        Route::post('/{resource}/bulk', [\App\Http\Controllers\Api\Admin\BulkActionController::class, 'bulk'])
+        Route::post('/{resource}/bulk', [BulkActionController::class, 'bulk'])
             ->where('resource', 'products|categories|reviews|contacts|orders');
 
         // Historique des modifications
-        Route::get('/history/{resource}/{id}', [\App\Http\Controllers\Api\Admin\HistoryController::class, 'show']);
+        Route::get('/history/{resource}/{id}', [HistoryController::class, 'show']);
 
         // Catégories CRUD (POST utilisé pour la mise à jour afin de gérer facilement multipart/form-data)
-        Route::get('/categories', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'index']);
-        Route::post('/categories', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'store']);
-        Route::post('/categories/{category}', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'update']);
-        Route::delete('/categories/{category}', [\App\Http\Controllers\Api\Admin\CategoryController::class, 'destroy']);
+        Route::get('/categories', [App\Http\Controllers\Api\Admin\CategoryController::class, 'index']);
+        Route::post('/categories', [App\Http\Controllers\Api\Admin\CategoryController::class, 'store']);
+        Route::post('/categories/{category}', [App\Http\Controllers\Api\Admin\CategoryController::class, 'update']);
+        Route::delete('/categories/{category}', [App\Http\Controllers\Api\Admin\CategoryController::class, 'destroy']);
 
         // Produits CRUD (POST utilisé pour la mise à jour pour gérer l'upload multiple et spoofing de formulaire)
-        Route::get('/products', [\App\Http\Controllers\Api\Admin\ProductController::class, 'index']);
-        Route::post('/products', [\App\Http\Controllers\Api\Admin\ProductController::class, 'store']);
-        Route::post('/products/{product}', [\App\Http\Controllers\Api\Admin\ProductController::class, 'update']);
-        Route::delete('/products/{product}', [\App\Http\Controllers\Api\Admin\ProductController::class, 'destroy']);
+        Route::get('/products', [App\Http\Controllers\Api\Admin\ProductController::class, 'index']);
+        Route::post('/products', [App\Http\Controllers\Api\Admin\ProductController::class, 'store']);
+        Route::post('/products/{product}', [App\Http\Controllers\Api\Admin\ProductController::class, 'update']);
+        Route::delete('/products/{product}', [App\Http\Controllers\Api\Admin\ProductController::class, 'destroy']);
 
         // Commandes
-        Route::get('/orders', [\App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
-        Route::get('/orders/{order}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'show']);
-        Route::patch('/orders/{order}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateStatus']);
-        Route::get('/orders/{order}/pdf', [\App\Http\Controllers\Api\Admin\OrderController::class, 'exportPdf']);
+        Route::get('/orders', [App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
+        Route::get('/orders/{order}', [App\Http\Controllers\Api\Admin\OrderController::class, 'show']);
+        Route::patch('/orders/{order}/status', [App\Http\Controllers\Api\Admin\OrderController::class, 'updateStatus']);
+        Route::get('/orders/{order}/pdf', [App\Http\Controllers\Api\Admin\OrderController::class, 'exportPdf']);
 
         // Avis
-        Route::get('/reviews', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'index']);
-        Route::patch('/reviews/{review}/approve', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
-        Route::patch('/reviews/{review}/reject', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
-        Route::delete('/reviews/{review}', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'destroy']);
+        Route::get('/reviews', [App\Http\Controllers\Api\Admin\ReviewController::class, 'index']);
+        Route::patch('/reviews/{review}/approve', [App\Http\Controllers\Api\Admin\ReviewController::class, 'approve']);
+        Route::patch('/reviews/{review}/reject', [App\Http\Controllers\Api\Admin\ReviewController::class, 'reject']);
+        Route::delete('/reviews/{review}', [App\Http\Controllers\Api\Admin\ReviewController::class, 'destroy']);
 
         // Contacts (Messages)
-        Route::get('/contacts', [\App\Http\Controllers\Api\Admin\ContactController::class, 'index']);
-        Route::patch('/contacts/{contact}/read', [\App\Http\Controllers\Api\Admin\ContactController::class, 'markAsRead']);
-        Route::delete('/contacts/{contact}', [\App\Http\Controllers\Api\Admin\ContactController::class, 'destroy']);
+        Route::get('/contacts', [App\Http\Controllers\Api\Admin\ContactController::class, 'index']);
+        Route::patch('/contacts/{contact}/read', [App\Http\Controllers\Api\Admin\ContactController::class, 'markAsRead']);
+        Route::delete('/contacts/{contact}', [App\Http\Controllers\Api\Admin\ContactController::class, 'destroy']);
 
         // Paramètres du site
-        Route::get('/settings', [\App\Http\Controllers\Api\Admin\SettingController::class, 'index']);
-        Route::post('/settings', [\App\Http\Controllers\Api\Admin\SettingController::class, 'update']);
+        Route::get('/settings', [SettingController::class, 'index']);
+        Route::post('/settings', [SettingController::class, 'update']);
 
         // Médiathèque
-        Route::get('/media', [\App\Http\Controllers\Api\Admin\MediaController::class, 'index']);
-        Route::post('/media', [\App\Http\Controllers\Api\Admin\MediaController::class, 'store']);
-        Route::delete('/media/{media}', [\App\Http\Controllers\Api\Admin\MediaController::class, 'destroy']);
+        Route::get('/media', [MediaController::class, 'index']);
+        Route::post('/media', [MediaController::class, 'store']);
+        Route::delete('/media/{media}', [MediaController::class, 'destroy']);
 
         // Journal d'administration (Consultation seule, immuable)
-        Route::get('/logs', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'index']);
-        Route::get('/logs/{log}', [\App\Http\Controllers\Api\Admin\AdminLogController::class, 'show']);
+        Route::get('/logs', [AdminLogController::class, 'index']);
+        Route::get('/logs/{log}', [AdminLogController::class, 'show']);
 
         // Journal d'activité global (Consultation seule, immuable)
-        Route::get('/activity-logs', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'index']);
-        Route::get('/activity-logs/{log}', [\App\Http\Controllers\Api\Admin\ActivityLogController::class, 'show']);
+        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/{log}', [ActivityLogController::class, 'show']);
 
         // ── Cache Performance Management ──────────────────────────────────────
-        Route::post('/cache/clear', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'clear']);
-        Route::post('/cache/dashboard/refresh', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'refreshDashboard']);
-        Route::get('/cache/status', [\App\Http\Controllers\Api\Admin\CacheAdminController::class, 'status']);
+        Route::post('/cache/clear', [CacheAdminController::class, 'clear']);
+        Route::post('/cache/dashboard/refresh', [CacheAdminController::class, 'refreshDashboard']);
+        Route::get('/cache/status', [CacheAdminController::class, 'status']);
 
         // ── Sauvegardes système (Phase 5.8.1) ────────────────────────────────
-        Route::post('/system/backup', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'create']);
-        Route::get('/system/backups', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'index']);
-        Route::delete('/system/backups/{id}', [\App\Http\Controllers\Api\Admin\SystemBackupController::class, 'destroy']);
+        Route::post('/system/backup', [SystemBackupController::class, 'create']);
+        Route::get('/system/backups', [SystemBackupController::class, 'index']);
+        Route::delete('/system/backups/{id}', [SystemBackupController::class, 'destroy']);
 
         // ── Monitoring & Observabilité (Phase 5.9) ───────────────────────────
-        Route::get('/system/health', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'health']);
-        Route::get('/system/metrics', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'metrics']);
-        Route::get('/system/status', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'status']);
-        Route::get('/system/phpinfo', [\App\Http\Controllers\Api\Admin\SystemMonitoringController::class, 'phpinfo']);
+        Route::get('/system/health', [SystemMonitoringController::class, 'health']);
+        Route::get('/system/metrics', [SystemMonitoringController::class, 'metrics']);
+        Route::get('/system/status', [SystemMonitoringController::class, 'status']);
+        Route::get('/system/phpinfo', [SystemMonitoringController::class, 'phpinfo']);
 
         // ── Infrastructure de Déploiement & Optimisation (Phase 5.8.2.1) ─────
-        Route::get('/system/deployment/status', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'status']);
-        Route::post('/system/deployment/optimize', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'optimize']);
-        Route::post('/system/deployment/clear', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'clear']);
-        Route::post('/system/deployment/warmup', [\App\Http\Controllers\Api\Admin\DeploymentController::class, 'warmup']);
+        Route::get('/system/deployment/status', [DeploymentController::class, 'status']);
+        Route::post('/system/deployment/optimize', [DeploymentController::class, 'optimize']);
+        Route::post('/system/deployment/clear', [DeploymentController::class, 'clear']);
+        Route::post('/system/deployment/warmup', [DeploymentController::class, 'warmup']);
     });
 });
-

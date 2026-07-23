@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductSearchRequest;
 use App\Http\Requests\AdvancedSearchRequest;
 use App\Http\Requests\PopularProductsRequest;
-use App\Http\Resources\ProductResource;
+use App\Http\Requests\ProductSearchRequest;
 use App\Http\Resources\ProductFiltersResource;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -35,7 +34,7 @@ class ProductController extends Controller
         $perPage = (int) ($filters['per_page'] ?? 12);
 
         $products = $this->productService->getPaginatedProducts($filters, $perPage);
-        
+
         // Retourne la pagination complète enveloppée sous la clé 'data' pour la cohérence
         $paginatedData = ProductResource::collection($products)->response()->getData(true);
 
@@ -48,6 +47,7 @@ class ProductController extends Controller
     public function show(string $slug): JsonResponse
     {
         $product = $this->productService->getProductBySlug($slug);
+
         return $this->successResponse(new ProductResource($product));
     }
 
@@ -57,6 +57,7 @@ class ProductController extends Controller
     public function filters(): JsonResponse
     {
         $filtersData = $this->productService->getFiltersData();
+
         return $this->successResponse(new ProductFiltersResource($filtersData));
     }
 
@@ -127,4 +128,3 @@ class ProductController extends Controller
         return $this->successResponse($paginatedData);
     }
 }
-

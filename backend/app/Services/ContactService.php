@@ -2,13 +2,16 @@
 
 namespace App\Services;
 
-use App\Repositories\Contracts\ContactRepositoryInterface;
-use App\Models\Contact;
 use App\Models\ActivityLog;
+use App\Models\Contact;
+use App\Repositories\Contracts\ContactRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ContactService
 {
     protected ContactRepositoryInterface $contactRepository;
+
     protected ActivityLogService $activityLogService;
 
     public function __construct(
@@ -34,13 +37,13 @@ class ContactService
 
         // Enregistrer l'activité d'envoi du formulaire de contact
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_CONTACT_SENT,
-            category:   ActivityLog::CATEGORY_CONTACT,
-            resource:   'contacts',
+            eventType: ActivityLog::EVENT_CONTACT_SENT,
+            category: ActivityLog::CATEGORY_CONTACT,
+            resource: 'contacts',
             resourceId: $contact->id,
-            metadata:   [
-                'name'    => $contact->name,
-                'email'   => $contact->email,
+            metadata: [
+                'name' => $contact->name,
+                'email' => $contact->email,
                 'subject' => $contact->subject,
             ]
         );
@@ -51,7 +54,7 @@ class ContactService
     /**
      * Récupérer les messages de contact paginés pour l'administration.
      */
-    public function getPaginatedContacts(array $filters, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function getPaginatedContacts(array $filters, int $perPage = 15): LengthAwarePaginator
     {
         return $this->contactRepository->paginate($filters, $perPage);
     }
@@ -63,8 +66,8 @@ class ContactService
     {
         $contact = $this->contactRepository->find($id);
 
-        if (!$contact) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Contact message not found");
+        if (! $contact) {
+            throw new ModelNotFoundException('Contact message not found');
         }
 
         return $contact;
@@ -79,12 +82,12 @@ class ContactService
 
         // Enregistrer l'activité de marquage comme lu
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_CONTACT_MARKED_READ,
-            category:   ActivityLog::CATEGORY_CONTACT,
-            resource:   'contacts',
+            eventType: ActivityLog::EVENT_CONTACT_MARKED_READ,
+            category: ActivityLog::CATEGORY_CONTACT,
+            resource: 'contacts',
             resourceId: $updatedContact->id,
-            metadata:   [
-                'name'    => $updatedContact->name,
+            metadata: [
+                'name' => $updatedContact->name,
                 'subject' => $updatedContact->subject,
             ]
         );
@@ -102,12 +105,12 @@ class ContactService
         if ($deleted) {
             // Enregistrer l'activité de suppression du message de contact
             $this->activityLogService->log(
-                eventType:  ActivityLog::EVENT_CONTACT_DELETED,
-                category:   ActivityLog::CATEGORY_CONTACT,
-                resource:   'contacts',
+                eventType: ActivityLog::EVENT_CONTACT_DELETED,
+                category: ActivityLog::CATEGORY_CONTACT,
+                resource: 'contacts',
                 resourceId: $contact->id,
-                metadata:   [
-                    'name'    => $contact->name,
+                metadata: [
+                    'name' => $contact->name,
                     'subject' => $contact->subject,
                 ]
             );

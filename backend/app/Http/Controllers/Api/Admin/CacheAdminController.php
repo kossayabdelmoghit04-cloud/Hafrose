@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\DashboardStatsService;
 use App\Services\PerformanceCacheManager;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class CacheAdminController extends Controller
 {
@@ -41,7 +42,7 @@ class CacheAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cache du tableau de bord rafraîchi avec succès.',
-            'data'    => $data,
+            'data' => $data,
         ]);
     }
 
@@ -52,7 +53,7 @@ class CacheAdminController extends Controller
      */
     public function status(): JsonResponse
     {
-        $driver       = config('cache.default');
+        $driver = config('cache.default');
         $supportsTags = PerformanceCacheManager::supportsTags();
 
         $keys = [
@@ -69,19 +70,19 @@ class CacheAdminController extends Controller
 
         $cacheStatus = [];
         foreach ($keys as $key) {
-            $cacheStatus[$key] = \Illuminate\Support\Facades\Cache::has($key) ? 'hit' : 'miss';
+            $cacheStatus[$key] = Cache::has($key) ? 'hit' : 'miss';
         }
 
         return response()->json([
             'success' => true,
             'data' => [
-                'driver'        => $driver,
+                'driver' => $driver,
                 'supports_tags' => $supportsTags,
-                'enabled'       => config('cache-performance.enabled', true),
-                'ttls'          => config('cache-performance.ttls'),
-                'monitoring'    => config('cache-performance.monitoring.enabled', false),
-                'keys_status'   => $cacheStatus,
-                'checked_at'    => now()->toIso8601String(),
+                'enabled' => config('cache-performance.enabled', true),
+                'ttls' => config('cache-performance.ttls'),
+                'monitoring' => config('cache-performance.monitoring.enabled', false),
+                'keys_status' => $cacheStatus,
+                'checked_at' => now()->toIso8601String(),
             ],
         ]);
     }

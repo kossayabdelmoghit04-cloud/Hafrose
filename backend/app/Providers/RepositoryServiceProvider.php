@@ -2,23 +2,23 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
-use App\Repositories\Eloquent\CategoryRepository;
-use App\Repositories\Contracts\ProductRepositoryInterface;
-use App\Repositories\Eloquent\ProductRepository;
-use App\Repositories\Contracts\ReviewRepositoryInterface;
-use App\Repositories\Eloquent\ReviewRepository;
 use App\Repositories\Contracts\ContactRepositoryInterface;
-use App\Repositories\Eloquent\ContactRepository;
-use App\Repositories\Contracts\OrderRepositoryInterface;
-use App\Repositories\Eloquent\OrderRepository;
-use App\Repositories\Contracts\SettingRepositoryInterface;
-use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Contracts\MediaRepositoryInterface;
-use App\Repositories\Eloquent\MediaRepository;
+use App\Repositories\Contracts\OrderRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\ReviewRepositoryInterface;
+use App\Repositories\Contracts\SettingRepositoryInterface;
 use App\Repositories\Contracts\WishlistRepositoryInterface;
+use App\Repositories\Eloquent\CategoryRepository;
+use App\Repositories\Eloquent\ContactRepository;
+use App\Repositories\Eloquent\MediaRepository;
+use App\Repositories\Eloquent\OrderRepository;
+use App\Repositories\Eloquent\ProductRepository;
+use App\Repositories\Eloquent\ReviewRepository;
+use App\Repositories\Eloquent\SettingRepository;
 use App\Repositories\Eloquent\WishlistRepository;
+use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {

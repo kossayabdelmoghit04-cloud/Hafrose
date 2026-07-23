@@ -74,32 +74,32 @@ class ExportService
         };
 
         // Filtre par terme de recherche s'il est fourni
-        if (!empty($filters['search'])) {
-            $search = '%' . $filters['search'] . '%';
+        if (! empty($filters['search'])) {
+            $search = '%'.$filters['search'].'%';
             match ($resource) {
                 'products', 'product' => $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', $search)
-                      ->orWhere('description', 'like', $search)
-                      ->orWhere('brand', 'like', $search);
+                        ->orWhere('description', 'like', $search)
+                        ->orWhere('brand', 'like', $search);
                 }),
                 'categories', 'category' => $query->where('name', 'like', $search),
                 'orders', 'order' => $query->where(function ($q) use ($search) {
                     $q->where('customer_name', 'like', $search)
-                      ->orWhere('phone', 'like', $search)
-                      ->orWhere('city', 'like', $search);
+                        ->orWhere('phone', 'like', $search)
+                        ->orWhere('city', 'like', $search);
                 }),
                 'reviews', 'review' => $query->where(function ($q) use ($search) {
                     $q->where('customer_name', 'like', $search)
-                      ->orWhere('comment', 'like', $search);
+                        ->orWhere('comment', 'like', $search);
                 }),
                 'contacts', 'contact' => $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', $search)
-                      ->orWhere('email', 'like', $search)
-                      ->orWhere('subject', 'like', $search);
+                        ->orWhere('email', 'like', $search)
+                        ->orWhere('subject', 'like', $search);
                 }),
                 'users', 'user' => $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', $search)
-                      ->orWhere('email', 'like', $search);
+                        ->orWhere('email', 'like', $search);
                 }),
                 default => null,
             };
@@ -124,11 +124,11 @@ class ExportService
             $query->where('is_read', filter_var($filters['is_read'], FILTER_VALIDATE_BOOLEAN));
         }
 
-        if (!empty($filters['start_date'])) {
+        if (! empty($filters['start_date'])) {
             $query->where('created_at', '>=', $filters['start_date']);
         }
 
-        if (!empty($filters['end_date'])) {
+        if (! empty($filters['end_date'])) {
             $query->where('created_at', '<=', $filters['end_date']);
         }
 
@@ -151,7 +151,7 @@ class ExportService
                     $p->id,
                     $p->name,
                     $p->slug,
-                    number_format((float) $p->price, 2, '.', '') . ' €',
+                    number_format((float) $p->price, 2, '.', '').' €',
                     $p->stock,
                     $p->color ?? '-',
                     $p->material ?? '-',
@@ -180,7 +180,7 @@ class ExportService
                     $o->phone,
                     $o->address,
                     $o->city,
-                    number_format((float) $o->total_price, 2, '.', '') . ' €',
+                    number_format((float) $o->total_price, 2, '.', '').' €',
                     $o->status,
                     $o->created_at?->format('Y-m-d H:i:s'),
                 ],
@@ -189,9 +189,9 @@ class ExportService
                 'headers' => ['ID', 'Produit', 'Client', 'Note', 'Commentaire', 'Statut', 'Date création'],
                 'mapper' => fn (Review $r) => [
                     $r->id,
-                    $r->product?->name ?? 'Produit #' . $r->product_id,
+                    $r->product?->name ?? 'Produit #'.$r->product_id,
                     $r->customer_name,
-                    $r->rating . '/5',
+                    $r->rating.'/5',
                     $r->comment,
                     $r->is_approved ? 'Approuvé' : 'En attente',
                     $r->created_at?->format('Y-m-d H:i:s'),

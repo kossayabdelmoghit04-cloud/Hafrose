@@ -37,9 +37,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class BlockSpamHoneypot
 {
-    public function __construct(protected ActivityLogService $activityLogService)
-    {
-    }
+    public function __construct(protected ActivityLogService $activityLogService) {}
+
     /**
      * Handle an incoming request.
      */
@@ -61,8 +60,8 @@ class BlockSpamHoneypot
             return response()->json([
                 'success' => false,
                 'message' => config('honeypot.error_message', 'Requête invalide.'),
-                'errors'  => null,
-                'data'    => null,
+                'errors' => null,
+                'data' => null,
             ], 400);
         }
 
@@ -73,31 +72,30 @@ class BlockSpamHoneypot
      * Enregistre un warning dans les logs Laravel et dans le journal d'activité global
      * lors d'une détection de bot.
      *
-     * @param  Request  $request
-     * @param  string   $fieldName  Nom du champ honeypot déclenché
+     * @param  string  $fieldName  Nom du champ honeypot déclenché
      */
     private function logBotDetection(Request $request, string $fieldName): void
     {
         $channel = config('honeypot.log_channel', 'stack');
 
         Log::channel($channel)->warning('[Honeypot] Bot détecté — soumission bloquée.', [
-            'ip'         => $request->ip(),
+            'ip' => $request->ip(),
             'user_agent' => $request->userAgent() ?? 'unknown',
-            'route'      => $request->fullUrl(),
-            'method'     => $request->method(),
-            'field'      => $fieldName,
-            'timestamp'  => now()->toDateTimeString(),
+            'route' => $request->fullUrl(),
+            'method' => $request->method(),
+            'field' => $fieldName,
+            'timestamp' => now()->toDateTimeString(),
         ]);
 
         // Journalisation dans le journal d'activité global (catégorie sécurité)
         $this->activityLogService->log(
             eventType: ActivityLog::EVENT_HONEYPOT_TRIGGERED,
-            category:  ActivityLog::CATEGORY_SECURITY,
-            resource:  $request->path(),
-            metadata:  [
-                'method'     => $request->method(),
-                'route'      => $request->fullUrl(),
-                'field'      => $fieldName,
+            category: ActivityLog::CATEGORY_SECURITY,
+            resource: $request->path(),
+            metadata: [
+                'method' => $request->method(),
+                'route' => $request->fullUrl(),
+                'field' => $fieldName,
                 'user_agent' => $request->userAgent() ?? 'unknown',
             ]
         );
@@ -108,9 +106,6 @@ class BlockSpamHoneypot
      *
      * La réponse reflète les données envoyées par le bot sans jamais toucher
      * à la base de données. L'objectif est de ne pas révéler au bot qu'il a été bloqué.
-     *
-     * @param  Request  $request
-     * @return Response
      */
     private function buildShadowResponse(Request $request): Response
     {
@@ -119,15 +114,15 @@ class BlockSpamHoneypot
             return response()->json([
                 'success' => true,
                 'message' => 'Message de contact envoyé avec succès.',
-                'errors'  => null,
-                'data'    => [
-                    'id'         => rand(100, 999),
-                    'name'       => $request->input('name'),
-                    'email'      => $request->input('email'),
-                    'phone'      => $request->input('phone'),
-                    'subject'    => $request->input('subject'),
-                    'message'    => $request->input('message'),
-                    'is_read'    => false,
+                'errors' => null,
+                'data' => [
+                    'id' => rand(100, 999),
+                    'name' => $request->input('name'),
+                    'email' => $request->input('email'),
+                    'phone' => $request->input('phone'),
+                    'subject' => $request->input('subject'),
+                    'message' => $request->input('message'),
+                    'is_read' => false,
                     'created_at' => now()->format('Y-m-d H:i:s'),
                 ],
             ], 201);
@@ -138,16 +133,16 @@ class BlockSpamHoneypot
             return response()->json([
                 'success' => true,
                 'message' => "Avis créé avec succès, en attente d'approbation.",
-                'errors'  => null,
-                'data'    => [
-                    'id'            => rand(100, 999),
-                    'product_id'    => (int) $request->input('product_id'),
+                'errors' => null,
+                'data' => [
+                    'id' => rand(100, 999),
+                    'product_id' => (int) $request->input('product_id'),
                     'customer_name' => $request->input('customer_name') ?? $request->input('revName'),
-                    'rating'        => (int) ($request->input('rating') ?? $request->input('revRating') ?? 5),
-                    'comment'       => $request->input('comment') ?? $request->input('revComment'),
-                    'is_approved'   => false,
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
+                    'rating' => (int) ($request->input('rating') ?? $request->input('revRating') ?? 5),
+                    'comment' => $request->input('comment') ?? $request->input('revComment'),
+                    'is_approved' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ],
             ], 201);
         }
@@ -157,18 +152,18 @@ class BlockSpamHoneypot
             return response()->json([
                 'success' => true,
                 'message' => 'Commande créée avec succès.',
-                'errors'  => null,
-                'data'    => [
-                    'id'            => rand(100, 999),
+                'errors' => null,
+                'data' => [
+                    'id' => rand(100, 999),
                     'customer_name' => $request->input('customer'),
-                    'phone'         => $request->input('phone'),
-                    'address'       => $request->input('address'),
-                    'city'          => $request->input('city'),
-                    'total_price'   => '0.00',
-                    'status'        => 'En attente',
-                    'order_items'   => [],
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
+                    'phone' => $request->input('phone'),
+                    'address' => $request->input('address'),
+                    'city' => $request->input('city'),
+                    'total_price' => '0.00',
+                    'status' => 'En attente',
+                    'order_items' => [],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ],
             ], 201);
         }
@@ -177,8 +172,8 @@ class BlockSpamHoneypot
         return response()->json([
             'success' => true,
             'message' => 'Action effectuée avec succès.',
-            'errors'  => null,
-            'data'    => null,
+            'errors' => null,
+            'data' => null,
         ], 201);
     }
 }

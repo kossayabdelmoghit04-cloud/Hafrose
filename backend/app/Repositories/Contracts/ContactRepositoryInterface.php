@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Contact;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ContactRepositoryInterface
 {
@@ -14,7 +15,7 @@ interface ContactRepositoryInterface
     /**
      * Obtenir tous les messages de contact (avec pagination et recherche).
      */
-    public function paginate(array $filters, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator;
 
     /**
      * Trouver un message de contact par son ID.

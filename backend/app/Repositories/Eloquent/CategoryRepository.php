@@ -44,6 +44,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $category = Category::create($data);
         PerformanceCacheManager::invalidateCategories();
+
         return $category;
     }
 
@@ -54,6 +55,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $category->update($data);
         PerformanceCacheManager::invalidateCategories();
+
         return $category;
     }
 
@@ -64,6 +66,7 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         $deleted = $category->delete();
         PerformanceCacheManager::invalidateCategories();
+
         return $deleted;
     }
 }

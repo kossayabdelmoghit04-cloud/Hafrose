@@ -17,8 +17,8 @@ class MediaController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected MediaService     $mediaService,
-        protected AdminLogService  $adminLogService,
+        protected MediaService $mediaService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -27,18 +27,18 @@ class MediaController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->input('per_page', 18);
-        $media   = $this->mediaService->getPaginatedMedia($perPage);
+        $media = $this->mediaService->getPaginatedMedia($perPage);
 
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => MediaResource::collection($media),
-            'meta'    => [
+            'errors' => null,
+            'data' => MediaResource::collection($media),
+            'meta' => [
                 'current_page' => $media->currentPage(),
-                'last_page'    => $media->lastPage(),
-                'per_page'     => $media->perPage(),
-                'total'        => $media->total(),
+                'last_page' => $media->lastPage(),
+                'per_page' => $media->perPage(),
+                'total' => $media->total(),
             ],
         ]);
     }
@@ -48,18 +48,18 @@ class MediaController extends Controller
      */
     public function store(StoreMediaRequest $request): JsonResponse
     {
-        $file  = $request->file('file');
+        $file = $request->file('file');
         $media = $this->mediaService->uploadMedia($file);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_UPLOAD,
-            resource:   AdminLog::RESOURCE_MEDIA,
+            request: $request,
+            action: AdminLog::ACTION_UPLOAD,
+            resource: AdminLog::RESOURCE_MEDIA,
             resourceId: $media->id,
-            newValues:  [
-                'filename'  => $media->filename ?? $media->name ?? null,
+            newValues: [
+                'filename' => $media->filename ?? $media->name ?? null,
                 'mime_type' => $file->getMimeType(),
-                'size'      => $file->getSize(),
+                'size' => $file->getSize(),
             ],
         );
 
@@ -76,9 +76,9 @@ class MediaController extends Controller
     public function destroy(Request $request, int $id): JsonResponse
     {
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_DELETE,
-            resource:   AdminLog::RESOURCE_MEDIA,
+            request: $request,
+            action: AdminLog::ACTION_DELETE,
+            resource: AdminLog::RESOURCE_MEDIA,
             resourceId: $id,
         );
 

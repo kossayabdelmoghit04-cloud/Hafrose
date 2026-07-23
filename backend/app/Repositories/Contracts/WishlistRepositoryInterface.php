@@ -2,8 +2,8 @@
 
 namespace App\Repositories\Contracts;
 
-use App\Models\WishlistItem;
 use App\Models\User;
+use App\Models\WishlistItem;
 use Illuminate\Database\Eloquent\Collection;
 
 interface WishlistRepositoryInterface

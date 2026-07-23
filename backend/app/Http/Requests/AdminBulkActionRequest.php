@@ -31,8 +31,8 @@ class AdminBulkActionRequest extends FormRequest
         return [
             'action.required' => "L'action groupée est obligatoire.",
             'action.in' => "L'action demandée n'est pas reconnue ou autorisée.",
-            'ids.required' => "La liste des identifiants est obligatoire.",
-            'ids.min' => "Veuillez sélectionner au moins un élément.",
+            'ids.required' => 'La liste des identifiants est obligatoire.',
+            'ids.min' => 'Veuillez sélectionner au moins un élément.',
         ];
     }
 }

@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,21 +25,21 @@ class DatabaseRelationsTest extends TestCase
     {
         $category = Category::factory()->create([
             'name' => 'Sacs',
-            'slug' => 'sacs'
+            'slug' => 'sacs',
         ]);
 
         $product1 = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Sac Cabas',
             'slug' => 'sac-cabas',
-            'price' => 1200.00
+            'price' => 1200.00,
         ]);
 
         $product2 = Product::factory()->create([
             'category_id' => $category->id,
             'name' => 'Sac Pochette',
             'slug' => 'sac-pochette',
-            'price' => 500.00
+            'price' => 500.00,
         ]);
 
         $this->assertCount(2, $category->products);
@@ -55,12 +56,12 @@ class DatabaseRelationsTest extends TestCase
 
         $gallery1 = Gallery::factory()->create([
             'product_id' => $product->id,
-            'image' => 'img1.jpg'
+            'image' => 'img1.jpg',
         ]);
 
         $gallery2 = Gallery::factory()->create([
             'product_id' => $product->id,
-            'image' => 'img2.jpg'
+            'image' => 'img2.jpg',
         ]);
 
         $this->assertCount(2, $product->galleries);
@@ -78,7 +79,7 @@ class DatabaseRelationsTest extends TestCase
             'product_id' => $product->id,
             'rating' => 5,
             'comment' => 'Parfait',
-            'is_approved' => true
+            'is_approved' => true,
         ]);
 
         $this->assertCount(1, $product->reviews);
@@ -93,7 +94,7 @@ class DatabaseRelationsTest extends TestCase
     {
         // 1. Créer une commande
         $order = Order::factory()->create([
-            'total_price' => 0.00
+            'total_price' => 0.00,
         ]);
 
         $product1 = Product::factory()->create(['price' => 100.00]);
@@ -105,7 +106,7 @@ class DatabaseRelationsTest extends TestCase
             'product_id' => $product1->id,
             'quantity' => 2,
             'unit_price' => 100.00,
-            'subtotal' => 0.00 // Sera calculé par l'événement "saving"
+            'subtotal' => 0.00, // Sera calculé par l'événement "saving"
         ]);
 
         // Vérification du sous-total de la ligne
@@ -121,7 +122,7 @@ class DatabaseRelationsTest extends TestCase
             'product_id' => $product2->id,
             'quantity' => 1,
             'unit_price' => 250.00,
-            'subtotal' => 0.00
+            'subtotal' => 0.00,
         ]);
 
         // Vérification du sous-total
@@ -150,7 +151,7 @@ class DatabaseRelationsTest extends TestCase
             'product_id' => $product->id,
             'quantity' => 1,
             'unit_price' => 500.00,
-            'subtotal' => 0.00
+            'subtotal' => 0.00,
         ]);
 
         $this->assertEquals($product->id, $item->product_id);
@@ -179,7 +180,7 @@ class DatabaseRelationsTest extends TestCase
             'email' => 'jean.dupont@example.com',
             'phone' => '+33 6 12 34 56 78',
             'subject' => 'Question produit',
-            'message' => 'Bonjour, j\'aimerais en savoir plus...'
+            'message' => 'Bonjour, j\'aimerais en savoir plus...',
         ]);
 
         $this->assertNotNull($contact->created_at);
@@ -192,13 +193,13 @@ class DatabaseRelationsTest extends TestCase
     public function test_admin_creation_and_spatie_role(): void
     {
         // Exécuter le seeder des rôles
-        $this->seed(\Database\Seeders\RoleAndPermissionSeeder::class);
+        $this->seed(RoleAndPermissionSeeder::class);
 
         $admin = User::create([
             'name' => 'Admin Test',
             'email' => 'admin.test@hafrose.com',
             'password' => bcrypt('password'),
-            'role' => User::ROLE_ADMIN
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $admin->assignRole('admin');

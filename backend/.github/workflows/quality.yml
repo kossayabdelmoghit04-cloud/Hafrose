@@ -1,0 +1,177 @@
+name: 🔍 Quality Analysis — HAFROSE
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1 — Code Style (Laravel Pint)
+  # ─────────────────────────────────────────────────────────────────────────────
+  pint:
+    name: 🎨 Laravel Pint — Code Style
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, xml, ctype, json
+          coverage: none
+
+      - name: 📦 Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-8.3-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-8.3-
+
+      - name: 📥 Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: 🎨 Run Laravel Pint (test mode)
+        run: vendor/bin/pint --test --verbose
+        continue-on-error: false
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2 — Static Analysis (PHPStan)
+  # ─────────────────────────────────────────────────────────────────────────────
+  phpstan:
+    name: 🔬 PHPStan — Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, pdo_mysql, pdo_sqlite, openssl, gd, zip, bcmath, ctype, json, xml
+          coverage: none
+
+      - name: 📦 Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-8.3-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-8.3-
+
+      - name: 📥 Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: 📥 Install PHPStan + Laravel extension
+        run: |
+          composer require --dev \
+            phpstan/phpstan \
+            nunomaduro/larastan \
+            --no-interaction --prefer-dist
+        continue-on-error: true
+
+      - name: ⚙️ Prepare environment for analysis
+        run: |
+          cp .env.ci .env
+          touch database/database.sqlite
+          php artisan key:generate --force
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+
+      - name: 🔬 Run PHPStan analysis
+        run: |
+          if [ -f vendor/bin/phpstan ]; then
+            vendor/bin/phpstan analyse app --level=5 --memory-limit=512M --error-format=github
+          else
+            echo "⚠️  PHPStan not available, skipping static analysis"
+          fi
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3 — Composer Validate & Audit
+  # ─────────────────────────────────────────────────────────────────────────────
+  composer-audit:
+    name: 📋 Composer Validate & Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, json
+          coverage: none
+
+      - name: ✅ Validate composer.json
+        run: composer validate --strict --no-check-lock
+
+      - name: 📦 Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: 🔍 Composer security audit
+        run: composer audit --format=json --no-dev
+        continue-on-error: true
+
+      - name: 🔍 Check for abandoned packages
+        run: |
+          echo "Checking for abandoned packages..."
+          composer show --direct --format=json | \
+            python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          packages = data.get('installed', [])
+          abandoned = [p for p in packages if p.get('abandoned')]
+          if abandoned:
+              print('⚠️  Abandoned packages found:')
+              for p in abandoned:
+                  print(f\"  - {p['name']}: {p.get('abandoned', 'unknown replacement')}\")
+              sys.exit(1)
+          else:
+              print('✅ No abandoned packages found')
+          " || true
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 4 — Quality Summary
+  # ─────────────────────────────────────────────────────────────────────────────
+  quality-summary:
+    name: 📊 Quality Summary
+    runs-on: ubuntu-latest
+    needs: [pint, phpstan, composer-audit]
+    if: always()
+
+    steps:
+      - name: 📊 Quality report
+        run: |
+          echo "=== HAFROSE Quality Analysis Summary ==="
+          echo "Pint (Code Style):      ${{ needs.pint.result }}"
+          echo "PHPStan (Static):       ${{ needs.phpstan.result }}"
+          echo "Composer Audit:         ${{ needs.composer-audit.result }}"
+          echo ""
+
+          if [[ "${{ needs.pint.result }}" == "failure" ]]; then
+            echo "❌ Code style issues detected — run: composer pint to fix"
+            exit 1
+          fi
+          echo "✅ Quality checks completed"

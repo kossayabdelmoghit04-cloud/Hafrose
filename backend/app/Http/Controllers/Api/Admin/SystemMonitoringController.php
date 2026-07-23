@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PhpInfoResource;
 use App\Http\Resources\SystemHealthResource;
 use App\Http\Resources\SystemMetricsResource;
 use App\Http\Resources\SystemStatusResource;
-use App\Http\Resources\PhpInfoResource;
+use App\Services\MonitoringDashboardService;
 use App\Services\SystemHealthService;
 use App\Services\SystemMetricsService;
-use App\Services\MonitoringDashboardService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,8 +30,8 @@ class SystemMonitoringController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected SystemHealthService        $healthService,
-        protected SystemMetricsService       $metricsService,
+        protected SystemHealthService $healthService,
+        protected SystemMetricsService $metricsService,
         protected MonitoringDashboardService $dashboardService,
     ) {}
 
@@ -78,15 +78,15 @@ class SystemMonitoringController extends Controller
     public function phpinfo(Request $request): JsonResponse
     {
         $info = [
-            'php_version'         => PHP_VERSION,
-            'interface'           => PHP_SAPI,
-            'memory_limit'        => ini_get('memory_limit'),
-            'max_execution_time'  => ini_get('max_execution_time'),
+            'php_version' => PHP_VERSION,
+            'interface' => PHP_SAPI,
+            'memory_limit' => ini_get('memory_limit'),
+            'max_execution_time' => ini_get('max_execution_time'),
             'upload_max_filesize' => ini_get('upload_max_filesize'),
-            'post_max_size'       => ini_get('post_max_size'),
-            'display_errors'      => ini_get('display_errors'),
-            'loaded_extensions'   => get_loaded_extensions(),
-            'opcache_enabled'     => function_exists('opcache_get_status') && !empty(opcache_get_status(false)),
+            'post_max_size' => ini_get('post_max_size'),
+            'display_errors' => ini_get('display_errors'),
+            'loaded_extensions' => get_loaded_extensions(),
+            'opcache_enabled' => function_exists('opcache_get_status') && ! empty(opcache_get_status(false)),
         ];
 
         $resource = new PhpInfoResource($info);

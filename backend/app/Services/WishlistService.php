@@ -2,18 +2,20 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\WishlistItem;
-use App\Models\ActivityLog;
-use App\Repositories\Contracts\WishlistRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use App\Repositories\Contracts\WishlistRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class WishlistService
 {
     protected WishlistRepositoryInterface $wishlistRepository;
+
     protected ProductRepositoryInterface $productRepository;
+
     protected ActivityLogService $activityLogService;
 
     public function __construct(
@@ -41,8 +43,8 @@ class WishlistService
     {
         // Optionnel : vérifier si le produit existe
         $product = $this->productRepository->find($productId);
-        if (!$product) {
-            throw new ModelNotFoundException("Product not found");
+        if (! $product) {
+            throw new ModelNotFoundException('Product not found');
         }
 
         // Si le produit est déjà présent, on le retourne directement pour éviter un doublon logique
@@ -55,12 +57,12 @@ class WishlistService
 
         // Enregistrer l'activité d'ajout aux favoris
         $this->activityLogService->log(
-            eventType:  ActivityLog::EVENT_WISHLIST_ADDED,
-            category:   ActivityLog::CATEGORY_WISHLIST,
-            resource:   'products',
+            eventType: ActivityLog::EVENT_WISHLIST_ADDED,
+            category: ActivityLog::CATEGORY_WISHLIST,
+            resource: 'products',
             resourceId: $productId,
-            metadata:   ['product_name' => $product->name],
-            userId:     $user->id
+            metadata: ['product_name' => $product->name],
+            userId: $user->id
         );
 
         return $wishlistItem;
@@ -72,9 +74,9 @@ class WishlistService
     public function removeProductFromWishlist(User $user, int $productId): bool
     {
         $wishlistItem = $this->wishlistRepository->findForUserAndProduct($user, $productId);
-        
-        if (!$wishlistItem) {
-            throw new ModelNotFoundException("Wishlist item not found");
+
+        if (! $wishlistItem) {
+            throw new ModelNotFoundException('Wishlist item not found');
         }
 
         // Charger la relation product si nécessaire pour l'activité log (évite le lazy loading)
@@ -86,12 +88,12 @@ class WishlistService
         if ($deleted) {
             // Enregistrer l'activité de retrait des favoris
             $this->activityLogService->log(
-                eventType:  ActivityLog::EVENT_WISHLIST_REMOVED,
-                category:   ActivityLog::CATEGORY_WISHLIST,
-                resource:   'products',
+                eventType: ActivityLog::EVENT_WISHLIST_REMOVED,
+                category: ActivityLog::CATEGORY_WISHLIST,
+                resource: 'products',
                 resourceId: $productId,
-                metadata:   $productName ? ['product_name' => $productName] : null,
-                userId:     $user->id
+                metadata: $productName ? ['product_name' => $productName] : null,
+                userId: $user->id
             );
         }
 

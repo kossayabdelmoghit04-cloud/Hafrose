@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('admin_logs', function (Blueprint $table) {
-            if (!Schema::hasColumn('admin_logs', 'description')) {
+            if (! Schema::hasColumn('admin_logs', 'description')) {
                 $table->string('description', 255)->nullable()->after('resource_id');
             }
-            if (!Schema::hasColumn('admin_logs', 'url')) {
+            if (! Schema::hasColumn('admin_logs', 'url')) {
                 $table->string('url', 500)->nullable()->after('user_agent');
             }
-            if (!Schema::hasColumn('admin_logs', 'method')) {
+            if (! Schema::hasColumn('admin_logs', 'method')) {
                 $table->string('method', 10)->nullable()->after('url');
             }
         });
@@ -41,7 +41,7 @@ return new class extends Migration
                 $columns[] = 'method';
             }
 
-            if (!empty($columns)) {
+            if (! empty($columns)) {
                 $table->dropColumn($columns);
             }
         });

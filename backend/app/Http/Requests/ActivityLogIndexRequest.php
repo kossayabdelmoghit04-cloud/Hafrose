@@ -40,18 +40,18 @@ class ActivityLogIndexRequest extends FormRequest
 
         return [
             // Filtres
-            'category'   => ['sometimes', 'string', Rule::in($allowedCategories)],
+            'category' => ['sometimes', 'string', Rule::in($allowedCategories)],
             'event_type' => ['sometimes', 'string', 'max:100'],
-            'user_id'    => ['sometimes', 'integer', 'min:1'],
-            'resource'   => ['sometimes', 'string', 'max:100'],
-            'date_from'  => ['sometimes', 'date_format:Y-m-d'],
-            'date_to'    => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:date_from'],
-            'search'     => ['sometimes', 'string', 'max:150'],
+            'user_id' => ['sometimes', 'integer', 'min:1'],
+            'resource' => ['sometimes', 'string', 'max:100'],
+            'date_from' => ['sometimes', 'date_format:Y-m-d'],
+            'date_to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'search' => ['sometimes', 'string', 'max:150'],
 
             // Tri et pagination
-            'sort_by'    => ['sometimes', 'string', Rule::in($allowedSortBy)],
+            'sort_by' => ['sometimes', 'string', Rule::in($allowedSortBy)],
             'sort_order' => ['sometimes', 'string', Rule::in(['asc', 'desc'])],
-            'per_page'   => ['sometimes', 'integer', 'min:5', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
         ];
     }
 
@@ -63,12 +63,12 @@ class ActivityLogIndexRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'category.in'          => 'La catégorie fournie est invalide.',
+            'category.in' => 'La catégorie fournie est invalide.',
             'date_to.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début.',
-            'sort_by.in'           => 'Le champ de tri est invalide.',
-            'sort_order.in'        => "L'ordre de tri doit être 'asc' ou 'desc'.",
-            'per_page.min'         => 'Le nombre de résultats par page minimum est 5.',
-            'per_page.max'         => 'Le nombre de résultats par page maximum est 100.',
+            'sort_by.in' => 'Le champ de tri est invalide.',
+            'sort_order.in' => "L'ordre de tri doit être 'asc' ou 'desc'.",
+            'per_page.min' => 'Le nombre de résultats par page minimum est 5.',
+            'per_page.max' => 'Le nombre de résultats par page maximum est 100.',
         ];
     }
 }

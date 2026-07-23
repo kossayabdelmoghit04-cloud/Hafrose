@@ -45,20 +45,21 @@ class BackupCommand extends Command
      */
     public function handle(): int
     {
-        $dryRun   = (bool) $this->option('dry-run');
+        $dryRun = (bool) $this->option('dry-run');
         $detailed = (bool) $this->option('detailed');
-        $force    = (bool) $this->option('force');
+        $force = (bool) $this->option('force');
 
         $this->printHeader($dryRun);
 
         // Vérification activation (sauf --force)
-        if (!$force && !config('production.backup.enabled', true)) {
+        if (! $force && ! config('production.backup.enabled', true)) {
             $this->error('  Les sauvegardes sont désactivées (BACKUP_ENABLED=false).');
             $this->line('  Utilisez --force pour forcer la sauvegarde.');
+
             return self::FAILURE;
         }
 
-        if ($force && !config('production.backup.enabled', true)) {
+        if ($force && ! config('production.backup.enabled', true)) {
             $this->warn('  [--force] Sauvegarde forcée malgré BACKUP_ENABLED=false.');
         }
 
@@ -99,8 +100,8 @@ class BackupCommand extends Command
         }
 
         $this->line('');
-        $this->line('  Démarré le : ' . now()->format('Y-m-d H:i:s'));
-        $this->line('  Environnement : ' . app()->environment());
+        $this->line('  Démarré le : '.now()->format('Y-m-d H:i:s'));
+        $this->line('  Environnement : '.app()->environment());
     }
 
     /**
@@ -110,25 +111,25 @@ class BackupCommand extends Command
     {
         $this->line('');
         $this->line('  <options=bold>Étapes :</>');
-        $this->line('  ' . str_repeat('─', 44));
+        $this->line('  '.str_repeat('─', 44));
 
         $icons = [
-            'OK'      => '<fg=green>✓</>',
-            'FAIL'    => '<fg=red>✗</>',
-            'SKIP'    => '<fg=yellow>⊘</>',
+            'OK' => '<fg=green>✓</>',
+            'FAIL' => '<fg=red>✗</>',
+            'SKIP' => '<fg=yellow>⊘</>',
             'DRY-RUN' => '<fg=cyan>◎</>',
         ];
 
         foreach ($report['steps'] as $step) {
-            $icon    = $icons[$step['status']] ?? '<fg=gray>?</>';
-            $label   = str_pad(ucfirst(str_replace('_', ' ', $step['name'])), 16);
-            $status  = str_pad($step['status'], 8);
-            $message = $verbose ? ' — ' . $step['message'] : '';
+            $icon = $icons[$step['status']] ?? '<fg=gray>?</>';
+            $label = str_pad(ucfirst(str_replace('_', ' ', $step['name'])), 16);
+            $status = str_pad($step['status'], 8);
+            $message = $verbose ? ' — '.$step['message'] : '';
 
             $this->line("  {$icon} {$label} : <options=bold>{$status}</>{$message}");
         }
 
-        $this->line('  ' . str_repeat('─', 44));
+        $this->line('  '.str_repeat('─', 44));
     }
 
     /**
@@ -138,7 +139,7 @@ class BackupCommand extends Command
     {
         $this->line('');
 
-        if (!empty($report['errors'])) {
+        if (! empty($report['errors'])) {
             $this->line('  <fg=red;options=bold>Erreurs :</>');
             foreach ($report['errors'] as $error) {
                 $this->error("    • {$error}");
@@ -147,8 +148,8 @@ class BackupCommand extends Command
         }
 
         if ($report['success']) {
-            if (!$dryRun && !empty($report['archive'])) {
-                $this->line('  <fg=green;options=bold>Sauvegarde créée :</> storage/' . $report['archive']);
+            if (! $dryRun && ! empty($report['archive'])) {
+                $this->line('  <fg=green;options=bold>Sauvegarde créée :</> storage/'.$report['archive']);
             }
 
             if (isset($report['duration_s'])) {

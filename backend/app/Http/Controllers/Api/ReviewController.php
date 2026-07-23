@@ -26,6 +26,7 @@ class ReviewController extends Controller
     public function index(): JsonResponse
     {
         $reviews = $this->reviewService->getApprovedReviews();
+
         return $this->successResponse(ReviewResource::collection($reviews));
     }
 
@@ -35,7 +36,7 @@ class ReviewController extends Controller
     public function store(StoreReviewRequest $request): JsonResponse
     {
         $review = $this->reviewService->createReview($request->validated());
-        
+
         return $this->successResponse(
             new ReviewResource($review),
             'Avis créé avec succès, en attente d\'approbation.',

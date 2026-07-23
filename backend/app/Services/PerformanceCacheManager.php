@@ -9,42 +9,33 @@ class PerformanceCacheManager
 {
     /**
      * Obtenir une valeur depuis le cache ou la calculer si absente.
-     *
-     * @param  string   $key
-     * @param  int      $ttl
-     * @param  callable $callback
-     * @param  array    $tags
-     * @return mixed
      */
     public static function remember(string $key, int $ttl, callable $callback, array $tags = []): mixed
     {
-        if (!config('cache-performance.enabled', true)) {
+        if (! config('cache-performance.enabled', true)) {
             return $callback();
         }
 
         try {
-            if (!empty($tags) && static::supportsTags()) {
+            if (! empty($tags) && static::supportsTags()) {
                 return Cache::tags($tags)->remember($key, $ttl, $callback);
             }
 
             return Cache::remember($key, $ttl, $callback);
         } catch (\Throwable $e) {
-            Log::warning("PerformanceCacheManager remember failed for key {$key}: " . $e->getMessage());
+            Log::warning("PerformanceCacheManager remember failed for key {$key}: ".$e->getMessage());
+
             return $callback();
         }
     }
 
     /**
      * Supprimer une clé ou une liste de clés du cache.
-     *
-     * @param  string|array $keys
-     * @param  array        $tags
-     * @return bool
      */
     public static function forget(string|array $keys, array $tags = []): bool
     {
         try {
-            if (!empty($tags) && static::supportsTags()) {
+            if (! empty($tags) && static::supportsTags()) {
                 Cache::tags($tags)->flush();
             }
 
@@ -55,15 +46,14 @@ class PerformanceCacheManager
 
             return true;
         } catch (\Throwable $e) {
-            Log::warning("PerformanceCacheManager forget failed: " . $e->getMessage());
+            Log::warning('PerformanceCacheManager forget failed: '.$e->getMessage());
+
             return false;
         }
     }
 
     /**
      * Effacer tout le cache de performance.
-     *
-     * @return void
      */
     public static function clearAll(): void
     {
@@ -161,12 +151,11 @@ class PerformanceCacheManager
 
     /**
      * Vérifier si le driver de cache supporte les tags.
-     *
-     * @return bool
      */
     public static function supportsTags(): bool
     {
         $driver = config('cache.default');
+
         return in_array($driver, ['redis', 'memcached', 'octane']);
     }
 }

@@ -35,10 +35,10 @@ class StoreMediaRequest extends FormRequest
     {
         return [
             'file.required' => 'Un fichier est obligatoire.',
-            'file.file'     => 'Le téléchargement doit être un fichier valide.',
-            'file.image'    => 'Le fichier doit être une image.',
-            'file.mimes'    => 'Formats autorisés : jpeg, png, jpg, webp, svg.',
-            'file.max'      => 'Le fichier ne doit pas dépasser 10 Mo.',
+            'file.file' => 'Le téléchargement doit être un fichier valide.',
+            'file.image' => 'Le fichier doit être une image.',
+            'file.mimes' => 'Formats autorisés : jpeg, png, jpg, webp, svg.',
+            'file.max' => 'Le fichier ne doit pas dépasser 10 Mo.',
         ];
     }
 }

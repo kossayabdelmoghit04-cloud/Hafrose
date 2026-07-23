@@ -2,8 +2,8 @@
 
 namespace App\Repositories\Contracts;
 
-use Illuminate\Database\Eloquent\Collection;
 use App\Models\Setting;
+use Illuminate\Database\Eloquent\Collection;
 
 interface SettingRepositoryInterface
 {

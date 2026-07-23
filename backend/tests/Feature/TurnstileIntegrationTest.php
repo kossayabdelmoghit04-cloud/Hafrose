@@ -54,7 +54,7 @@ class TurnstileIntegrationTest extends TestCase
         $response = $this->postJson('/api/contact', $this->validContactPayload());
 
         $response->assertStatus(201)
-                 ->assertJson(['success' => true]);
+            ->assertJson(['success' => true]);
     }
 
     /**
@@ -67,15 +67,15 @@ class TurnstileIntegrationTest extends TestCase
         $response = $this->postJson('/api/contact', $this->validContactPayload());
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                     'errors'  => [
-                         'cf-turnstile-response' => [
-                             'La vérification CAPTCHA a échoué. Veuillez actualiser la page et réessayer.',
-                         ],
-                     ],
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+                'errors' => [
+                    'cf-turnstile-response' => [
+                        'La vérification CAPTCHA a échoué. Veuillez actualiser la page et réessayer.',
+                    ],
+                ],
+            ]);
     }
 
     /**
@@ -87,7 +87,7 @@ class TurnstileIntegrationTest extends TestCase
 
         Http::fake([
             'challenges.cloudflare.com/*' => Http::response([
-                'success'     => false,
+                'success' => false,
                 'error-codes' => ['invalid-input-response'],
             ], 200),
         ]);
@@ -98,10 +98,10 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+            ]);
     }
 
     /**
@@ -121,7 +121,7 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(201)
-                 ->assertJson(['success' => true]);
+            ->assertJson(['success' => true]);
     }
 
     /**
@@ -141,10 +141,10 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+            ]);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -167,10 +167,10 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+            ]);
 
         // Vérifier qu'aucun appel réseau n'a été effectué vers Cloudflare.
         Http::assertNothingSent();
@@ -193,10 +193,10 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+            ]);
 
         // Aucun appel réseau ne doit être effectué si la clé est absente.
         Http::assertNothingSent();
@@ -220,10 +220,10 @@ class TurnstileIntegrationTest extends TestCase
         ));
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Vérification CAPTCHA invalide ou expirée.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Vérification CAPTCHA invalide ou expirée.',
+            ]);
     }
 
     /**
@@ -270,7 +270,7 @@ class TurnstileIntegrationTest extends TestCase
         Http::fake();
 
         $payload = array_merge($this->validContactPayload(), [
-            'website'              => 'http://spam-link.com', // Déclenche le honeypot
+            'website' => 'http://spam-link.com', // Déclenche le honeypot
             'cf-turnstile-response' => '',                    // Token absent
         ]);
 
@@ -278,7 +278,7 @@ class TurnstileIntegrationTest extends TestCase
 
         // Le honeypot retourne 201 factice — Turnstile ne doit jamais être atteint.
         $response->assertStatus(201)
-                 ->assertJson(['success' => true]);
+            ->assertJson(['success' => true]);
 
         // Aucun appel réseau vers Cloudflare ne doit avoir été effectué.
         Http::assertNothingSent();
@@ -337,9 +337,9 @@ class TurnstileIntegrationTest extends TestCase
     private function validContactPayload(): array
     {
         return [
-            'name'    => 'Marie Martin',
-            'email'   => 'marie.martin@example.com',
-            'phone'   => '0600000001',
+            'name' => 'Marie Martin',
+            'email' => 'marie.martin@example.com',
+            'phone' => '0600000001',
             'subject' => 'Demande de partenariat',
             'message' => 'Bonjour, j\'aimerais collaborer avec votre marque.',
         ];

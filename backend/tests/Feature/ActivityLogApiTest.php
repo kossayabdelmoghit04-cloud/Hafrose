@@ -22,9 +22,9 @@ class ActivityLogApiTest extends TestCase
     private function createAdmin(): User
     {
         return User::factory()->create([
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => bcrypt('Admin@Hafrose2024!'),
-            'role'     => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -40,9 +40,9 @@ class ActivityLogApiTest extends TestCase
         for ($i = 0; $i < $count; $i++) {
             $service->log(
                 eventType: $overrides['event_type'] ?? ActivityLog::EVENT_USER_LOGIN,
-                category:  $overrides['category']   ?? ActivityLog::CATEGORY_AUTH,
-                resource:  $overrides['resource']    ?? 'users',
-                metadata:  ['index' => $i],
+                category: $overrides['category'] ?? ActivityLog::CATEGORY_AUTH,
+                resource: $overrides['resource'] ?? 'users',
+                metadata: ['index' => $i],
             );
         }
     }
@@ -58,7 +58,7 @@ class ActivityLogApiTest extends TestCase
     public function test_customer_cannot_access_activity_logs(): void
     {
         $customer = $this->createCustomer();
-        $token    = $customer->createToken('token')->plainTextToken;
+        $token = $customer->createToken('token')->plainTextToken;
 
         $this->withToken($token)
             ->getJson('/api/admin/activity-logs')
@@ -127,7 +127,7 @@ class ActivityLogApiTest extends TestCase
         // 3 logs auth + 2 logs security
         $this->seedLogs(3, ['category' => ActivityLog::CATEGORY_AUTH]);
         $this->seedLogs(2, [
-            'category'   => ActivityLog::CATEGORY_SECURITY,
+            'category' => ActivityLog::CATEGORY_SECURITY,
             'event_type' => ActivityLog::EVENT_HONEYPOT_TRIGGERED,
         ]);
 
@@ -161,7 +161,7 @@ class ActivityLogApiTest extends TestCase
 
         $this->seedLogs(3);
 
-        $today    = now()->format('Y-m-d');
+        $today = now()->format('Y-m-d');
         $tomorrow = now()->addDay()->format('Y-m-d');
 
         $response = $this->withToken($token)
@@ -192,12 +192,12 @@ class ActivityLogApiTest extends TestCase
 
         $log = ActivityLog::create([
             'event_type' => ActivityLog::EVENT_USER_LOGIN,
-            'category'   => ActivityLog::CATEGORY_AUTH,
-            'resource'   => 'users',
-            'resource_id'=> $admin->id,
+            'category' => ActivityLog::CATEGORY_AUTH,
+            'resource' => 'users',
+            'resource_id' => $admin->id,
             'ip_address' => '127.0.0.1',
             'user_agent' => 'TestAgent/1.0',
-            'metadata'   => ['email' => $admin->email],
+            'metadata' => ['email' => $admin->email],
         ]);
 
         $response = $this->withToken($token)

@@ -6,7 +6,7 @@ use App\Models\Order;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends Factory<Order>
  */
 class OrderFactory extends Factory
 {
@@ -20,7 +20,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         $villesMonacoLuxe = ['Paris', 'Lyon', 'Monaco', 'Nice', 'Cannes', 'Genève', 'Bruxelles', 'Bordeaux', 'Deauville', 'Saint-Tropez'];
-        
+
         return [
             'customer_name' => $this->faker->name(),
             'phone' => $this->faker->phoneNumber(),
@@ -32,7 +32,7 @@ class OrderFactory extends Factory
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_SHIPPED,
                 Order::STATUS_DELIVERED,
-                Order::STATUS_CANCELLED
+                Order::STATUS_CANCELLED,
             ]),
         ];
     }

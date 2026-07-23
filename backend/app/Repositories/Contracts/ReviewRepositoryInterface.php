@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Review;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface ReviewRepositoryInterface
@@ -20,7 +21,7 @@ interface ReviewRepositoryInterface
     /**
      * Obtenir tous les avis (avec pagination pour l'admin).
      */
-    public function paginate(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+    public function paginate(int $perPage = 15): LengthAwarePaginator;
 
     /**
      * Trouver un avis par son ID.

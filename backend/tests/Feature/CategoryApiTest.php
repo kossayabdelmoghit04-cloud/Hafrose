@@ -20,22 +20,22 @@ class CategoryApiTest extends TestCase
         $response = $this->getJson('/api/categories');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'errors',
-                     'data' => [
-                         '*' => [
-                             'id',
-                             'name',
-                             'slug',
-                             'description',
-                             'image',
-                             'created_at',
-                             'updated_at',
-                         ]
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'errors',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'slug',
+                        'description',
+                        'image',
+                        'created_at',
+                        'updated_at',
+                    ],
+                ],
+            ]);
 
         $this->assertTrue($response['success']);
         $this->assertCount(3, $response['data']);
@@ -54,14 +54,14 @@ class CategoryApiTest extends TestCase
         $response = $this->getJson('/api/categories/sacs-de-luxe');
 
         $response->assertStatus(200)
-                 ->assertJson([
-                     'success' => true,
-                     'data' => [
-                         'id'   => $category->id,
-                         'name' => 'Sacs de Luxe',
-                         'slug' => 'sacs-de-luxe',
-                     ]
-                 ]);
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'id' => $category->id,
+                    'name' => 'Sacs de Luxe',
+                    'slug' => 'sacs-de-luxe',
+                ],
+            ]);
     }
 
     /**
@@ -72,11 +72,11 @@ class CategoryApiTest extends TestCase
         $response = $this->getJson('/api/categories/non-existant-slug');
 
         $response->assertStatus(404)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Resource not found',
-                     'errors'  => null,
-                     'data'    => null,
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Resource not found',
+                'errors' => null,
+                'data' => null,
+            ]);
     }
 }

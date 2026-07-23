@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
@@ -25,14 +25,14 @@ class SystemMetricsService
     public function getMetrics(): array
     {
         return [
-            'cpu'        => $this->getCpuMetrics(),
-            'ram'        => $this->getRamMetrics(),
-            'disk'       => $this->getDiskMetrics(),
-            'database'   => $this->getDatabaseMetrics(),
-            'cache'      => $this->getCacheMetrics(),
+            'cpu' => $this->getCpuMetrics(),
+            'ram' => $this->getRamMetrics(),
+            'disk' => $this->getDiskMetrics(),
+            'database' => $this->getDatabaseMetrics(),
+            'cache' => $this->getCacheMetrics(),
             'filesystem' => $this->getFilesystemMetrics(),
-            'queue'      => $this->getQueueMetrics(),
-            'scheduler'  => $this->getSchedulerMetrics(),
+            'queue' => $this->getQueueMetrics(),
+            'scheduler' => $this->getSchedulerMetrics(),
             'performance' => $this->getPerformanceMetrics(),
         ];
     }
@@ -46,10 +46,10 @@ class SystemMetricsService
 
         return [
             'load_average' => $loadAvg,
-            'load_1min'    => $loadAvg[0] ?? null,
-            'load_5min'    => $loadAvg[1] ?? null,
-            'load_15min'   => $loadAvg[2] ?? null,
-            'cpu_count'    => $this->detectCpuCores(),
+            'load_1min' => $loadAvg[0] ?? null,
+            'load_5min' => $loadAvg[1] ?? null,
+            'load_15min' => $loadAvg[2] ?? null,
+            'cpu_count' => $this->detectCpuCores(),
         ];
     }
 
@@ -59,14 +59,14 @@ class SystemMetricsService
     public function getRamMetrics(): array
     {
         $currentBytes = memory_get_usage(true);
-        $peakBytes    = memory_get_peak_usage(true);
-        $limitStr     = ini_get('memory_limit');
+        $peakBytes = memory_get_peak_usage(true);
+        $limitStr = ini_get('memory_limit');
 
         return [
-            'current_bytes'    => $currentBytes,
-            'current_mb'       => round($currentBytes / 1024 / 1024, 2),
-            'peak_bytes'       => $peakBytes,
-            'peak_mb'          => round($peakBytes / 1024 / 1024, 2),
+            'current_bytes' => $currentBytes,
+            'current_mb' => round($currentBytes / 1024 / 1024, 2),
+            'peak_bytes' => $peakBytes,
+            'peak_mb' => round($peakBytes / 1024 / 1024, 2),
             'ini_memory_limit' => $limitStr,
         ];
     }
@@ -77,18 +77,18 @@ class SystemMetricsService
     public function getDiskMetrics(): array
     {
         $basePath = base_path();
-        $freeSpace  = @disk_free_space($basePath);
+        $freeSpace = @disk_free_space($basePath);
         $totalSpace = @disk_total_space($basePath);
-        $usedSpace  = ($totalSpace && $freeSpace !== false) ? ($totalSpace - $freeSpace) : 0;
-        $usedPct    = ($totalSpace > 0) ? round(($usedSpace / $totalSpace) * 100, 2) : 0;
+        $usedSpace = ($totalSpace && $freeSpace !== false) ? ($totalSpace - $freeSpace) : 0;
+        $usedPct = ($totalSpace > 0) ? round(($usedSpace / $totalSpace) * 100, 2) : 0;
 
         return [
-            'total_bytes'     => $totalSpace,
-            'total_gb'        => $totalSpace ? round($totalSpace / 1024 / 1024 / 1024, 2) : null,
-            'free_bytes'      => $freeSpace,
-            'free_gb'         => $freeSpace !== false ? round($freeSpace / 1024 / 1024 / 1024, 2) : null,
-            'used_bytes'      => $usedSpace,
-            'used_gb'         => round($usedSpace / 1024 / 1024 / 1024, 2),
+            'total_bytes' => $totalSpace,
+            'total_gb' => $totalSpace ? round($totalSpace / 1024 / 1024 / 1024, 2) : null,
+            'free_bytes' => $freeSpace,
+            'free_gb' => $freeSpace !== false ? round($freeSpace / 1024 / 1024 / 1024, 2) : null,
+            'used_bytes' => $usedSpace,
+            'used_gb' => round($usedSpace / 1024 / 1024 / 1024, 2),
             'used_percentage' => $usedPct,
         ];
     }
@@ -115,13 +115,13 @@ class SystemMetricsService
                 $tables = DB::select('SHOW TABLES');
                 $tableCount = count($tables);
 
-                $sizeResult = DB::select("
+                $sizeResult = DB::select('
                     SELECT SUM(data_length + index_length) / 1024 / 1024 AS size_mb
                     FROM information_schema.TABLES
                     WHERE table_schema = ?
-                ", [$databaseName]);
+                ', [$databaseName]);
 
-                if (!empty($sizeResult) && isset($sizeResult[0]->size_mb)) {
+                if (! empty($sizeResult) && isset($sizeResult[0]->size_mb)) {
                     $sizeMb = round((float) $sizeResult[0]->size_mb, 2);
                 }
             } elseif ($driver === 'sqlite') {
@@ -132,14 +132,14 @@ class SystemMetricsService
                 }
             }
         } catch (\Throwable $e) {
-            $this->logger->warning("Failed to collect database metrics", ['error' => $e->getMessage()]);
+            $this->logger->warning('Failed to collect database metrics', ['error' => $e->getMessage()]);
         }
 
         return [
-            'driver'           => $driver,
-            'database'         => $databaseName,
-            'tables_count'     => $tableCount,
-            'size_mb'          => $sizeMb,
+            'driver' => $driver,
+            'database' => $databaseName,
+            'tables_count' => $tableCount,
+            'size_mb' => $sizeMb,
             'query_latency_ms' => $queryLatencyMs,
         ];
     }
@@ -163,7 +163,7 @@ class SystemMetricsService
         }
 
         return [
-            'store'      => $store,
+            'store' => $store,
             'latency_ms' => $latencyMs,
         ];
     }
@@ -174,7 +174,7 @@ class SystemMetricsService
     public function getFilesystemMetrics(): array
     {
         $storagePath = storage_path('app');
-        $backupPath  = storage_path('app/' . config('production.backup.path', 'backups'));
+        $backupPath = storage_path('app/'.config('production.backup.path', 'backups'));
 
         $backupFilesCount = 0;
         $backupTotalSizeMb = 0.0;
@@ -190,10 +190,10 @@ class SystemMetricsService
         }
 
         return [
-            'storage_path'          => $storagePath,
-            'backups_path'          => $backupPath,
-            'backup_files_count'    => $backupFilesCount,
-            'backup_total_size_mb'  => $backupTotalSizeMb,
+            'storage_path' => $storagePath,
+            'backups_path' => $backupPath,
+            'backup_files_count' => $backupFilesCount,
+            'backup_total_size_mb' => $backupTotalSizeMb,
         ];
     }
 
@@ -218,9 +218,9 @@ class SystemMetricsService
         }
 
         return [
-            'driver'       => $driver,
+            'driver' => $driver,
             'pending_jobs' => $pendingJobs,
-            'failed_jobs'  => $failedJobs,
+            'failed_jobs' => $failedJobs,
         ];
     }
 
@@ -232,12 +232,12 @@ class SystemMetricsService
         $lastRun = Cache::get('scheduler:last_run');
         $markerFile = storage_path('framework/scheduler_last_run');
 
-        if (!$lastRun && File::exists($markerFile)) {
+        if (! $lastRun && File::exists($markerFile)) {
             $lastRun = date('Y-m-d H:i:s', File::lastModified($markerFile));
         }
 
         return [
-            'enabled'  => config('monitoring.scheduler_monitoring', true),
+            'enabled' => config('monitoring.scheduler_monitoring', true),
             'last_run' => $lastRun ?: null,
         ];
     }
@@ -254,9 +254,9 @@ class SystemMetricsService
 
         return [
             'current_request_time_ms' => $requestTimeMs,
-            'peak_memory_mb'          => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-            'slow_request_threshold'  => config('monitoring.slow_request_threshold', 1000),
-            'slow_query_threshold'    => config('monitoring.slow_query_threshold', 200),
+            'peak_memory_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
+            'slow_request_threshold' => config('monitoring.slow_request_threshold', 1000),
+            'slow_query_threshold' => config('monitoring.slow_query_threshold', 200),
         ];
     }
 
@@ -272,6 +272,7 @@ class SystemMetricsService
         if (file_exists('/proc/cpuinfo')) {
             $cpuinfo = file_get_contents('/proc/cpuinfo');
             preg_match_all('/^processor/m', $cpuinfo, $matches);
+
             return count($matches[0]) ?: null;
         }
 

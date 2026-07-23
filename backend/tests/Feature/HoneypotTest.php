@@ -34,9 +34,9 @@ class HoneypotTest extends TestCase
     private function validContactPayload(array $override = []): array
     {
         return array_merge([
-            'name'    => 'Jean Humain',
-            'email'   => 'jean@example.com',
-            'phone'   => '0600000001',
+            'name' => 'Jean Humain',
+            'email' => 'jean@example.com',
+            'phone' => '0600000001',
             'subject' => 'Demande d\'information',
             'message' => 'Bonjour, j\'ai une question concernant vos produits.',
         ], $override);
@@ -45,10 +45,10 @@ class HoneypotTest extends TestCase
     private function validReviewPayload(int $productId, array $override = []): array
     {
         return array_merge([
-            'product_id'    => $productId,
+            'product_id' => $productId,
             'customer_name' => 'Marie Humaine',
-            'rating'        => 4,
-            'comment'       => 'Produit de très bonne qualité, je recommande vivement.',
+            'rating' => 4,
+            'comment' => 'Produit de très bonne qualité, je recommande vivement.',
         ], $override);
     }
 
@@ -56,10 +56,10 @@ class HoneypotTest extends TestCase
     {
         return array_merge([
             'customer' => 'Pierre Humain',
-            'phone'    => '0600000002',
-            'address'  => '42 Rue de la Liberté',
-            'city'     => 'Lyon',
-            'items'    => [
+            'phone' => '0600000002',
+            'address' => '42 Rue de la Liberté',
+            'city' => 'Lyon',
+            'items' => [
                 ['product_id' => $productId, 'quantity' => 1],
             ],
         ], $override);
@@ -260,8 +260,8 @@ class HoneypotTest extends TestCase
     public function test_honeypot_returns_error_when_shadow_block_disabled(): void
     {
         config([
-            'honeypot.enabled'       => true,
-            'honeypot.shadow_block'  => false,
+            'honeypot.enabled' => true,
+            'honeypot.shadow_block' => false,
             'honeypot.error_message' => 'Requête invalide.',
         ]);
 
@@ -270,10 +270,10 @@ class HoneypotTest extends TestCase
         ]));
 
         $response->assertStatus(400)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Requête invalide.',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Requête invalide.',
+            ]);
 
         $this->assertDatabaseCount('contacts', 0);
     }

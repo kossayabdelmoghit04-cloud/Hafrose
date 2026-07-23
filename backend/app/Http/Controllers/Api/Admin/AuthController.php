@@ -8,6 +8,7 @@ use App\Models\AdminLog;
 use App\Services\AdminLogService;
 use App\Services\AuthService;
 use App\Traits\HttpResponses;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class AuthController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected AuthService    $authService,
+        protected AuthService $authService,
         protected AdminLogService $adminLogService,
     ) {}
 
@@ -27,26 +28,26 @@ class AuthController extends Controller
     {
         try {
             $credentials = $request->validated();
-            $result      = $this->authService->login($credentials);
+            $result = $this->authService->login($credentials);
 
             $this->adminLogService->log(
-                request:    $request,
-                action:     AdminLog::ACTION_LOGIN,
-                resource:   AdminLog::RESOURCE_AUTH,
+                request: $request,
+                action: AdminLog::ACTION_LOGIN,
+                resource: AdminLog::RESOURCE_AUTH,
                 resourceId: $result['user']->id,
-                newValues:  ['email' => $result['user']->email],
+                newValues: ['email' => $result['user']->email],
             );
 
             return $this->successResponse([
                 'token' => $result['token'],
-                'user'  => [
-                    'id'    => $result['user']->id,
-                    'name'  => $result['user']->name,
+                'user' => [
+                    'id' => $result['user']->id,
+                    'name' => $result['user']->name,
                     'email' => $result['user']->email,
-                    'role'  => $result['user']->role,
+                    'role' => $result['user']->role,
                 ],
             ], 'Connexion réussie.');
-        } catch (\Illuminate\Auth\AuthenticationException $e) {
+        } catch (AuthenticationException $e) {
             return $this->errorResponse($e->getMessage(), 401);
         }
     }
@@ -59,9 +60,9 @@ class AuthController extends Controller
         $user = $request->user();
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_LOGOUT,
-            resource:   AdminLog::RESOURCE_AUTH,
+            request: $request,
+            action: AdminLog::ACTION_LOGOUT,
+            resource: AdminLog::RESOURCE_AUTH,
             resourceId: $user->id,
         );
 
@@ -76,11 +77,12 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
+
         return $this->successResponse([
-            'id'          => $user->id,
-            'name'        => $user->name,
-            'email'       => $user->email,
-            'role'        => $user->role,
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
             'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
         ]);
     }

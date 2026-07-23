@@ -17,8 +17,8 @@ class ContactController extends Controller
     use HttpResponses;
 
     public function __construct(
-        protected ContactService   $contactService,
-        protected AdminLogService  $adminLogService,
+        protected ContactService $contactService,
+        protected AdminLogService $adminLogService,
     ) {}
 
     /**
@@ -27,24 +27,24 @@ class ContactController extends Controller
     public function index(AdminContactIndexRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $filters   = array_filter([
-            'search'  => $validated['search']  ?? null,
+        $filters = array_filter([
+            'search' => $validated['search'] ?? null,
             'is_read' => $validated['is_read'] ?? null,
         ], fn ($v) => $v !== null);
 
-        $perPage  = (int) ($validated['per_page'] ?? 15);
+        $perPage = (int) ($validated['per_page'] ?? 15);
         $messages = $this->contactService->getPaginatedContacts($filters, $perPage);
 
         return response()->json([
             'success' => true,
             'message' => null,
-            'errors'  => null,
-            'data'    => ContactResource::collection($messages),
-            'meta'    => [
+            'errors' => null,
+            'data' => ContactResource::collection($messages),
+            'meta' => [
                 'current_page' => $messages->currentPage(),
-                'last_page'    => $messages->lastPage(),
-                'per_page'     => $messages->perPage(),
-                'total'        => $messages->total(),
+                'last_page' => $messages->lastPage(),
+                'per_page' => $messages->perPage(),
+                'total' => $messages->total(),
             ],
         ]);
     }
@@ -58,12 +58,12 @@ class ContactController extends Controller
         $updated = $this->contactService->markAsRead($contact);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_MARK_READ,
-            resource:   AdminLog::RESOURCE_CONTACT,
+            request: $request,
+            action: AdminLog::ACTION_MARK_READ,
+            resource: AdminLog::RESOURCE_CONTACT,
             resourceId: $contact->id,
-            oldValues:  ['is_read' => false],
-            newValues:  ['is_read' => true],
+            oldValues: ['is_read' => false],
+            newValues: ['is_read' => true],
         );
 
         return $this->successResponse(
@@ -77,17 +77,17 @@ class ContactController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $contact  = $this->contactService->getContactById($id);
+        $contact = $this->contactService->getContactById($id);
         $snapshot = $this->adminLogService->extractModelValues($contact, ['id', 'name', 'email', 'subject']);
 
         $this->contactService->deleteContact($contact);
 
         $this->adminLogService->log(
-            request:    $request,
-            action:     AdminLog::ACTION_DELETE,
-            resource:   AdminLog::RESOURCE_CONTACT,
+            request: $request,
+            action: AdminLog::ACTION_DELETE,
+            resource: AdminLog::RESOURCE_CONTACT,
             resourceId: $id,
-            oldValues:  $snapshot,
+            oldValues: $snapshot,
         );
 
         return $this->successResponse(null, 'Message de contact supprimé avec succès.');

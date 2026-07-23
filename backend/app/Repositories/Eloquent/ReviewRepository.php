@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Review;
 use App\Repositories\Contracts\ReviewRepositoryInterface;
 use App\Services\PerformanceCacheManager;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class ReviewRepository implements ReviewRepositoryInterface
@@ -33,13 +34,14 @@ class ReviewRepository implements ReviewRepositoryInterface
     {
         $review = Review::create($data);
         PerformanceCacheManager::invalidateReviews();
+
         return $review;
     }
 
     /**
      * Obtenir tous les avis (avec pagination pour l'admin).
      */
-    public function paginate(int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         $maxPerPage = config('cache-performance.pagination.max_per_page', 100);
         $perPage = min(max(1, $perPage), $maxPerPage);
@@ -47,8 +49,8 @@ class ReviewRepository implements ReviewRepositoryInterface
         return Review::with(['product' => function ($q) {
             $q->select('id', 'name', 'slug');
         }])
-        ->latest()
-        ->paginate($perPage);
+            ->latest()
+            ->paginate($perPage);
     }
 
     /**
@@ -68,6 +70,7 @@ class ReviewRepository implements ReviewRepositoryInterface
     {
         $review->update($data);
         PerformanceCacheManager::invalidateReviews();
+
         return $review;
     }
 
@@ -78,6 +81,7 @@ class ReviewRepository implements ReviewRepositoryInterface
     {
         $deleted = $review->delete();
         PerformanceCacheManager::invalidateReviews();
+
         return $deleted;
     }
 }

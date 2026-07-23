@@ -10,9 +10,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class CategoriesExport implements FromQuery, WithHeadings, WithMapping, WithTitle, WithStyles, ShouldAutoSize
+class CategoriesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     public function __construct(protected array $filters = []) {}
 
@@ -20,8 +21,8 @@ class CategoriesExport implements FromQuery, WithHeadings, WithMapping, WithTitl
     {
         $query = Category::query()->withCount('products');
 
-        if (!empty($this->filters['search'])) {
-            $query->where('name', 'like', '%' . $this->filters['search'] . '%');
+        if (! empty($this->filters['search'])) {
+            $query->where('name', 'like', '%'.$this->filters['search'].'%');
         }
 
         $sortBy = $this->filters['sort_by'] ?? 'created_at';
@@ -43,7 +44,7 @@ class CategoriesExport implements FromQuery, WithHeadings, WithMapping, WithTitl
     }
 
     /**
-     * @param Category $category
+     * @param  Category  $category
      */
     public function map($category): array
     {
@@ -68,7 +69,7 @@ class CategoriesExport implements FromQuery, WithHeadings, WithMapping, WithTitl
             1 => [
                 'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                 'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'fillType' => Fill::FILL_SOLID,
                     'startColor' => ['rgb' => '1E293B'],
                 ],
             ],

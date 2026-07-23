@@ -32,12 +32,12 @@ class WishlistApiTest extends TestCase
         $response = $this->getJson('/api/wishlist');
 
         $response->assertStatus(401)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Unauthenticated',
-                     'errors'  => null,
-                     'data'    => null,
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Unauthenticated',
+                'errors' => null,
+                'data' => null,
+            ]);
     }
 
     /**
@@ -51,12 +51,12 @@ class WishlistApiTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/wishlist');
 
         $response->assertStatus(200)
-                 ->assertJson([
-                     'success' => true,
-                     'message' => null,
-                     'errors'  => null,
-                     'data'    => [],
-                 ]);
+            ->assertJson([
+                'success' => true,
+                'message' => null,
+                'errors' => null,
+                'data' => [],
+            ]);
     }
 
     /**
@@ -73,25 +73,25 @@ class WishlistApiTest extends TestCase
         ]);
 
         $response->assertStatus(201)
-                 ->assertJsonStructure([
-                     'success',
-                     'message',
-                     'data' => [
-                         'id',
-                         'user_id',
-                         'product' => [
-                             'id',
-                             'name',
-                             'slug',
-                             'price',
-                         ],
-                         'category',
-                         'gallery_principale',
-                     ],
-                 ]);
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    'id',
+                    'user_id',
+                    'product' => [
+                        'id',
+                        'name',
+                        'slug',
+                        'price',
+                    ],
+                    'category',
+                    'gallery_principale',
+                ],
+            ]);
 
         $this->assertDatabaseHas('wishlist_items', [
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $product->id,
         ]);
     }
@@ -107,7 +107,7 @@ class WishlistApiTest extends TestCase
 
         // Ajout du premier
         WishlistItem::factory()->create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $product->id,
         ]);
 
@@ -117,11 +117,11 @@ class WishlistApiTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Validation failed',
-                 ])
-                 ->assertJsonValidationErrors(['product_id']);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Validation failed',
+            ])
+            ->assertJsonValidationErrors(['product_id']);
     }
 
     /**
@@ -131,14 +131,14 @@ class WishlistApiTest extends TestCase
     {
         $user = $this->createUser();
         $token = $this->createTokenForUser($user);
-        
+
         $item1 = WishlistItem::factory()->create(['user_id' => $user->id]);
         $item2 = WishlistItem::factory()->create(['user_id' => $user->id]);
 
         $response = $this->withToken($token)->getJson('/api/wishlist');
 
         $response->assertStatus(200)
-                 ->assertJsonCount(2, 'data');
+            ->assertJsonCount(2, 'data');
     }
 
     /**
@@ -153,19 +153,19 @@ class WishlistApiTest extends TestCase
 
         // Ajouter product1 aux favoris
         WishlistItem::factory()->create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $product1->id,
         ]);
 
         // Vérifier product1
         $response1 = $this->withToken($token)->getJson("/api/wishlist/check/{$product1->id}");
         $response1->assertStatus(200)
-                  ->assertJsonPath('data.is_favorite', true);
+            ->assertJsonPath('data.is_favorite', true);
 
         // Vérifier product2 (pas en favori)
         $response2 = $this->withToken($token)->getJson("/api/wishlist/check/{$product2->id}");
         $response2->assertStatus(200)
-                  ->assertJsonPath('data.is_favorite', false);
+            ->assertJsonPath('data.is_favorite', false);
     }
 
     /**
@@ -178,7 +178,7 @@ class WishlistApiTest extends TestCase
         $product = Product::factory()->create();
 
         WishlistItem::factory()->create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $product->id,
         ]);
 
@@ -187,7 +187,7 @@ class WishlistApiTest extends TestCase
         $response->assertStatus(200);
 
         $this->assertDatabaseMissing('wishlist_items', [
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'product_id' => $product->id,
         ]);
     }
@@ -205,10 +205,10 @@ class WishlistApiTest extends TestCase
         $response = $this->withToken($token)->deleteJson("/api/wishlist/{$product->id}");
 
         $response->assertStatus(404)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Resource not found',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Resource not found',
+            ]);
     }
 
     /**
@@ -222,10 +222,10 @@ class WishlistApiTest extends TestCase
         $response = $this->withToken($token)->deleteJson('/api/wishlist/999999');
 
         $response->assertStatus(404)
-                 ->assertJson([
-                     'success' => false,
-                     'message' => 'Resource not found',
-                 ]);
+            ->assertJson([
+                'success' => false,
+                'message' => 'Resource not found',
+            ]);
     }
 
     /**
@@ -236,19 +236,19 @@ class WishlistApiTest extends TestCase
         $userA = $this->createUser();
         $userB = $this->createUser();
         $tokenB = $this->createTokenForUser($userB);
-        
+
         $product = Product::factory()->create();
 
         // User A ajoute un produit
         WishlistItem::factory()->create([
-            'user_id'    => $userA->id,
+            'user_id' => $userA->id,
             'product_id' => $product->id,
         ]);
 
         // User B consulte sa propre wishlist -> vide
         $responseGet = $this->withToken($tokenB)->getJson('/api/wishlist');
         $responseGet->assertStatus(200)
-                    ->assertJsonCount(0, 'data');
+            ->assertJsonCount(0, 'data');
 
         // User B tente de supprimer le favori de User A -> doit retourner 404 car inexistant pour User B
         $responseDelete = $this->withToken($tokenB)->deleteJson("/api/wishlist/{$product->id}");
@@ -256,7 +256,7 @@ class WishlistApiTest extends TestCase
 
         // Le favori de User A est toujours présent en BDD
         $this->assertDatabaseHas('wishlist_items', [
-            'user_id'    => $userA->id,
+            'user_id' => $userA->id,
             'product_id' => $product->id,
         ]);
     }

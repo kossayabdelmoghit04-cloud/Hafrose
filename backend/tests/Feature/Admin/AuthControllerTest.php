@@ -13,9 +13,9 @@ class AuthControllerTest extends TestCase
     private function createAdmin(): User
     {
         return User::factory()->create([
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => bcrypt('Admin@Hafrose2024!'),
-            'role'     => User::ROLE_ADMIN,
+            'role' => User::ROLE_ADMIN,
         ]);
     }
 
@@ -26,16 +26,16 @@ class AuthControllerTest extends TestCase
         $this->createAdmin();
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'Admin@Hafrose2024!',
         ]);
 
         $response->assertOk()
-                 ->assertJsonStructure([
-                     'success', 'message',
-                     'data' => ['token', 'user' => ['id', 'name', 'email', 'role']],
-                 ])
-                 ->assertJsonFragment(['success' => true]);
+            ->assertJsonStructure([
+                'success', 'message',
+                'data' => ['token', 'user' => ['id', 'name', 'email', 'role']],
+            ])
+            ->assertJsonFragment(['success' => true]);
     }
 
     public function test_login_fails_with_wrong_password(): void
@@ -43,24 +43,24 @@ class AuthControllerTest extends TestCase
         $this->createAdmin();
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'admin@hafrose.com',
+            'email' => 'admin@hafrose.com',
             'password' => 'wrongpassword',
         ]);
 
         $response->assertUnauthorized()
-                 ->assertJsonFragment(['success' => false]);
+            ->assertJsonFragment(['success' => false]);
     }
 
     public function test_login_fails_for_non_admin_user(): void
     {
         User::factory()->create([
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => bcrypt('password'),
-            'role'     => 'customer',
+            'role' => 'customer',
         ]);
 
         $response = $this->postJson('/api/admin/login', [
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => 'password',
         ]);
 
@@ -74,7 +74,7 @@ class AuthControllerTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-                 ->assertJsonFragment(['success' => false]);
+            ->assertJsonFragment(['success' => false]);
     }
 
     // ─── Me ───────────────────────────────────────────────────────────────────
@@ -87,9 +87,9 @@ class AuthControllerTest extends TestCase
         $response = $this->withToken($token)->getJson('/api/admin/me');
 
         $response->assertOk()
-                 ->assertJsonStructure([
-                     'data' => ['id', 'name', 'email', 'role'],
-                 ]);
+            ->assertJsonStructure([
+                'data' => ['id', 'name', 'email', 'role'],
+            ]);
     }
 
     public function test_unauthenticated_user_cannot_access_me(): void
@@ -109,7 +109,7 @@ class AuthControllerTest extends TestCase
         $response = $this->withToken($token)->postJson('/api/admin/logout');
 
         $response->assertOk()
-                 ->assertJsonFragment(['success' => true]);
+            ->assertJsonFragment(['success' => true]);
     }
 
     public function test_non_admin_cannot_access_protected_routes(): void
