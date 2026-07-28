@@ -208,8 +208,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sellers', [\App\Http\Controllers\Api\Seller\SellerController::class, 'index']);
     Route::post('/sellers', [\App\Http\Controllers\Api\Seller\SellerController::class, 'store']);
 
+    // Phase 6.15: Mobile App — Push Token Registration
+    Route::post('/mobile/register-token', [\App\Http\Controllers\Api\MobileApiController::class, 'registerDeviceToken']);
+
     // Phase 6.17: Enterprise Security
     Route::post('/security/2fa/setup', [\App\Http\Controllers\Api\SecurityController::class, 'setup2Fa']);
     Route::get('/security/audit-logs', [\App\Http\Controllers\Api\SecurityController::class, 'auditLogs']);
 });
 
+// Phase 6.12 & 6.15: Personalization & Mobile config (public)
+Route::middleware('throttle:api')->group(function () {
+    Route::get('/mobile/config', [\App\Http\Controllers\Api\MobileApiController::class, 'appConfig']);
+    Route::get('/personalization/homepage', function () {
+        $service = new \App\Services\PersonalizationService();
+        return response()->json(['success' => true, 'data' => $service->getHomepagePersonalization()]);
+    });
+});
