@@ -1,0 +1,97 @@
+version: '3.9'
+
+services:
+  # ── MySQL Database ─────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: hafrose_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-hafrose}
+      MYSQL_USER: ${DB_USERNAME:-hafrose}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - hafrose_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Laravel API Backend ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: hafrose_backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-hafrose}
+      DB_USERNAME: ${DB_USERNAME:-hafrose}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hafrose_network
+    command: >
+      sh -c "php artisan migrate --force &&
+             php artisan config:cache &&
+             php artisan route:cache &&
+             php artisan view:cache &&
+             php-fpm"
+
+  # ── React SPA Frontend ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: hafrose_frontend
+    restart: unless-stopped
+    networks:
+      - hafrose_network
+    depends_on:
+      - backend
+
+  # ── Nginx Reverse Proxy ────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: hafrose_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/nginx/production.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deployment/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - hafrose_network
+
+volumes:
+  db_data:
+    driver: local
+  backend_storage:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  hafrose_network:
+    driver: bridge
