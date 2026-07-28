@@ -5,6 +5,12 @@ import FeaturedProducts from '../../components/sections/FeaturedProducts';
 import WhyChooseUs from '../../components/sections/WhyChooseUs';
 import Testimonials from '../../components/sections/Testimonials';
 import Newsletter from '../../components/sections/Newsletter';
+import LookbookBanner from '../../components/sections/LookbookBanner';
+import ArtisanatSection from '../../components/sections/ArtisanatSection';
+import LuxuryBanner from '../../components/sections/LuxuryBanner';
+import EditorialJournal from '../../components/sections/EditorialJournal';
+import RecentlyViewedSection from '../../components/sections/RecentlyViewedSection';
+import TrustCertificates from '../../components/sections/TrustCertificates';
 import useSEO from '../../hooks/useSEO';
 
 const HOME_SCHEMA = [
@@ -59,25 +65,43 @@ export default function Home() {
 
   return (
     <>
-      {/* 1. Hero — Immersive fullscreen introduction */}
+      {/* 1. Hero — Immersive parallax introduction */}
       <Hero />
 
       {/* 2. Présentation de la Maison Hafrose */}
       <MaisonPresentation />
 
-      {/* 3. Catégories populaires */}
+      {/* 3. Lookbook Banner — Editorial cinematic section */}
+      <LookbookBanner />
+
+      {/* 4. Catégories populaires */}
       <PopularCategories />
 
-      {/* 4. Produits vedettes */}
+      {/* 5. Produits vedettes */}
       <FeaturedProducts />
 
-      {/* 5. Pourquoi choisir Hafrose */}
+      {/* 6. L'Artisanat — Storytelling + counters */}
+      <ArtisanatSection />
+
+      {/* 7. Journal & Magazine de la Maison (Phase 8.8 Editorial) */}
+      <EditorialJournal />
+
+      {/* 8. Pourquoi choisir Hafrose */}
       <WhyChooseUs />
 
-      {/* 6. Témoignages clients */}
+      {/* 9. Garantie & Traçabilité (Phase 8.5 Trust) */}
+      <TrustCertificates />
+
+      {/* 10. Témoignages — Carousel autoplay */}
       <Testimonials />
 
-      {/* 7. Newsletter */}
+      {/* 11. Produits vus récemment (Phase 8.1 Personalization) */}
+      <RecentlyViewedSection />
+
+      {/* 12. Luxury Banner — CTA signature */}
+      <LuxuryBanner />
+
+      {/* 13. Newsletter — Premium dark section */}
       <Newsletter />
     </>
   );

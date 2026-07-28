@@ -276,3 +276,17 @@ SEO visuel
 cohérence
 suppression complète des anciennes couleurs
 validation finale
+
+Phase 9.0 — AI Removal & Luxury E-commerce Refactoring ✅ (Terminée)
+
+Objectif : Transformer HAFROSE en une boutique e-commerce de luxe pure sans IA, marketplace ou API développeur.
+
+Tâches
+✅ Suppression complète des composants IA front (AiAssistantDrawer, SmartSearchOverlay, VoiceSearchWidget, RecommendationCarousel)
+✅ Suppression complète des services IA back (AiAssistantService, AiRecommendationService, PersonalizationService)
+✅ Suppression de la Marketplace (Seller, Store, SellerPortal, SellerController, MarketplaceService)
+✅ Suppression des API Enterprise/SDK (SDK PHP, SDK JS, Webhooks, WebhookController)
+✅ Suppression des endpoints mobile push (DeviceToken, MobileApiController)
+✅ Conservation et optimisation de l'expérience E-Commerce Luxe (Catalogue, Panier, Checkout, Espace Client, Loyalty, PWA)
+✅ Organisation et nettoyage complet des imports, routes, migrations et tests
+✅ Validation finale (Build React 19, Tests Vitest & PHPUnit sans aucune erreur)

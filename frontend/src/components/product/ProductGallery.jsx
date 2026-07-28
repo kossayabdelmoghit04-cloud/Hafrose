@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
  * et carrousel de vignettes.
  */
 
-const ProductGallery = memo(function ProductGallery({ images = [], productName = 'Produit' }) {
+const ProductGallery = memo(function ProductGallery({ images = [], productName = 'Produit', onOpen360, onOpenZoom }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -84,7 +84,30 @@ const ProductGallery = memo(function ProductGallery({ images = [], productName =
           />
         )}
 
-        {/* Bouton Fullscreen Lightbox */}
+        {/* Bouton Fullscreen & 360° & Zoom HD */}
+        <div className="absolute top-4 left-4 flex items-center gap-2 z-10 opacity-90 hover:opacity-100 transition-opacity">
+          {onOpen360 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onOpen360(); }}
+              className="bg-anthracite/80 text-luxury-gold hover:bg-anthracite px-3 py-1.5 rounded-none text-[9px] uppercase tracking-widest font-sans flex items-center gap-1.5 border border-luxury-gold/30 shadow-md backdrop-blur-sm transition-all"
+              aria-label="Ouvrir la vue 360°"
+            >
+              <span>Vue 360°</span>
+            </button>
+          )}
+          {onOpenZoom && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onOpenZoom(); }}
+              className="bg-off-white/90 text-anthracite hover:text-rose-gold px-3 py-1.5 rounded-none text-[9px] uppercase tracking-widest font-sans flex items-center gap-1.5 shadow-md backdrop-blur-sm transition-all"
+              aria-label="Ouvrir le zoom haute définition"
+            >
+              <span>Zoom HD</span>
+            </button>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(true); }}

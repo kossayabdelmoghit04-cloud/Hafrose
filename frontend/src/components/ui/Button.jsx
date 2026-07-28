@@ -1,11 +1,11 @@
-import React, { useMemo, useCallback, memo } from 'react';
+import React, { useMemo, useCallback, memo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 // Safely wrap Link component with Framer Motion support across different versions
 const MotionLink = motion.create ? motion.create(Link) : motion(Link);
 
-const Button = memo(({
+const Button = memo(function Button({
   children,
   variant = 'primary',
   size = 'md',
@@ -24,7 +24,7 @@ const Button = memo(({
   onClick,
   type = 'button',
   ...props
-}) => {
+}) {
   const activeLoading = loading || isLoading;
 
   // Polymorphic element resolution
@@ -85,12 +85,28 @@ const Button = memo(({
     return '';
   }, [tone, appearance]);
 
+  const buttonRef = useRef(null);
+
   // Base styling for luxury look-and-feel
   const baseStyle = useMemo(() => {
-    return `inline-flex items-center justify-center uppercase tracking-[0.3em] font-medium font-sans btn-luxury-transition rounded-none select-none ${
+    return `inline-flex items-center justify-center uppercase tracking-[0.3em] font-medium font-sans btn-luxury-transition rounded-none select-none btn-ripple ${
       fullWidth ? 'w-full' : 'w-auto'
     }`;
   }, [fullWidth]);
+
+  // Ripple effect
+  const triggerRipple = useCallback((e) => {
+    const el = buttonRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty('--ripple-x', `${e.clientX - rect.left}px`);
+    el.style.setProperty('--ripple-y', `${e.clientY - rect.top}px`);
+    el.classList.remove('ripple-active');
+    void el.offsetWidth; // reflow
+    el.classList.add('ripple-active');
+    const cleanup = () => el.classList.remove('ripple-active');
+    el.addEventListener('animationend', cleanup, { once: true });
+  }, []);
 
   // Click handler to prevent navigation when disabled/loading
   const handleClick = useCallback((e) => {
@@ -98,10 +114,11 @@ const Button = memo(({
       e.preventDefault();
       return;
     }
+    triggerRipple(e);
     if (onClick) {
       onClick(e);
     }
-  }, [disabled, activeLoading, onClick]);
+  }, [disabled, activeLoading, onClick, triggerRipple]);
 
   // Determine spinner size based on button size
   const spinnerSizeClass = useMemo(() => {
@@ -121,6 +138,7 @@ const Button = memo(({
     const isTagAnchor = href || as === 'a';
 
     const baseProps = {
+      ref: buttonRef,
       className: `${baseStyle} ${variantClass} ${sizeClass} ${toneClass} ${className}`.trim(),
       onClick: handleClick,
       'aria-disabled': disabled || activeLoading ? 'true' : undefined,

@@ -34,7 +34,6 @@ const AccountWishlist = lazy(() => import('../pages/Account/Wishlist'));
 
 // v2.0 Portal pages
 const LoyaltyDashboard = lazy(() => import('../pages/Portal/LoyaltyDashboard'));
-const SellerPortal = lazy(() => import('../pages/Seller/SellerPortal'));
 
 // Admin pages
 const AdminLogin = lazy(() => import('../pages/Admin/Login'));
@@ -88,10 +87,6 @@ export const router = createBrowserRouter([
       {
         path: 'loyalty',
         element: <LoyaltyDashboard />,
-      },
-      {
-        path: 'seller-portal',
-        element: <SellerPortal />,
       },
 
       // Auth Routes

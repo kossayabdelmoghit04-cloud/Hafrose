@@ -27,14 +27,4 @@ class SearchController extends Controller
 
         return $this->successResponse($results);
     }
-
-    public function semantic(Request $request): JsonResponse
-    {
-        $q = $request->query('q', '');
-        $data = $this->searchService->semanticSearch($q);
-
-        $data['products'] = ProductResource::collection($data['products']);
-
-        return $this->successResponse($data);
-    }
 }

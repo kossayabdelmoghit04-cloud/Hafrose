@@ -655,17 +655,6 @@ export const TableStatusBadge = memo(({
     }
   }, [normStatus, label, status]);
 
-  if (dot) {
-    const dotColorClass = normStatus === 'unread' ? 'bg-[--color-status-unread-dot]' : 'bg-transparent';
-    return (
-      <span 
-        title={statusLabel} 
-        className={clsx('w-2.5 h-2.5 rounded-full block shrink-0', dotColorClass, className)}
-        {...props}
-      />
-    );
-  }
-
   const badgeColorClass = useMemo(() => {
     switch (normStatus) {
       case 'pending':
@@ -700,6 +689,17 @@ export const TableStatusBadge = memo(({
         return 'bg-[--color-status-refunded-bg] text-[--color-status-refunded-text] border border-[--color-status-refunded-border]';
     }
   }, [normStatus]);
+
+  if (dot) {
+    const dotColorClass = normStatus === 'unread' ? 'bg-[--color-status-unread-dot]' : 'bg-transparent';
+    return (
+      <span 
+        title={statusLabel} 
+        className={clsx('w-2.5 h-2.5 rounded-full block shrink-0', dotColorClass, className)}
+        {...props}
+      />
+    );
+  }
 
   return (
     <span

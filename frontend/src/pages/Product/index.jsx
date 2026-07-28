@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react';
 import Swal from 'sweetalert2';
 import productService from '../../services/productService';
 import reviewService from '../../services/reviewService';
@@ -10,27 +10,38 @@ import { useCart } from '../../context/CartContext';
 import { getProductGallery } from '../../utils/imageHelper';
 import { formatPrice } from '../../utils/format';
 import useSEO from '../../hooks/useSEO';
+import useRecentlyViewed from '../../hooks/useRecentlyViewed';
 
-// ── Phase 3 Components ──────────────────────────────────────────────────────
+// ── Phase 3 & v3.0 Components ────────────────────────────────────────────────
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductBuyBox from '../../components/product/ProductBuyBox';
 import ProductTabs from '../../components/product/ProductTabs';
 import ProductReviews from '../../components/product/ProductReviews';
-import ProductRecommendations, {
-  trackProductView,
-  getRecentlyViewed,
-} from '../../components/product/ProductRecommendations';
+import ProductRecommendations from '../../components/product/ProductRecommendations';
+import Product360Viewer from '../../components/product/Product360Viewer';
+import ImageZoomModal from '../../components/product/ImageZoomModal';
+import PrivateAppointmentModal from '../../components/common/PrivateAppointmentModal';
+import GiftOptionsModal from '../../components/common/GiftOptionsModal';
+import TrustCertificates from '../../components/sections/TrustCertificates';
+import RecentlyViewedSection from '../../components/sections/RecentlyViewedSection';
 
 export default function Product() {
   const { slug } = useParams();
   const { addToCart } = useCart();
+  const { trackView } = useRecentlyViewed();
 
   // ── Product & related data ────────────────────────────────────────────────
   const [product, setProduct] = useState(null);
   const [similar, setSimilar] = useState([]);
-  const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ── Modals v3.0 state ─────────────────────────────────────────────────────
+  const [is360Open, setIs360Open] = useState(false);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [giftDetails, setGiftDetails] = useState(null);
 
   // ── Derived values ────────────────────────────────────────────────────────
   const gallery = useMemo(() => (product ? getProductGallery(product) : []), [product]);
@@ -64,28 +75,6 @@ export default function Product() {
               : 'https://schema.org/OutOfStock',
           seller: { '@type': 'Organization', name: 'Maison Hafrose' },
         },
-        ...(avgRating && product.reviews?.length
-          ? {
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: avgRating,
-                reviewCount: product.reviews.length,
-                bestRating: 5,
-                worstRating: 1,
-              },
-              review: product.reviews.slice(0, 5).map((r) => ({
-                '@type': 'Review',
-                author: { '@type': 'Person', name: r.name },
-                reviewRating: {
-                  '@type': 'Rating',
-                  ratingValue: r.rating,
-                  bestRating: 5,
-                  worstRating: 1,
-                },
-                reviewBody: r.comment,
-              })),
-            }
-          : {}),
       },
       {
         '@context': 'https://schema.org',
@@ -128,10 +117,8 @@ export default function Product() {
       const res = await productService.getBySlug(slug);
       if (res?.success) {
         setProduct(res.data);
-
-        // Track view in localStorage for "Vus Récemment"
-        trackProductView(res.data);
-        setRecentlyViewed(getRecentlyViewed(res.data.id));
+        // Track in v3.0 recently viewed
+        trackView(res.data);
 
         // Fetch similar products
         const simRes = await productService.getRelated(res.data.id);
@@ -144,7 +131,7 @@ export default function Product() {
     } finally {
       setIsLoading(false);
     }
-  }, [slug]);
+  }, [slug, trackView]);
 
   useEffect(() => {
     fetchProductData();
@@ -220,68 +207,122 @@ export default function Product() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 pt-32 min-h-screen">
-      {/* Breadcrumb */}
-      <Breadcrumb
-        items={[
-          { label: 'Boutique', path: '/shop' },
-          {
-            label: product.category?.name || 'Créations',
-            path: `/shop?category=${product.category?.slug}`,
-          },
-          { label: product.name },
-        ]}
-      />
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 pt-32">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: 'Boutique', path: '/shop' },
+            {
+              label: product.category?.name || 'Créations',
+              path: `/shop?category=${product.category?.slug}`,
+            },
+            { label: product.name },
+          ]}
+        />
 
-      {/* ── Main Product Panel ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-8 mb-4">
-        {/* Gallery — left column */}
-        <div className="lg:col-span-7">
-          <ProductGallery images={gallery} productName={product.name} />
+        {/* ── Main Product Panel ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-8 mb-4">
+          {/* Gallery — left column */}
+          <div className="lg:col-span-7">
+            <ProductGallery
+              images={gallery}
+              productName={product.name}
+              onOpen360={() => setIs360Open(true)}
+              onOpenZoom={() => setIsZoomOpen(true)}
+            />
+          </div>
+
+          {/* BuyBox — right column */}
+          <div className="lg:col-span-5">
+            <ProductBuyBox
+              product={product}
+              onOpenAppointment={() => setIsAppointmentOpen(true)}
+              onOpenGiftModal={() => setIsGiftModalOpen(true)}
+            />
+          </div>
         </div>
 
-        {/* BuyBox — right column */}
-        <div className="lg:col-span-5">
-          <ProductBuyBox product={product} />
+        {/* ── Product Tabs (Description / Histoire / Caractéristiques / Entretien / Certificat) ── */}
+        <ProductTabs product={product} />
+
+        {/* ── Trust Certificates Section (Authenticité & Garantie) ── */}
+        <div className="my-12">
+          <TrustCertificates />
         </div>
+
+        {/* ── Reviews Section ── */}
+        <ProductReviews
+          reviews={product.reviews || []}
+          reviewForm={{
+            revName,
+            setRevName,
+            revRating,
+            setRevRating,
+            revComment,
+            setRevComment,
+            revWebsite,
+            setRevWebsite,
+            isSubmitting: isSubmittingReview,
+            captchaToken,
+            reviewErrors,
+            turnstileRef,
+            onSubmit: handleReviewSubmit,
+          }}
+          TurnstileComponent={
+            <Turnstile
+              ref={turnstileRef}
+              onVerify={(token) => {
+                setCaptchaToken(token);
+                setReviewErrors((prev) => ({ ...prev, captcha: null }));
+              }}
+              onExpire={() => setCaptchaToken(null)}
+              onError={() => setCaptchaToken(null)}
+            />
+          }
+        />
+
+        {/* ── Recommendations ── */}
+        <ProductRecommendations similar={similar} />
       </div>
 
-      {/* ── Product Tabs (Description / Caractéristiques / Entretien / Livraison) ── */}
-      <ProductTabs product={product} />
+      {/* ── Recently Viewed Section v3.0 ── */}
+      <RecentlyViewedSection currentProductId={product.id} />
 
-      {/* ── Reviews Section ── */}
-      <ProductReviews
-        reviews={product.reviews || []}
-        reviewForm={{
-          revName,
-          setRevName,
-          revRating,
-          setRevRating,
-          revComment,
-          setRevComment,
-          revWebsite,
-          setRevWebsite,
-          isSubmitting: isSubmittingReview,
-          captchaToken,
-          reviewErrors,
-          turnstileRef,
-          onSubmit: handleReviewSubmit,
-        }}
-        TurnstileComponent={
-          <Turnstile
-            ref={turnstileRef}
-            onVerify={(token) => {
-              setCaptchaToken(token);
-              setReviewErrors((prev) => ({ ...prev, captcha: null }));
-            }}
-            onExpire={() => setCaptchaToken(null)}
-            onError={() => setCaptchaToken(null)}
-          />
-        }
+      {/* ── Modals v3.0 ── */}
+      <Product360Viewer
+        images={gallery}
+        isOpen={is360Open}
+        onClose={() => setIs360Open(false)}
+        productName={product.name}
       />
 
-      {/* ── Recommendations: Similar & Recently Viewed ── */}
-      <ProductRecommendations similar={similar} recentlyViewed={recentlyViewed} />
+      <ImageZoomModal
+        imageSrc={gallery[0]}
+        isOpen={isZoomOpen}
+        onClose={() => setIsZoomOpen(false)}
+        productName={product.name}
+      />
+
+      <PrivateAppointmentModal
+        isOpen={isAppointmentOpen}
+        onClose={() => setIsAppointmentOpen(false)}
+        productName={product.name}
+      />
+
+      <GiftOptionsModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        onSave={(gift) => {
+          setGiftDetails(gift);
+          Swal.fire({
+            icon: 'success',
+            title: 'Écrin Cadeau Ajouté',
+            text: 'Votre sélection d\'écrin cadeau signature a bien été enregistrée.',
+            confirmButtonColor: '#111111',
+          });
+        }}
+      />
     </div>
   );
 }

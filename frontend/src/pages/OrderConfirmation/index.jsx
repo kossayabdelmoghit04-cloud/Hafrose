@@ -60,6 +60,38 @@ export default function OrderConfirmation() {
         </p>
       </div>
 
+      {/* ── Luxury Journey Timeline (Phase 8.2) ── */}
+      <Card variant="flat" className="p-6 md:p-8 mb-12 bg-white border border-luxury-gold/20 depth-2">
+        <div className="text-center space-y-1 mb-8">
+          <span className="text-overline">Suivi Privé de la Confection</span>
+          <h2 className="font-serif text-xl text-luxury-charcoal font-light">Le Voyage de Votre Création</h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 relative">
+          {[
+            { step: '01', title: 'Commande Reçue', desc: 'Validée à Paris', active: true },
+            { step: '02', title: 'Façonnage Atelier', desc: 'Découpe & Couture', active: false },
+            { step: '03', title: 'Inspection Qualité', desc: 'Matières & Métaux', active: false },
+            { step: '04', title: 'Écrin Signature', desc: 'Ruban & Carte', active: false },
+            { step: '05', title: 'Expédition VIP', desc: 'Livraison Assurée', active: false },
+          ].map((item, index) => (
+            <div key={item.step} className="flex flex-col items-center text-center space-y-2 relative">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-mono font-medium transition-colors ${
+                item.active
+                  ? 'bg-luxury-gold text-white shadow-md'
+                  : 'bg-luxury-cream text-luxury-gray border border-beige'
+              }`}>
+                {item.step}
+              </div>
+              <div>
+                <h4 className="font-sans text-xs font-medium text-luxury-charcoal">{item.title}</h4>
+                <p className="text-[10px] text-luxury-gray font-light mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* Order Details Card */}
         <Card

@@ -38,41 +38,4 @@ class SearchService
 
         return $products->toArray();
     }
-
-    /**
-     * Recherche sémantique avec synonymes et tolérance d'orthographe.
-     */
-    public function semanticSearch(string $rawQuery, int $limit = 12): array
-    {
-        $normalized = trim(strtolower($rawQuery));
-        $terms = explode(' ', $normalized);
-
-        // Expansion sémantique avec dictionnaire de synonymes
-        $expandedTerms = $terms;
-        foreach ($terms as $term) {
-            if (isset($this->synonyms[$term])) {
-                $expandedTerms = array_merge($expandedTerms, $this->synonyms[$term]);
-            }
-        }
-        $expandedTerms = array_unique($expandedTerms);
-
-        $queryBuilder = Product::where(function ($q) use ($expandedTerms) {
-                foreach ($expandedTerms as $t) {
-                    if (strlen($t) >= 2) {
-                        $q->orWhere('name', 'LIKE', "%{$t}%")
-                          ->orWhere('description', 'LIKE', "%{$t}%")
-                          ->orWhere('material', 'LIKE', "%{$t}%");
-                    }
-                }
-            });
-
-        $products = $queryBuilder->take($limit)->get();
-
-        return [
-            'query' => $rawQuery,
-            'expanded_terms' => array_values($expandedTerms),
-            'results_count' => $products->count(),
-            'products' => $products,
-        ];
-    }
 }

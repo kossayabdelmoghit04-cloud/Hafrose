@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import Card from '../ui/Card';
-import { scrollRevealProps, staggerContainer, fadeUp } from '../../utils/motionConfig';
+import { fadeUp, staggerContainer } from '../../utils/motionConfig';
 
 const reviews = [
   {
@@ -34,15 +33,19 @@ const AUTOPLAY_DELAY = 5000;
 
 const slideVariants = {
   enter: (dir) => ({ opacity: 0, x: dir > 0 ? 80 : -80 }),
-  center: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
-  exit: (dir) => ({ opacity: 0, x: dir < 0 ? 80 : -80, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }),
+  center: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] } },
+  exit: (dir) => ({
+    opacity: 0,
+    x: dir < 0 ? 80 : -80,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+  }),
 };
 
 function StarRating({ rating }) {
   return (
     <div className="flex gap-0.5" aria-label={`${rating} étoiles sur 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={`text-xs ${i < rating ? 'text-luxury-gold' : 'text-luxury-gold/20'}`} aria-hidden="true">
+        <span key={i} className={`text-sm ${i < rating ? 'text-luxury-gold' : 'text-luxury-gold/20'}`} aria-hidden="true">
           ★
         </span>
       ))}
@@ -64,16 +67,17 @@ const Testimonials = memo(function Testimonials() {
   const next = () => goTo((current + 1) % reviews.length, 1);
   const prev = () => goTo((current - 1 + reviews.length) % reviews.length, -1);
 
-  useEffect(() => {
+  const startTimer = () => {
     if (shouldReduceMotion) return;
     timerRef.current = setInterval(next, AUTOPLAY_DELAY);
-    return () => clearInterval(timerRef.current);
-  }, [current, shouldReduceMotion]);
-
-  const pause = () => clearInterval(timerRef.current);
-  const resume = () => {
-    if (!shouldReduceMotion) timerRef.current = setInterval(next, AUTOPLAY_DELAY);
   };
+  const stopTimer = () => clearInterval(timerRef.current);
+
+  useEffect(() => {
+    startTimer();
+    return stopTimer;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, shouldReduceMotion]);
 
   const rev = reviews[current];
 
@@ -82,7 +86,7 @@ const Testimonials = memo(function Testimonials() {
       className="py-28 bg-luxury-charcoal border-t border-luxury-gold/10 overflow-hidden relative"
       aria-label="Témoignages clients"
     >
-      {/* Background accent */}
+      {/* BG radial */}
       <div
         className="absolute inset-0 pointer-events-none opacity-5"
         aria-hidden="true"
@@ -93,35 +97,37 @@ const Testimonials = memo(function Testimonials() {
 
         {/* Header */}
         <motion.div
-          {...scrollRevealProps}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
           variants={staggerContainer(0.1)}
           className="text-center mb-16 space-y-4"
         >
-          <motion.span variants={fadeUp} className="text-overline block">
-            Échos des Esthètes
-          </motion.span>
-          <motion.h2 variants={fadeUp} className="text-fluid-h2 text-white font-extralight">
-            Les Témoignages
-          </motion.h2>
+          <motion.span variants={fadeUp} className="text-overline block">Échos des Esthètes</motion.span>
+          <motion.h2 variants={fadeUp} className="text-fluid-h2 text-white font-extralight">Les Témoignages</motion.h2>
           <motion.div variants={fadeUp} className="h-[1px] bg-luxury-gold/40 w-12 mx-auto" />
         </motion.div>
 
         {/* Carousel */}
-        <div
-          className="relative"
-          onMouseEnter={pause}
-          onMouseLeave={resume}
-          onFocus={pause}
-          onBlur={resume}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.8, ease: [0.16,1,0.3,1] }}
+          onMouseEnter={stopTimer}
+          onMouseLeave={startTimer}
+          onFocus={stopTimer}
+          onBlur={startTimer}
         >
           <div
             className="overflow-hidden glass-card-dark p-8 md:p-14 relative"
             aria-live="polite"
             aria-atomic="true"
           >
-            {/* Giant quote mark */}
+            {/* Giant quote */}
             <span
-              className="absolute top-6 right-8 font-serif text-8xl text-luxury-gold/08 font-extralight pointer-events-none select-none leading-none"
+              className="absolute top-6 right-8 font-serif text-8xl leading-none pointer-events-none select-none"
+              style={{ color: 'rgba(196,168,130,0.06)' }}
               aria-hidden="true"
             >
               "
@@ -147,7 +153,8 @@ const Testimonials = memo(function Testimonials() {
 
                 <footer className="flex items-center gap-4 border-t border-luxury-gold/15 pt-6">
                   <div
-                    className="w-10 h-10 rounded-full bg-luxury-gold/15 flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(196,168,130,0.15)' }}
                     aria-hidden="true"
                   >
                     <span className="font-serif text-luxury-gold font-light text-lg">
@@ -156,7 +163,9 @@ const Testimonials = memo(function Testimonials() {
                   </div>
                   <div>
                     <div className="text-white font-sans text-sm font-medium">{rev.author}</div>
-                    <div className="text-luxury-gold/60 text-[10px] tracking-[0.3em] uppercase font-sans mt-0.5">{rev.city}</div>
+                    <div className="text-[10px] tracking-[0.3em] uppercase font-sans mt-0.5" style={{ color: 'rgba(196,168,130,0.6)' }}>
+                      {rev.city}
+                    </div>
                   </div>
                 </footer>
               </motion.div>
@@ -165,7 +174,6 @@ const Testimonials = memo(function Testimonials() {
 
           {/* Controls */}
           <div className="flex items-center justify-between mt-8">
-            {/* Previous */}
             <button
               onClick={prev}
               className="w-10 h-10 border border-luxury-gold/20 flex items-center justify-center text-luxury-gold/60 hover:border-luxury-gold hover:text-luxury-gold transition-all duration-300 focus-visible:outline focus-visible:outline-1 focus-visible:outline-luxury-gold"
@@ -174,7 +182,6 @@ const Testimonials = memo(function Testimonials() {
               ←
             </button>
 
-            {/* Dots */}
             <div className="flex items-center gap-2" role="tablist" aria-label="Navigation témoignages">
               {reviews.map((_, idx) => (
                 <button
@@ -186,13 +193,13 @@ const Testimonials = memo(function Testimonials() {
                   className={`transition-all duration-500 ${
                     idx === current
                       ? 'w-6 h-[2px] bg-luxury-gold'
-                      : 'w-2 h-[2px] bg-luxury-gold/25 hover:bg-luxury-gold/50'
+                      : 'w-2 h-[2px] hover:bg-luxury-gold/50'
                   }`}
+                  style={idx !== current ? { backgroundColor: 'rgba(196,168,130,0.25)' } : {}}
                 />
               ))}
             </div>
 
-            {/* Next */}
             <button
               onClick={next}
               className="w-10 h-10 border border-luxury-gold/20 flex items-center justify-center text-luxury-gold/60 hover:border-luxury-gold hover:text-luxury-gold transition-all duration-300 focus-visible:outline focus-visible:outline-1 focus-visible:outline-luxury-gold"
@@ -201,7 +208,7 @@ const Testimonials = memo(function Testimonials() {
               →
             </button>
           </div>
-        </div>
+        </motion.div>
 
       </div>
     </section>

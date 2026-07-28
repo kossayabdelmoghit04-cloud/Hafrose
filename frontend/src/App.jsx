@@ -5,7 +5,6 @@ import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { CurrencyProvider } from './context/CurrencyContext';
-import AiAssistantDrawer from './components/common/AiAssistantDrawer';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -27,7 +26,6 @@ function App() {
             <WishlistProvider>
               <CartProvider>
                 <RouterProvider router={router} />
-                <AiAssistantDrawer />
               </CartProvider>
             </WishlistProvider>
           </AuthProvider>

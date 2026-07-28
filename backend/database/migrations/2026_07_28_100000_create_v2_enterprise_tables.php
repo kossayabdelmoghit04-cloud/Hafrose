@@ -63,48 +63,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 4. Marketplace Sellers & Stores
-        Schema::create('sellers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('store_name');
-            $table->string('slug')->unique();
-            $table->decimal('commission_rate', 5, 2)->default(10.00); // 10%
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('stores', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('seller_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->text('bio')->nullable();
-            $table->string('logo_url')->nullable();
-            $table->decimal('rating', 3, 2)->default(5.00);
-            $table->timestamps();
-        });
-
-        // 5. Enterprise Webhooks
-        Schema::create('webhooks', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('url');
-            $table->string('secret');
-            $table->json('events');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        // 6. Mobile App Device Tokens
-        Schema::create('device_tokens', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->string('token')->unique();
-            $table->string('platform')->default('ios'); // ios, android, web
-            $table->timestamps();
-        });
-
-        // 7. Security Audit & 2FA
+        // 4. Security Audit & 2FA
         Schema::create('security_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
@@ -132,10 +91,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('two_factor_credentials');
         Schema::dropIfExists('security_audit_logs');
-        Schema::dropIfExists('device_tokens');
-        Schema::dropIfExists('webhooks');
-        Schema::dropIfExists('stores');
-        Schema::dropIfExists('sellers');
         Schema::dropIfExists('cart_abandonments');
         Schema::dropIfExists('marketing_automations');
         Schema::dropIfExists('gift_cards');

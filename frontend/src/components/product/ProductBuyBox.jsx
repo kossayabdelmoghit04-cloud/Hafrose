@@ -29,7 +29,7 @@ const DEFAULT_COLORS = [
   { id: 'emerald', name: 'Vert Émeraude', hex: '#046307' },
 ];
 
-const ProductBuyBox = memo(function ProductBuyBox({ product }) {
+const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, onOpenGiftModal }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
@@ -225,8 +225,30 @@ const ProductBuyBox = memo(function ProductBuyBox({ product }) {
         )}
       </div>
 
+      {/* ── Clienteling & Services Luxe (RDV Privé & Option Cadeau) ── */}
+      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {onOpenAppointment && (
+          <button
+            type="button"
+            onClick={onOpenAppointment}
+            className="flex-1 py-2.5 px-3 border border-luxury-gold/30 hover:border-luxury-gold text-[10px] font-medium tracking-widest uppercase text-luxury-charcoal hover:text-luxury-gold bg-luxury-cream/40 flex items-center justify-center gap-2 transition-all"
+          >
+            <span>Réserver un RDV Privé</span>
+          </button>
+        )}
+        {onOpenGiftModal && (
+          <button
+            type="button"
+            onClick={onOpenGiftModal}
+            className="flex-1 py-2.5 px-3 border border-beige hover:border-luxury-gold text-[10px] font-medium tracking-widest uppercase text-luxury-gray hover:text-luxury-charcoal bg-white flex items-center justify-center gap-2 transition-all"
+          >
+            <span>Écrin Cadeau Offert</span>
+          </button>
+        )}
+      </div>
+
       {/* ── Réassurance Luxe (Trust Badges) ── */}
-      <div className="grid grid-cols-2 gap-3 pt-6 border-t border-beige">
+      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-beige">
         <div className="flex items-center gap-2.5">
           <FiTruck className="text-rose-gold flex-shrink-0" size={18} />
           <span className="font-sans text-[10px] uppercase tracking-wider text-anthracite font-medium">

@@ -48,7 +48,6 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/products/popular', [ProductController::class, 'popular']);
     Route::get('/products/search', [ProductController::class, 'search']);
     Route::get('/products/autocomplete', [\App\Http\Controllers\Api\SearchController::class, 'autocomplete']);
-    Route::get('/products/search/semantic', [\App\Http\Controllers\Api\SearchController::class, 'semantic']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{product}/related', [ProductController::class, 'related']);
@@ -170,32 +169,18 @@ Route::prefix('admin')->group(function () {
         Route::post('/system/deployment/clear', [DeploymentController::class, 'clear']);
         Route::post('/system/deployment/warmup', [DeploymentController::class, 'warmup']);
 
-        // ── v2.0 Enterprise Analytics & Webhooks ────────────────────────────
+        // ── v2.0 Enterprise Analytics ───────────────────────────────────────
         Route::get('/analytics/dashboard', [\App\Http\Controllers\Api\Admin\AnalyticsController::class, 'index']);
-        Route::get('/webhooks', [\App\Http\Controllers\Api\Admin\WebhookController::class, 'index']);
-        Route::post('/webhooks', [\App\Http\Controllers\Api\Admin\WebhookController::class, 'store']);
     });
 });
 
-// ── HAFROSE v2.0 ENTERPRISE & AI EXPANSION ROUTES ──────────────────────────────
+// ── HAFROSE E-COMMERCE LUXE EXPANSION ROUTES ──────────────────────────────
 Route::middleware('throttle:api')->group(function () {
-    // Phase 6.1: AI Product Recommendations
-    Route::get('/recommendations/for-you', [\App\Http\Controllers\Api\RecommendationController::class, 'forYou']);
-    Route::get('/recommendations/favorites', [\App\Http\Controllers\Api\RecommendationController::class, 'favorites']);
-    Route::get('/products/{product}/complementary', [\App\Http\Controllers\Api\RecommendationController::class, 'complementary']);
-
-    // Phase 6.2: AI & Semantic Search
-    Route::get('/products/autocomplete', [\App\Http\Controllers\Api\SearchController::class, 'autocomplete']);
-    Route::get('/products/search/semantic', [\App\Http\Controllers\Api\SearchController::class, 'semantic']);
-
     // Phase 6.4: Gift Cards Check
     Route::get('/gift-cards/check', [\App\Http\Controllers\Api\GiftCardController::class, 'check']);
 
     // Phase 6.5: Multi-Currency
     Route::get('/currencies', [\App\Http\Controllers\Api\CurrencyController::class, 'index']);
-
-    // Phase 6.9: AI Concierge Shopping Assistant
-    Route::post('/ai/chat', [\App\Http\Controllers\Api\AiAssistantController::class, 'chat']);
 });
 
 // Authenticated v2 Routes
@@ -204,23 +189,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/loyalty/account', [\App\Http\Controllers\Api\LoyaltyController::class, 'account']);
     Route::get('/loyalty/rewards', [\App\Http\Controllers\Api\LoyaltyController::class, 'rewards']);
 
-    // Phase 6.10: Marketplace Sellers
-    Route::get('/sellers', [\App\Http\Controllers\Api\Seller\SellerController::class, 'index']);
-    Route::post('/sellers', [\App\Http\Controllers\Api\Seller\SellerController::class, 'store']);
-
-    // Phase 6.15: Mobile App — Push Token Registration
-    Route::post('/mobile/register-token', [\App\Http\Controllers\Api\MobileApiController::class, 'registerDeviceToken']);
-
     // Phase 6.17: Enterprise Security
     Route::post('/security/2fa/setup', [\App\Http\Controllers\Api\SecurityController::class, 'setup2Fa']);
     Route::get('/security/audit-logs', [\App\Http\Controllers\Api\SecurityController::class, 'auditLogs']);
-});
-
-// Phase 6.12 & 6.15: Personalization & Mobile config (public)
-Route::middleware('throttle:api')->group(function () {
-    Route::get('/mobile/config', [\App\Http\Controllers\Api\MobileApiController::class, 'appConfig']);
-    Route::get('/personalization/homepage', function () {
-        $service = new \App\Services\PersonalizationService();
-        return response()->json(['success' => true, 'data' => $service->getHomepagePersonalization()]);
-    });
 });
