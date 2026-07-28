@@ -1,33 +1,29 @@
-# robots.txt — Maison Hafrose
-# https://hafrose.com
-
-# ── Règles globales ────────────────────────────────────────────────────────
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
 Disallow: /api/
-Disallow: /cart
-Disallow: /order-confirmation
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /forgot-password
 
-# Évite de surcharger le serveur
+# Crawl-delay for respectful indexing
 Crawl-delay: 1
 
-# ── Googlebot ─────────────────────────────────────────────────────────────
-User-agent: Googlebot
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-Disallow: /cart
-Disallow: /order-confirmation
-
-# ── Bingbot ──────────────────────────────────────────────────────────────
-User-agent: Bingbot
-Allow: /
-Disallow: /admin/
-Disallow: /api/
-Disallow: /cart
-Disallow: /order-confirmation
-Crawl-delay: 5
-
-# ── Sitemap ───────────────────────────────────────────────────────────────
+# Sitemaps
 Sitemap: https://hafrose.com/sitemap.xml
+
+# Block AI content scrapers that do not respect noindex
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /

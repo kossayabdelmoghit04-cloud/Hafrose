@@ -3,17 +3,36 @@ import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import AdminProtectedRoute from '../components/common/AdminProtectedRoute';
+import CustomerProtectedRoute from '../components/common/CustomerProtectedRoute';
+import AccountLayout from '../pages/Account/AccountLayout';
 
+// Public pages
 const Home = lazy(() => import('../pages/Home'));
 const Shop = lazy(() => import('../pages/Shop'));
 const Product = lazy(() => import('../pages/Product'));
 const Contact = lazy(() => import('../pages/Contact'));
 const About = lazy(() => import('../pages/About'));
-const Cart = lazy(() => import('../pages/Cart'));
+const Checkout = lazy(() => import('../pages/Checkout'));
 const OrderConfirmation = lazy(() => import('../pages/OrderConfirmation'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 
-// Pages d'administration
+// Customer Auth pages
+const Login = lazy(() => import('../pages/Auth/Login'));
+const Register = lazy(() => import('../pages/Auth/Register'));
+const ForgotPassword = lazy(() => import('../pages/Auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('../pages/Auth/ResetPassword'));
+
+// Customer Account pages
+const AccountDashboard = lazy(() => import('../pages/Account/Dashboard'));
+const AccountOrders = lazy(() => import('../pages/Account/Orders'));
+const AccountOrderDetail = lazy(() => import('../pages/Account/OrderDetail'));
+const AccountOrderTracking = lazy(() => import('../pages/Account/OrderTracking'));
+const AccountAddresses = lazy(() => import('../pages/Account/Addresses'));
+const AccountProfile = lazy(() => import('../pages/Account/Profile'));
+const AccountNotifications = lazy(() => import('../pages/Account/Notifications'));
+const AccountWishlist = lazy(() => import('../pages/Account/Wishlist'));
+
+// Admin pages
 const AdminLogin = lazy(() => import('../pages/Admin/Login'));
 const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
 const AdminCategories = lazy(() => import('../pages/Admin/Categories'));
@@ -28,7 +47,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <MainLayout />,
-    errorElement: <MainLayout />, // Fallback to layout if rendering crashes
+    errorElement: <MainLayout />,
     children: [
       {
         index: true,
@@ -52,12 +71,76 @@ export const router = createBrowserRouter([
       },
       {
         path: 'checkout',
-        element: <Cart />,
+        element: <Checkout />,
       },
       {
         path: 'order-confirmation',
         element: <OrderConfirmation />,
       },
+
+      // Auth Routes
+      {
+        path: 'login',
+        element: <Login />,
+      },
+      {
+        path: 'register',
+        element: <Register />,
+      },
+      {
+        path: 'forgot-password',
+        element: <ForgotPassword />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPassword />,
+      },
+
+      // Protected Customer Account Routes
+      {
+        path: 'account',
+        element: <CustomerProtectedRoute />,
+        children: [
+          {
+            element: <AccountLayout />,
+            children: [
+              {
+                path: 'dashboard',
+                element: <AccountDashboard />,
+              },
+              {
+                path: 'orders',
+                element: <AccountOrders />,
+              },
+              {
+                path: 'orders/:id',
+                element: <AccountOrderDetail />,
+              },
+              {
+                path: 'orders/tracking/:id',
+                element: <AccountOrderTracking />,
+              },
+              {
+                path: 'addresses',
+                element: <AccountAddresses />,
+              },
+              {
+                path: 'profile',
+                element: <AccountProfile />,
+              },
+              {
+                path: 'notifications',
+                element: <AccountNotifications />,
+              },
+              {
+                path: 'wishlist',
+                element: <AccountWishlist />,
+              },
+            ],
+          },
+        ],
+      },
+
       {
         path: '*',
         element: <NotFound />,

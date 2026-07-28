@@ -9,35 +9,55 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
+    target: 'es2020',
+    sourcemap: false,
+    // Warn threshold for individual chunks (500 KB)
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
+        // Production asset file naming for long-term caching
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Group react core dependencies
-            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router-dom/')) {
+            // React core
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('react-router-dom/') || id.includes('scheduler/')) {
               return 'vendor-react';
             }
-            // Tanstack react-query
+            // TanStack Query
             if (id.includes('@tanstack/react-query')) {
               return 'vendor-query';
             }
-            // Framer motion
+            // Framer Motion (largest dep — isolated for best caching)
             if (id.includes('framer-motion')) {
               return 'vendor-motion';
             }
-            // Sweetalert2
+            // SweetAlert2
             if (id.includes('sweetalert2')) {
               return 'vendor-swal';
             }
-            // React icons
+            // React Icons
             if (id.includes('react-icons')) {
               return 'vendor-icons';
             }
-            // Other libraries
+            // All other third-party libraries
             return 'vendor-libs';
           }
         },
       },
     },
+  },
+  // Optimize deps for faster dev server cold starts
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'axios',
+      'clsx',
+      'framer-motion',
+    ],
   },
 })

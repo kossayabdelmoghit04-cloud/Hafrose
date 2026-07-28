@@ -2,47 +2,91 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 
 /**
- * Premium Luxury Breadcrumbs component
- * @param {Object} props
- * @param {Array} props.items - List of { label, path } objects
+ * Breadcrumb — HAFROSE Design System
+ * Navigation fil d'Ariane conforme WCAG 2.2 AA.
+ * Schema.org BreadcrumbList intégré.
+ *
+ * @param {Array} items - Liste de { label: string, path?: string }
  */
 const Breadcrumb = memo(function Breadcrumb({ items = [] }) {
+  const allItems = [{ label: 'Accueil', path: '/' }, ...items];
+
+  // Schema.org BreadcrumbList (SEO)
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: allItems.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.label,
+      ...(item.path && { item: `https://hafrose.com${item.path}` }),
+    })),
+  };
+
   return (
-    <nav className="flex py-4 mb-6" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center space-x-1.5 md:space-x-3">
-        <li className="inline-flex items-center">
-          <Link
-            to="/"
-            className="inline-flex items-center text-[10px] uppercase tracking-widest text-luxury-gray hover:text-luxury-gold transition-colors duration-300 font-sans font-light"
-          >
-            Accueil
-          </Link>
-        </li>
-        
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1;
-          return (
-            <li key={item.label} className="inline-flex items-center">
-              <span className="text-luxury-gray/30 mx-1 text-xs select-none">/</span>
-              {isLast ? (
-                <span className="text-[10px] uppercase tracking-widest text-luxury-gold font-sans font-medium">
-                  {item.label}
-                </span>
-              ) : (
-                <Link
-                  to={item.path}
-                  className="text-[10px] uppercase tracking-widest text-luxury-gray hover:text-luxury-gold transition-colors duration-300 font-sans font-light"
-                >
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+    <>
+      {/* Schema.org JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+      />
+
+      <nav
+        className="breadcrumb"
+        aria-label="Fil d'Ariane"
+      >
+        <ol
+          className="breadcrumb__list"
+          itemScope
+          itemType="https://schema.org/BreadcrumbList"
+        >
+          {allItems.map((item, index) => {
+            const isLast = index === allItems.length - 1;
+            return (
+              <li
+                key={item.label}
+                className="breadcrumb__item"
+                itemScope
+                itemType="https://schema.org/ListItem"
+                itemProp="itemListElement"
+              >
+                {/* Séparateur */}
+                {index > 0 && (
+                  <span
+                    className="breadcrumb__separator"
+                    aria-hidden="true"
+                  >
+                    /
+                  </span>
+                )}
+
+                {/* Lien ou texte courant */}
+                {isLast ? (
+                  <span
+                    className="breadcrumb__current"
+                    aria-current="page"
+                    itemProp="name"
+                  >
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className="breadcrumb__link"
+                    itemProp="item"
+                  >
+                    <span itemProp="name">{item.label}</span>
+                  </Link>
+                )}
+
+                <meta itemProp="position" content={String(index + 1)} />
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    </>
   );
 });
 
 export default Breadcrumb;
-

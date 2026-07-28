@@ -13,7 +13,9 @@ const api = axios.create({
 // Intercepteur de requête : utile pour ajouter des en-têtes personnalisés ou des tokens d'authentification à l'avenir
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('admin_token');
+    const customerToken = localStorage.getItem('customer_token');
+    const adminToken = localStorage.getItem('admin_token');
+    const token = customerToken || adminToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

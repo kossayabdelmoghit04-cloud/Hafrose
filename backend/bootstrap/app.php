@@ -4,6 +4,7 @@ use App\Http\Middleware\BlockSpamHoneypot;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MonitoringMiddleware;
 use App\Http\Middleware\PerformanceMonitoringMiddleware;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\VerifyTurnstileToken;
 use Illuminate\Auth\AccessDeniedException;
 use Illuminate\Auth\AuthenticationException;
@@ -43,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->api(append: [
             MonitoringMiddleware::class,
+            SecurityHeadersMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
