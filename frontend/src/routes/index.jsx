@@ -32,6 +32,10 @@ const AccountProfile = lazy(() => import('../pages/Account/Profile'));
 const AccountNotifications = lazy(() => import('../pages/Account/Notifications'));
 const AccountWishlist = lazy(() => import('../pages/Account/Wishlist'));
 
+// v2.0 Portal pages
+const LoyaltyDashboard = lazy(() => import('../pages/Portal/LoyaltyDashboard'));
+const SellerPortal = lazy(() => import('../pages/Seller/SellerPortal'));
+
 // Admin pages
 const AdminLogin = lazy(() => import('../pages/Admin/Login'));
 const AdminDashboard = lazy(() => import('../pages/Admin/Dashboard'));
@@ -42,6 +46,8 @@ const AdminReviews = lazy(() => import('../pages/Admin/Reviews'));
 const AdminContacts = lazy(() => import('../pages/Admin/Contacts'));
 const AdminMedia = lazy(() => import('../pages/Admin/Media'));
 const AdminSettings = lazy(() => import('../pages/Admin/Settings'));
+const BusinessAnalyticsDashboard = lazy(() => import('../pages/Admin/BusinessAnalyticsDashboard'));
+
 
 export const router = createBrowserRouter([
   {
@@ -76,6 +82,16 @@ export const router = createBrowserRouter([
       {
         path: 'order-confirmation',
         element: <OrderConfirmation />,
+      },
+
+      // v2.0 Public Portal Routes
+      {
+        path: 'loyalty',
+        element: <LoyaltyDashboard />,
+      },
+      {
+        path: 'seller-portal',
+        element: <SellerPortal />,
       },
 
       // Auth Routes
@@ -189,6 +205,10 @@ export const router = createBrowserRouter([
           {
             path: 'settings',
             element: <AdminSettings />,
+          },
+          {
+            path: 'analytics',
+            element: <BusinessAnalyticsDashboard />,
           },
         ],
       },

@@ -22,7 +22,6 @@ class AiRecommendationService
 
             if ($categoryIds->isNotEmpty()) {
                 return Product::whereIn('category_id', $categoryIds)
-                    ->where('is_active', true)
                     ->inRandomOrder()
                     ->take($limit)
                     ->get();
@@ -30,8 +29,7 @@ class AiRecommendationService
         }
 
         // Fallback pour visiteurs anonymes ou nouvel utilisateur: produits vedettes et récents
-        return Product::where('is_active', true)
-            ->where('is_featured', true)
+        return Product::where('is_featured', true)
             ->take($limit)
             ->get();
     }
@@ -41,8 +39,7 @@ class AiRecommendationService
      */
     public function getComplementaryProducts(Product $product, int $limit = 4): Collection
     {
-        return Product::where('is_active', true)
-            ->where('id', '!=', $product->id)
+        return Product::where('id', '!=', $product->id)
             ->where(function ($query) use ($product) {
                 $query->where('category_id', '!=', $product->category_id)
                       ->orWhereBetween('price', [$product->price * 0.2, $product->price * 1.5]);
@@ -65,14 +62,12 @@ class AiRecommendationService
 
                 return Product::whereIn('category_id', $favCategories)
                     ->whereNotIn('id', $favProductIds)
-                    ->where('is_active', true)
                     ->take($limit)
                     ->get();
             }
         }
 
-        return Product::where('is_active', true)
-            ->orderBy('rating', 'desc')
+        return Product::orderBy('created_at', 'desc')
             ->take($limit)
             ->get();
     }

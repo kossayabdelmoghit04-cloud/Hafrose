@@ -3,9 +3,11 @@ import { router } from './routes';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { CurrencyProvider } from './context/CurrencyContext';
+import AiAssistantDrawer from './components/common/AiAssistantDrawer';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Client React Query avec configuration optimisée
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,13 +21,18 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <RouterProvider router={router} />
-          </CartProvider>
-        </WishlistProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <CurrencyProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <RouterProvider router={router} />
+                <AiAssistantDrawer />
+              </CartProvider>
+            </WishlistProvider>
+          </AuthProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
