@@ -580,7 +580,7 @@ const Navbar = memo(function Navbar({ announcementVisible = true }) {
                   >
                     <motion.div
                       className={`h-full rounded-full ${
-                        hasFreeShipping ? 'bg-emerald-500' : 'bg-rose-gold'
+                        hasFreeShipping ? 'bg-success' : 'bg-rose-gold'
                       }`}
                       initial={{ width: 0 }}
                       animate={{ width: `${shippingPct}%` }}
@@ -595,14 +595,14 @@ const Navbar = memo(function Navbar({ announcementVisible = true }) {
                     <motion.div
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-3 py-2.5"
+                      className="flex items-center justify-between bg-success-bg border border-success/20 px-3 py-2.5"
                     >
                       <div className="flex items-center gap-2">
-                        <FiTag size={12} className="text-emerald-700" />
-                        <span className="font-sans text-xs text-emerald-800 font-medium">
+                        <FiTag size={12} className="text-success-text" />
+                        <span className="font-sans text-xs text-success-text font-medium">
                           {appliedPromo.code}
                         </span>
-                        <span className="font-sans text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                        <span className="font-sans text-[10px] text-success-text bg-success-bg px-1.5 py-0.5 rounded">
                           {appliedPromo.label}
                         </span>
                       </div>

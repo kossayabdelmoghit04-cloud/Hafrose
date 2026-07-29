@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiLock, FiEye, FiEyeOff, FiCheck } from 'react-icons/fi';
 import customerAuthService from '../../services/customerAuthService';
 import Breadcrumb from '../../components/ui/Breadcrumb';
+import Button from '../../components/ui/Button';
+import Form from '../../components/ui/form/Form';
+import PasswordField from '../../components/ui/form/PasswordField';
+import ErrorBanner from '../../components/ui/ErrorBanner';
+import SuccessState from '../../components/ui/SuccessState';
 import useSEO from '../../hooks/useSEO';
 
 export default function ResetPassword() {
@@ -21,7 +25,6 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,79 +73,53 @@ export default function ResetPassword() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="bg-off-white border border-beige p-8 shadow-sm"
         >
           {success ? (
-            <div className="text-center py-6 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-                <FiCheck size={20} />
-              </div>
-              <p className="font-sans text-xs text-luxury-charcoal font-medium">
-                Mot de passe réinitialisé avec succès.
-              </p>
-              <p className="font-sans text-[11px] text-warm-gray">
-                Redirection automatique vers la page de connexion…
-              </p>
-            </div>
+            <SuccessState
+              title="Mot de passe réinitialisé"
+              description="Votre mot de passe a bien été mis à jour. Redirection automatique vers la page de connexion…"
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <Form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-sans">
-                  {error}
-                </div>
+                <ErrorBanner
+                  message={error}
+                  onClose={() => setError('')}
+                />
               )}
 
-              <div>
-                <label htmlFor="password" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                  Nouveau mot de passe <span className="text-rose-gold">*</span>
-                </label>
-                <div className="relative">
-                  <FiLock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" />
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full border border-beige bg-white pl-11 pr-11 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none focus:border-rose-gold transition-colors"
-                    placeholder="8 caractères min."
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray p-1"
-                  >
-                    {showPassword ? <FiEyeOff size={15} /> : <FiEye size={15} />}
-                  </button>
-                </div>
-              </div>
+              <Form.Field name="password" error={error && password.length < 8 ? error : undefined}>
+                <Form.Label required>Nouveau mot de passe</Form.Label>
+                <PasswordField
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                  placeholder="8 caractères min."
+                />
+                <Form.Error />
+              </Form.Field>
 
-              <div>
-                <label htmlFor="confirmPassword" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                  Confirmer le mot de passe <span className="text-rose-gold">*</span>
-                </label>
-                <div className="relative">
-                  <FiLock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" />
-                  <input
-                    id="confirmPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full border border-beige bg-white pl-11 pr-11 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none focus:border-rose-gold transition-colors"
-                    placeholder="Répétez votre mot de passe"
-                  />
-                </div>
-              </div>
+              <Form.Field name="confirmPassword" error={error && password !== confirmPassword ? error : undefined}>
+                <Form.Label required>Confirmer le mot de passe</Form.Label>
+                <PasswordField
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setError(''); }}
+                  placeholder="Répétez votre mot de passe"
+                />
+                <Form.Error />
+              </Form.Field>
 
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                fullWidth
                 disabled={isSubmitting}
-                className="w-full bg-luxury-charcoal text-off-white font-sans text-[10px] uppercase tracking-widest py-4 hover:bg-rose-gold disabled:opacity-50 transition-colors duration-300"
+                className="py-4 text-[10px] uppercase tracking-widest"
               >
                 {isSubmitting ? 'Mise à jour…' : 'Enregistrer le nouveau mot de passe'}
-              </button>
-            </form>
+              </Button>
+            </Form>
           )}
         </motion.div>
       </div>

@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiMail, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiArrowRight } from 'react-icons/fi';
 import customerAuthService from '../../services/customerAuthService';
 import Breadcrumb from '../../components/ui/Breadcrumb';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Form from '../../components/ui/form/Form';
+import ErrorBanner from '../../components/ui/ErrorBanner';
+import SuccessState from '../../components/ui/SuccessState';
 import useSEO from '../../hooks/useSEO';
 
 export default function ForgotPassword() {
@@ -57,64 +62,60 @@ export default function ForgotPassword() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="bg-off-white border border-beige p-8 shadow-sm"
         >
           {successMessage ? (
-            <div className="text-center py-6 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-                <FiCheck size={20} />
-              </div>
-              <p className="font-sans text-xs font-light text-luxury-charcoal leading-relaxed">
-                {successMessage}
-              </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-widest text-rose-gold hover:text-luxury-charcoal transition-colors pt-2"
-              >
-                Retour à la connexion
-                <FiArrowRight size={12} />
-              </Link>
-            </div>
+            <SuccessState
+              title="Email envoyé"
+              description={successMessage}
+              action={
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-widest text-rose-gold hover:text-luxury-charcoal transition-colors pt-2"
+                >
+                  Retour à la connexion
+                  <FiArrowRight size={12} />
+                </Link>
+              }
+            />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <Form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-sans">
-                  {error}
-                </div>
+                <ErrorBanner
+                  message={error}
+                  onClose={() => setError('')}
+                />
               )}
 
-              <div>
-                <label htmlFor="email" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                  Adresse Email <span className="text-rose-gold">*</span>
-                </label>
-                <div className="relative">
-                  <FiMail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                    required
-                    className="w-full border border-beige bg-white pl-11 pr-4 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none focus:border-rose-gold transition-colors"
-                    placeholder="votre.email@exemple.com"
-                  />
-                </div>
-              </div>
+              <Form.Field name="email" error={error}>
+                <Form.Label required>Adresse Email</Form.Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                  placeholder="votre.email@exemple.com"
+                  error={Boolean(error)}
+                />
+                <Form.Error />
+              </Form.Field>
 
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                fullWidth
                 disabled={isSubmitting}
-                className="w-full bg-luxury-charcoal text-off-white font-sans text-[10px] uppercase tracking-widest py-4 hover:bg-rose-gold disabled:opacity-50 transition-colors duration-300 flex items-center justify-center gap-2"
+                className="py-4 text-[10px] uppercase tracking-widest"
               >
                 {isSubmitting ? 'Envoi en cours…' : 'Envoyer le lien de réinitialisation'}
-              </button>
+              </Button>
 
               <div className="text-center pt-2">
                 <Link to="/login" className="font-sans text-xs text-warm-gray hover:text-luxury-charcoal transition-colors">
                   ← Retour à la connexion
                 </Link>
               </div>
-            </form>
+            </Form>
           )}
         </motion.div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiCreditCard } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiCreditCard, FiTruck } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { useCart } from '../../context/CartContext';
 import orderService from '../../services/orderService';
@@ -330,9 +330,17 @@ export default function Cart() {
 
                 {/* Cart Items List */}
                 <div className="max-h-[350px] overflow-y-auto divide-y divide-luxury-charcoal/5 pr-1">
-                  {cart.map((item) => (
-                    <Card
+                  <AnimatePresence initial={false}>
+                  {cart.map((item, idx) => (
+                    <motion.div
                       key={item.product.id}
+                      layout
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -16, height: 0 }}
+                      transition={{ duration: 0.35, delay: idx * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                    <Card
                       variant="flat"
                       className="py-4 flex gap-4 first:pt-0 last:pb-0 p-0 border-0 shadow-none text-left"
                     >
@@ -397,11 +405,32 @@ export default function Cart() {
                         </button>
                       </div>
                     </Card>
+                    </motion.div>
                   ))}
+                  </AnimatePresence>
                 </div>
 
                 {/* Subtotals & Taxes */}
                 <div className="border-t border-luxury-charcoal/5 pt-4 space-y-2">
+                  {/* Free shipping progress */}
+                  {cartTotal < 150 && (
+                    <div className="pb-2">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="font-sans text-[10px] text-luxury-gray tracking-wide">
+                          Plus que <strong className="text-luxury-gold font-medium">{formatPrice(150 - cartTotal)}</strong> pour la livraison offerte
+                        </span>
+                        <FiTruck size={11} className="text-luxury-gold" />
+                      </div>
+                      <div className="h-[1px] bg-luxury-charcoal/5 overflow-hidden">
+                        <motion.div
+                          className="h-full bg-luxury-gold"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, (cartTotal / 150) * 100)}%` }}
+                          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs font-sans text-luxury-gray">
                     <span>Sous-total</span>
                     <span>{formatPrice(cartTotal)}</span>

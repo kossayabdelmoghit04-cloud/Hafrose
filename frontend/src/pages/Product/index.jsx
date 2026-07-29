@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 import productService from '../../services/productService';
 import reviewService from '../../services/reviewService';
@@ -196,12 +197,26 @@ export default function Product() {
     }
   };
 
-  // ── Loading / Error states ────────────────────────────────────────────────
+  // ── Loading / Error states ──────────────────────────────────────────────
   if (isLoading) return <Skeleton.ProductDetail />;
   if (error || !product)
     return (
-      <div className="py-32 text-center text-red-500 font-sans">
-        {error || 'Création introuvable.'}
+      <div className="min-h-screen flex flex-col items-center justify-center py-32 text-center px-6">
+        <div className="w-10 h-[1px] bg-luxury-gold mx-auto mb-8" />
+        <p className="font-sans text-[9px] tracking-[0.4em] uppercase text-luxury-gold mb-4">Maison Hafrose</p>
+        <h1 className="font-serif text-3xl md:text-4xl text-luxury-charcoal font-light mb-4">
+          Création Introuvable
+        </h1>
+        <p className="font-sans text-sm text-luxury-gray font-light mb-8 max-w-sm leading-relaxed">
+          {error || 'Cette pièce n’est pas disponible ou a été retirée de notre collection.'}
+        </p>
+        <Link
+          to="/shop"
+          className="font-sans text-[10px] tracking-[0.3em] uppercase text-luxury-charcoal border border-luxury-charcoal/20 px-8 py-3 hover:border-luxury-gold hover:text-luxury-gold transition-all duration-300"
+        >
+          Découvrir la Collection
+        </Link>
+        <div className="w-10 h-[1px] bg-luxury-gold mx-auto mt-8" />
       </div>
     );
 
@@ -224,23 +239,33 @@ export default function Product() {
         {/* ── Main Product Panel ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-8 mb-4">
           {/* Gallery — left column */}
-          <div className="lg:col-span-7">
+          <motion.div
+            className="lg:col-span-7"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
             <ProductGallery
               images={gallery}
               productName={product.name}
               onOpen360={() => setIs360Open(true)}
               onOpenZoom={() => setIsZoomOpen(true)}
             />
-          </div>
+          </motion.div>
 
           {/* BuyBox — right column */}
-          <div className="lg:col-span-5">
+          <motion.div
+            className="lg:col-span-5"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          >
             <ProductBuyBox
               product={product}
               onOpenAppointment={() => setIsAppointmentOpen(true)}
               onOpenGiftModal={() => setIsGiftModalOpen(true)}
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* ── Product Tabs (Description / Histoire / Caractéristiques / Entretien / Certificat) ── */}

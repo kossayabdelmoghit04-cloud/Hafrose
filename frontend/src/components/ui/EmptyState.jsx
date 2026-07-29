@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { motion } from 'framer-motion';
 import Card from './Card';
 
 /**
@@ -28,10 +29,17 @@ export const EmptyState = memo(({
       } ${compact ? 'py-8 px-4 gap-2' : 'py-16 px-6 gap-4'} ${
         centered ? 'mx-auto' : ''
       } ${className}`.trim()}
+      role="status"
+      aria-live="polite"
       {...cardProps}
       {...props}
     >
-      <div className="w-full flex flex-col items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full flex flex-col items-center justify-center"
+      >
         {/* Render Illustration or Icon */}
         {illustration ? (
           <div className="mb-4 flex justify-center">{illustration}</div>
@@ -69,7 +77,7 @@ export const EmptyState = memo(({
         )}
 
         {children}
-      </div>
+      </motion.div>
     </Component>
   );
 });

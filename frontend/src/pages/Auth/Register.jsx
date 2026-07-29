@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiArrowRight, FiCheck } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
 import Breadcrumb from '../../components/ui/Breadcrumb';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Form from '../../components/ui/form/Form';
+import PasswordField from '../../components/ui/form/PasswordField';
+import ErrorBanner from '../../components/ui/ErrorBanner';
 import useSEO from '../../hooks/useSEO';
 
 /* Password Strength Evaluator */
@@ -44,7 +49,6 @@ export default function Register() {
     terms: false,
   });
 
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -147,92 +151,53 @@ export default function Register() {
           className="bg-off-white border border-beige p-8 shadow-sm"
         >
           {errors.general && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-xs font-sans">
-              {errors.general}
-            </div>
+            <ErrorBanner
+              message={errors.general}
+              onClose={() => setErrors((prev) => ({ ...prev, general: null }))}
+            />
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <Form onSubmit={handleSubmit} className="space-y-5">
             {/* Nom complet */}
-            <div>
-              <label htmlFor="name" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                Nom complet <span className="text-rose-gold">*</span>
-              </label>
-              <div className="relative">
-                <FiUser size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
-                <input
-                  id="name"
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  autoComplete="name"
-                  required
-                  aria-invalid={!!errors.name}
-                  className={`w-full border bg-white pl-11 pr-4 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                    errors.name ? 'border-red-400 focus:border-red-500' : 'border-beige focus:border-rose-gold'
-                  }`}
-                  placeholder="M. ou Mme Prénom Nom"
-                />
-              </div>
-              {errors.name && <p className="text-red-500 text-[10px] font-sans mt-1.5">{errors.name}</p>}
-            </div>
+            <Form.Field name="name" error={errors.name}>
+              <Form.Label required>Nom complet</Form.Label>
+              <Input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                autoComplete="name"
+                placeholder="M. ou Mme Prénom Nom"
+                error={Boolean(errors.name)}
+              />
+              <Form.Error />
+            </Form.Field>
 
             {/* Email */}
-            <div>
-              <label htmlFor="email" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                Adresse Email <span className="text-rose-gold">*</span>
-              </label>
-              <div className="relative">
-                <FiMail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  autoComplete="email"
-                  required
-                  aria-invalid={!!errors.email}
-                  className={`w-full border bg-white pl-11 pr-4 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                    errors.email ? 'border-red-400 focus:border-red-500' : 'border-beige focus:border-rose-gold'
-                  }`}
-                  placeholder="votre.email@exemple.com"
-                />
-              </div>
-              {errors.email && <p className="text-red-500 text-[10px] font-sans mt-1.5">{errors.email}</p>}
-            </div>
+            <Form.Field name="email" error={errors.email}>
+              <Form.Label required>Adresse Email</Form.Label>
+              <Input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                autoComplete="email"
+                placeholder="votre.email@exemple.com"
+                error={Boolean(errors.email)}
+              />
+              <Form.Error />
+            </Form.Field>
 
             {/* Mot de passe */}
-            <div>
-              <label htmlFor="password" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                Mot de passe <span className="text-rose-gold">*</span>
-              </label>
-              <div className="relative">
-                <FiLock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  required
-                  aria-invalid={!!errors.password}
-                  className={`w-full border bg-white pl-11 pr-11 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                    errors.password ? 'border-red-400 focus:border-red-500' : 'border-beige focus:border-rose-gold'
-                  }`}
-                  placeholder="8 caractères min."
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-warm-gray hover:text-luxury-charcoal p-1"
-                  aria-label={showPassword ? 'Masquer' : 'Afficher'}
-                >
-                  {showPassword ? <FiEyeOff size={15} /> : <FiEye size={15} />}
-                </button>
-              </div>
+            <Form.Field name="password" error={errors.password}>
+              <Form.Label required>Mot de passe</Form.Label>
+              <PasswordField
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                autoComplete="new-password"
+                placeholder="8 caractères min."
+                error={Boolean(errors.password)}
+              />
 
               {/* Password strength bar */}
               {form.password && (
@@ -246,37 +211,26 @@ export default function Register() {
                   </div>
                 </div>
               )}
-              {errors.password && <p className="text-red-500 text-[10px] font-sans mt-1.5">{errors.password}</p>}
-            </div>
+              <Form.Error />
+            </Form.Field>
 
             {/* Confirmation mot de passe */}
-            <div>
-              <label htmlFor="confirmPassword" className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-2 font-medium">
-                Confirmer le mot de passe <span className="text-rose-gold">*</span>
-              </label>
-              <div className="relative">
-                <FiLock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-warm-gray pointer-events-none" aria-hidden="true" />
-                <input
-                  id="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  required
-                  aria-invalid={!!errors.confirmPassword}
-                  className={`w-full border bg-white pl-11 pr-4 py-3.5 font-sans text-sm text-luxury-charcoal focus:outline-none transition-colors ${
-                    errors.confirmPassword ? 'border-red-400 focus:border-red-500' : 'border-beige focus:border-rose-gold'
-                  }`}
-                  placeholder="Répétez votre mot de passe"
-                />
-              </div>
-              {errors.confirmPassword && <p className="text-red-500 text-[10px] font-sans mt-1.5">{errors.confirmPassword}</p>}
-            </div>
+            <Form.Field name="confirmPassword" error={errors.confirmPassword}>
+              <Form.Label required>Confirmer le mot de passe</Form.Label>
+              <PasswordField
+                name="confirmPassword"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                autoComplete="new-password"
+                placeholder="Répétez votre mot de passe"
+                error={Boolean(errors.confirmPassword)}
+              />
+              <Form.Error />
+            </Form.Field>
 
             {/* Checkboxes */}
             <div className="space-y-3 pt-2">
-              <label className="flex items-start gap-2.5 cursor-pointer group">
+              <label className="flex items-start gap-2.5 cursor-pointer group select-none">
                 <input
                   type="checkbox"
                   name="newsletter"
@@ -292,7 +246,7 @@ export default function Register() {
                 </span>
               </label>
 
-              <label className="flex items-start gap-2.5 cursor-pointer group">
+              <label className="flex items-start gap-2.5 cursor-pointer group select-none">
                 <input
                   type="checkbox"
                   name="terms"
@@ -311,24 +265,23 @@ export default function Register() {
             </div>
 
             {/* Submit */}
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              fullWidth
               disabled={isSubmitting}
-              className="w-full bg-luxury-charcoal text-off-white font-sans text-[10px] uppercase tracking-widest py-4 hover:bg-rose-gold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center gap-2 group mt-4"
+              className="py-4 text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 group mt-4"
             >
               {isSubmitting ? (
-                <>
-                  <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Création en cours…
-                </>
+                'Création en cours…'
               ) : (
                 <>
                   Créer mon compte
                   <FiArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
                 </>
               )}
-            </button>
-          </form>
+            </Button>
+          </Form>
 
           {/* Switch to Login */}
           <div className="mt-8 border-t border-beige pt-6 text-center">

@@ -281,6 +281,65 @@ export const SkeletonDashboard = memo(({ className = '', ...props }) => {
 });
 SkeletonDashboard.displayName = 'Skeleton.Dashboard';
 
+/**
+ * Skeleton Review item representation
+ */
+export const SkeletonReview = memo(({ className = '', ...props }) => {
+  return (
+    <div className={`p-6 border border-beige bg-off-white space-y-3 ${className}`.trim()} {...props}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full skeleton-shimmer" />
+          <div className="space-y-1">
+            <div className="w-24 h-3 skeleton-shimmer" />
+            <div className="w-16 h-2 skeleton-shimmer opacity-60" />
+          </div>
+        </div>
+        <div className="w-20 h-3 skeleton-shimmer" />
+      </div>
+      <div className="space-y-2 pt-1">
+        <div className="w-full h-3 skeleton-shimmer opacity-85" />
+        <div className="w-4/5 h-3 skeleton-shimmer opacity-85" />
+      </div>
+    </div>
+  );
+});
+SkeletonReview.displayName = 'Skeleton.Review';
+
+/**
+ * Skeleton Order item representation
+ */
+export const SkeletonOrder = memo(({ className = '', ...props }) => {
+  return (
+    <div className={`p-6 border border-card-border-editorial bg-card-bg-primary flex flex-col md:flex-row justify-between gap-4 ${className}`.trim()} {...props}>
+      <div className="flex gap-4">
+        <div className="w-16 h-20 skeleton-shimmer shrink-0 border border-luxury-charcoal/5" />
+        <div className="space-y-2">
+          <div className="w-36 h-4 skeleton-shimmer" />
+          <div className="w-24 h-3 skeleton-shimmer opacity-60" />
+          <div className="w-20 h-3 skeleton-shimmer opacity-85" />
+        </div>
+      </div>
+      <div className="flex md:flex-col justify-between items-end gap-2">
+        <div className="w-20 h-5 skeleton-shimmer" />
+        <div className="w-24 h-8 skeleton-shimmer" />
+      </div>
+    </div>
+  );
+});
+SkeletonOrder.displayName = 'Skeleton.Order';
+
+/**
+ * Skeleton Avatar representation
+ */
+export const SkeletonAvatar = memo(({ size = 'md', className = '', ...props }) => {
+  const sizeMap = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-16 h-16' };
+  return (
+    <div className={`rounded-full skeleton-shimmer ${sizeMap[size] || sizeMap.md} ${className}`.trim()} {...props} />
+  );
+});
+SkeletonAvatar.displayName = 'Skeleton.Avatar';
+
 // Attach all skeletons to a namespace object
 const SkeletonNamespace = Skeleton;
 SkeletonNamespace.Card = SkeletonCard;
@@ -289,5 +348,8 @@ SkeletonNamespace.Table = SkeletonTable;
 SkeletonNamespace.Form = SkeletonForm;
 SkeletonNamespace.ProductDetail = SkeletonProductDetail;
 SkeletonNamespace.Dashboard = SkeletonDashboard;
+SkeletonNamespace.Review = SkeletonReview;
+SkeletonNamespace.Order = SkeletonOrder;
+SkeletonNamespace.Avatar = SkeletonAvatar;
 
 export default SkeletonNamespace;

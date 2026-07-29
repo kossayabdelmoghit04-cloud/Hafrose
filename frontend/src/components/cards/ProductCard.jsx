@@ -19,6 +19,7 @@ function ProductCard({ product }) {
   const [isHovered, setIsHovered] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const cardRef = useRef(null);
+  const rafIdRef = useRef(null);
   const shouldReduceMotion = useReducedMotion();
 
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -51,19 +52,27 @@ function ProductCard({ product }) {
     if (isAvailable) addToCart(product, 1);
   }, [isAvailable, addToCart, product]);
 
-  /* ── 3D Tilt ── */
+  /* ── 3D Tilt (rAF throttled & suppressed on touch/coarse devices) ── */
   const handleMouseMove = useCallback((e) => {
     if (shouldReduceMotion || !cardRef.current) return;
+    // Suppress tilt on touch / coarse pointer devices
+    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) return;
+
     const rect = cardRef.current.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const rx = ((e.clientY - cy) / (rect.height / 2)) * -6; // max 6deg
     const ry = ((e.clientX - cx) / (rect.width / 2)) * 6;
-    setTilt({ x: rx, y: ry });
+
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    rafIdRef.current = requestAnimationFrame(() => {
+      setTilt({ x: rx, y: ry });
+    });
   }, [shouldReduceMotion]);
 
   const handleMouseEnter = useCallback(() => setIsHovered(true), []);
   const handleMouseLeave = useCallback(() => {
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     setIsHovered(false);
     setTilt({ x: 0, y: 0 });
   }, []);
@@ -79,7 +88,7 @@ function ProductCard({ product }) {
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={{ ...tiltStyle, transition: isHovered ? 'transform 0.1s ease' : 'transform 0.6s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
+        style={{ ...tiltStyle, transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.6s cubic-bezier(0.16,1,0.3,1)', willChange: 'transform' }}
       >
         <Card
           as={Link}
@@ -87,7 +96,7 @@ function ProductCard({ product }) {
           variant="product"
           size="md"
           aria-label={`${product.name} — ${formatPrice(product.price)}`}
-          className="group relative flex flex-col justify-between hover-elevate"
+          className="group relative flex flex-col justify-between hover-elevate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-sienne)] focus-visible:ring-offset-2 transition-all duration-300"
         >
           {/* ── Badges ── */}
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-none" aria-live="polite">
@@ -97,7 +106,9 @@ function ProductCard({ product }) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.4 }}
               >
-                <Card.Badge variant="featured" position="static">Exclusif</Card.Badge>
+                <Card.Badge variant="featured" position="static" className="backdrop-blur-xs font-sans tracking-widest text-[9px] uppercase">
+                  Exclusif
+                </Card.Badge>
               </motion.div>
             )}
             {isLowStock && (
@@ -106,11 +117,15 @@ function ProductCard({ product }) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
               >
-                <Card.Badge variant="pending" position="static">Dernières Pièces</Card.Badge>
+                <Card.Badge variant="pending" position="static" className="backdrop-blur-xs font-sans tracking-widest text-[9px] uppercase">
+                  Dernières Pièces
+                </Card.Badge>
               </motion.div>
             )}
             {!isAvailable && (
-              <Card.Badge variant="unavailable" position="static">Rupture</Card.Badge>
+              <Card.Badge variant="unavailable" position="static" className="backdrop-blur-xs font-sans tracking-widest text-[9px] uppercase">
+                Rupture
+              </Card.Badge>
             )}
           </div>
 
@@ -120,10 +135,10 @@ function ProductCard({ product }) {
             onClick={handleWishlistClick}
             className={`absolute top-3 right-3 z-10 p-2.5 transition-all duration-300 ${
               isWishlisted
-                ? 'bg-off-white text-rose-gold shadow-md scale-110'
-                : 'bg-off-white/80 text-warm-gray hover:text-rose-gold hover:bg-off-white hover:scale-105'
-            }`}
-            aria-label={isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                ? 'bg-[var(--color-albatros)] text-[var(--color-sienne)] shadow-md scale-110'
+                : 'bg-[var(--color-albatros)]/80 text-[var(--color-noyer)] hover:text-[var(--color-sienne)] hover:bg-[var(--color-albatros)] hover:scale-105'
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-sienne)]`}
+            aria-label={isWishlisted ? `Retirer ${product.name} des favoris` : `Ajouter ${product.name} aux favoris`}
             aria-pressed={isWishlisted}
           >
             <motion.div
@@ -136,10 +151,10 @@ function ProductCard({ product }) {
           </button>
 
           {/* ── Image Container ── */}
-          <Card.Media ratio="3/4" className="relative overflow-hidden bg-blush">
-            {/* Blur-up: placeholder */}
+          <Card.Media ratio="3/4" className="relative overflow-hidden bg-[var(--color-travertin)]">
+            {/* Blur-up: placeholder skeleton in Travertin token */}
             {!imgLoaded && (
-              <div className="absolute inset-0 skeleton-wave" aria-hidden="true" />
+              <div className="absolute inset-0 bg-[var(--color-travertin)] animate-pulse" aria-hidden="true" />
             )}
 
             {/* Primary Image */}
@@ -150,10 +165,10 @@ function ProductCard({ product }) {
               decoding="async"
               onLoad={() => setImgLoaded(true)}
               className={`w-full h-full object-cover transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                imgLoaded ? '' : 'opacity-0'
+                imgLoaded ? 'opacity-100' : 'opacity-0'
               } ${
                 secondaryImg
-                  ? 'group-hover:opacity-0 group-hover:scale-[1.06]'
+                  ? 'group-hover:opacity-0 group-hover:scale-[1.05]'
                   : 'group-hover:scale-[1.04]'
               }`}
             />
@@ -172,14 +187,14 @@ function ProductCard({ product }) {
 
             {/* ── Action Overlay ── */}
             <div
-              className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-anthracite/65 via-anthracite/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 flex items-center justify-center gap-2"
+              className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-[var(--color-encre)]/75 via-[var(--color-encre)]/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-400 flex items-center justify-center gap-2"
               aria-hidden={!isHovered}
             >
               <motion.button
                 type="button"
                 onClick={handleQuickViewClick}
                 whileTap={{ scale: 0.93 }}
-                className="bg-off-white/95 text-anthracite hover:text-rose-gold font-sans text-[9px] font-medium tracking-widest uppercase px-3 py-2 flex items-center gap-1.5 transition-colors shadow-sm focus-visible:outline focus-visible:outline-1 focus-visible:outline-rose-gold"
+                className="bg-[var(--color-albatros)]/95 text-[var(--color-encre)] hover:text-[var(--color-sienne)] font-sans text-[9px] font-medium tracking-widest uppercase px-3 py-2 flex items-center gap-1.5 transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-sienne)]"
                 aria-label={`Aperçu rapide de ${product.name}`}
               >
                 <FiEye size={12} aria-hidden="true" />
@@ -191,7 +206,7 @@ function ProductCard({ product }) {
                   type="button"
                   onClick={handleQuickAddClick}
                   whileTap={{ scale: 0.93 }}
-                  className="bg-rose-gold text-off-white hover:bg-rose-gold-dark font-sans text-[9px] font-medium tracking-widest uppercase px-3 py-2 flex items-center gap-1.5 transition-colors shadow-sm focus-visible:outline focus-visible:outline-1 focus-visible:outline-off-white"
+                  className="bg-[var(--color-sienne)] text-[var(--color-albatros)] hover:bg-[var(--color-noyer)] font-sans text-[9px] font-medium tracking-widest uppercase px-3 py-2 flex items-center gap-1.5 transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-albatros)]"
                   aria-label={`Ajouter ${product.name} au panier`}
                 >
                   <FiShoppingBag size={12} aria-hidden="true" />
@@ -205,15 +220,19 @@ function ProductCard({ product }) {
           <Card.Body className="p-card-md text-center">
             <Card.Content className="gap-1">
               {product.material && (
-                <Card.Meta>{product.material}</Card.Meta>
+                <Card.Meta className="text-[11px] uppercase tracking-widest text-[var(--color-sienne)] font-light">
+                  {product.material}
+                </Card.Meta>
               )}
-              <Card.Title className="group-hover:text-rose-gold transition-colors duration-400">
+              <Card.Title className="font-serif text-base md:text-lg font-light tracking-wide text-[var(--color-encre)] group-hover:text-[var(--color-sienne)] transition-colors duration-400">
                 {product.name}
               </Card.Title>
             </Card.Content>
 
-            <Card.Footer className="justify-center gap-2 border-t border-card-border-editorial pt-3 mt-2">
-              <Card.Price>{formatPrice(product.price)}</Card.Price>
+            <Card.Footer className="justify-center gap-2 border-t border-[var(--color-travertin)]/60 pt-3 mt-2">
+              <Card.Price className="font-serif text-sm md:text-base font-normal tracking-wider text-[var(--color-noyer)]">
+                {formatPrice(product.price)}
+              </Card.Price>
             </Card.Footer>
           </Card.Body>
         </Card>

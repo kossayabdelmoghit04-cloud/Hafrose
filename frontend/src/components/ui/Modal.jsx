@@ -218,8 +218,8 @@ const Container = forwardRef(({
   const variantClasses = {
     default: 'bg-luxury-cream border border-luxury-gold/30 rounded-none shadow-modal',
     confirmation: 'bg-luxury-cream border border-luxury-gold/15 rounded-lg shadow-modal',
-    danger: 'bg-luxury-cream border border-red-500/25 rounded-lg shadow-modal',
-    success: 'bg-luxury-cream border border-emerald-500/25 rounded-lg shadow-modal',
+    danger: 'bg-luxury-cream border border-[--color-modal-border-danger] rounded-lg shadow-modal',
+    success: 'bg-luxury-cream border border-[--color-modal-border-success] rounded-lg shadow-modal',
     admin: 'bg-luxury-cream border border-luxury-gold/20 rounded-lg shadow-modal',
     image: 'bg-transparent border-none shadow-none',
     fullscreen: 'w-screen h-screen max-w-none max-h-none rounded-none m-0 border-none bg-luxury-cream',

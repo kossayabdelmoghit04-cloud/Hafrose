@@ -50,7 +50,7 @@ export const Table = memo(({
       case 'flat':
         return 'bg-[--color-table-bg] border border-[--color-table-border] rounded-lg';
       case 'modal':
-        return 'bg-white border border-[--color-table-border] rounded';
+        return 'bg-form-bg border border-[--color-table-border] rounded';
       case 'dashboard':
       case 'striped':
       case 'borderless':
@@ -202,7 +202,7 @@ export const TableFilter = memo(({
         value={value}
         onChange={handleChange}
         aria-label={label || 'Filtrer les données'}
-        className="px-3 py-2 bg-white border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[--color-table-focus-ring]"
+        className="px-3 py-2 bg-form-bg border border-luxury-gold/15 rounded text-sm outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-[--color-table-focus-ring]"
         {...props}
       >
         <option value="">{allLabel}</option>
@@ -242,7 +242,7 @@ export const TableDateFilter = memo(({
           {label} :
         </span>
       )}
-      <div className="relative flex items-center bg-white border border-luxury-gold/15 rounded px-3 py-2">
+      <div className="relative flex items-center bg-form-bg border border-luxury-gold/15 rounded px-3 py-2">
         <FiCalendar className="text-luxury-gray mr-2 pointer-events-none" />
         <input
           type="date"

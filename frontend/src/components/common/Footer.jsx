@@ -192,7 +192,7 @@ const Footer = memo(function Footer() {
                 role="alert"
                 aria-live="polite"
                 className={`text-[11px] font-sans font-light mt-2 tracking-wide ${
-                  status === 'success' ? 'text-[#E2ECE9] bg-[#2E5A44]/10 border border-[#2E5A44]/20 px-3 py-1.5' : 'text-[#FAF0F2] bg-[#A33E53]/10 border border-[#A33E53]/20 px-3 py-1.5'
+                  status === 'success' ? 'text-success-text bg-success-bg/30 border border-success/20 px-3 py-1.5' : 'text-error-text bg-error-bg/30 border border-error/20 px-3 py-1.5'
                 }`}
               >
                 {message}

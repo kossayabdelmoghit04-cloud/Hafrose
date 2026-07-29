@@ -77,7 +77,7 @@ function ReviewCard({ review }) {
               {review.customer_name}
             </span>
             {review.verified && (
-              <span className="flex items-center gap-1 font-sans text-[9px] uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-sm">
+              <span className="flex items-center gap-1 font-sans text-[9px] uppercase tracking-wider text-success-text bg-success-bg border border-success/30 px-1.5 py-0.5 rounded-sm">
                 <FiCheck size={8} aria-hidden="true" />
                 Acheteur Vérifié
               </span>
@@ -285,7 +285,7 @@ const ProductReviews = memo(function ProductReviews({
                     onChange={(e) => setRevName(e.target.value)}
                     autoComplete="name"
                     required
-                    className="w-full border border-beige bg-white px-4 py-3 font-sans text-sm font-light text-luxury-charcoal focus:outline-none focus:border-rose-gold transition-colors placeholder:text-warm-gray/50"
+                    className="w-full border border-form-border bg-form-bg px-4 py-3 font-sans text-sm font-light text-luxury-charcoal focus:outline-none focus:border-form-border-focus transition-colors placeholder:text-warm-gray/50"
                     placeholder="Marie Dupont"
                   />
                   {reviewErrors.customer_name && (
@@ -331,7 +331,7 @@ const ProductReviews = memo(function ProductReviews({
                     onChange={(e) => setRevComment(e.target.value)}
                     rows={5}
                     required
-                    className="w-full border border-beige bg-white px-4 py-3 font-sans text-sm font-light text-luxury-charcoal focus:outline-none focus:border-rose-gold transition-colors resize-none placeholder:text-warm-gray/50"
+                    className="w-full border border-form-border bg-form-bg px-4 py-3 font-sans text-sm font-light text-luxury-charcoal focus:outline-none focus:border-form-border-focus transition-colors resize-none placeholder:text-warm-gray/50"
                     placeholder="Partagez votre expérience avec cette création..."
                   />
                   <div className="flex items-center justify-between mt-1">

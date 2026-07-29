@@ -155,16 +155,34 @@ export default function Shop() {
       <Breadcrumb items={[{ label: 'La Boutique', path: '/shop' }]} />
       
       {/* Editorial Header */}
-      <div className="text-center space-y-4 mb-12">
-        <span className="text-[9px] tracking-[0.5em] text-luxury-gold uppercase font-sans font-semibold">
-          Collections Exclusive
-        </span>
-        <h1 className="font-serif text-4xl md:text-5xl text-luxury-charcoal font-light">La Collection</h1>
-        <div className="w-12 h-[1px] bg-luxury-gold mx-auto my-6" />
-      </div>
+      <motion.div
+        className="text-center mb-16"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <motion.span
+          className="inline-block text-[9px] tracking-[0.55em] text-luxury-gold uppercase font-sans font-semibold mb-5"
+          initial={{ opacity: 0, letterSpacing: '0.2em' }}
+          animate={{ opacity: 1, letterSpacing: '0.55em' }}
+          transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
+        >
+          Maison Hafrose — Collections Exclusives
+        </motion.span>
+        <h1 className="font-serif text-4xl md:text-6xl text-luxury-charcoal font-light tracking-tight">La Collection</h1>
+        <div className="w-10 h-[1px] bg-luxury-gold mx-auto mt-7 mb-3" />
+        <p className="font-sans text-xs text-luxury-gray tracking-widest uppercase font-light">
+          Maroquinerie · Joaillerie · Horlogerie · Accessoires
+        </p>
+      </motion.div>
 
       {/* Main Filter & Action Bar */}
-      <div className="border-t border-b border-luxury-charcoal/10 py-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+      <motion.div
+        className="border-t border-b border-luxury-charcoal/10 py-5 flex flex-col md:flex-row items-center justify-between gap-4 mb-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
         {/* Search */}
         <div className="relative w-full md:w-80">
           <Input
@@ -235,7 +253,7 @@ export default function Shop() {
             <option value="name-desc">Nom Z-A</option>
           </select>
         </div>
-      </div>
+      </motion.div>
 
       {/* Advanced Filters Panel */}
       <AnimatePresence>
@@ -346,20 +364,42 @@ export default function Shop() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-            {products.map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
-            ))}
-          </div>
-          <Pagination
-            currentPage={meta.current_page}
-            lastPage={meta.last_page}
-            onPageChange={(page) => {
-              const next = new URLSearchParams(searchParams);
-              next.set('page', page.toString());
-              setSearchParams(next);
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } }
             }}
-          />
+          >
+            {products.map((prod) => (
+              <motion.div
+                key={prod.id}
+                variants={{
+                  hidden: { opacity: 0, y: 28 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } }
+                }}
+              >
+                <ProductCard product={prod} />
+              </motion.div>
+            ))}
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+          >
+            <Pagination
+              currentPage={meta.current_page}
+              lastPage={meta.last_page}
+              onPageChange={(page) => {
+                const next = new URLSearchParams(searchParams);
+                next.set('page', page.toString());
+                setSearchParams(next);
+              }}
+            />
+          </motion.div>
         </>
       )}
     </div>

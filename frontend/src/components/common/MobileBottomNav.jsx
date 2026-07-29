@@ -74,7 +74,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ onOpenSearch, onOpenCart
       id: 'wishlist',
       label: 'Favoris',
       icon: FiHeart,
-      path: '/shop?category=edition-limitee',
+      path: '/account/wishlist',
       onClick: null,
     },
     {
@@ -89,7 +89,7 @@ const MobileBottomNav = memo(function MobileBottomNav({ onOpenSearch, onOpenCart
       id: 'account',
       label: 'Compte',
       icon: FiUser,
-      path: '/admin/login',
+      path: '/account/dashboard',
       onClick: null,
     },
   ];

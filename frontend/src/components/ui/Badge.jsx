@@ -13,8 +13,8 @@ export default function Badge({ children, variant = 'outline', className = '' })
     secondary: 'bg-luxury-cream text-luxury-charcoal border border-luxury-cream shadow-sm',
     gold: 'bg-luxury-gold text-luxury-cream border border-luxury-gold',
     outline: 'border border-luxury-charcoal/20 text-luxury-charcoal/70 bg-transparent',
-    success: 'bg-emerald-50 text-emerald-800 border border-emerald-200/50',
-    danger: 'bg-rose-50 text-rose-800 border border-rose-200/50'
+    success: 'bg-success-bg text-success-text border border-success/20',
+    danger: 'bg-error-bg text-error-text border border-error/20'
   };
 
   return (

@@ -99,7 +99,7 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                 value={form.title}
                 onChange={handleChange}
                 placeholder="Domicile"
-                className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
               />
             </div>
 
@@ -113,9 +113,9 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Mme Marie Dupont"
-                className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
               />
-              {errors.name && <p className="text-red-500 text-[10px] mt-1">{errors.name}</p>}
+              {errors.name && <p className="text-error-text text-[10px] mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -128,9 +128,9 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                 value={form.address}
                 onChange={handleChange}
                 placeholder="12, Avenue Montaigne"
-                className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
               />
-              {errors.address && <p className="text-red-500 text-[10px] mt-1">{errors.address}</p>}
+              {errors.address && <p className="text-error-text text-[10px] mt-1">{errors.address}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -144,9 +144,9 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                   value={form.postal_code}
                   onChange={handleChange}
                   placeholder="75008"
-                  className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                  className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
                 />
-                {errors.postal_code && <p className="text-red-500 text-[10px] mt-1">{errors.postal_code}</p>}
+                {errors.postal_code && <p className="text-error-text text-[10px] mt-1">{errors.postal_code}</p>}
               </div>
               <div>
                 <label className="block font-sans text-[10px] uppercase tracking-widest text-luxury-charcoal mb-1">
@@ -158,9 +158,9 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                   value={form.city}
                   onChange={handleChange}
                   placeholder="Paris"
-                  className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                  className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
                 />
-                {errors.city && <p className="text-red-500 text-[10px] mt-1">{errors.city}</p>}
+                {errors.city && <p className="text-error-text text-[10px] mt-1">{errors.city}</p>}
               </div>
             </div>
 
@@ -174,9 +174,9 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                 value={form.phone}
                 onChange={handleChange}
                 placeholder="+33 6 12 34 56 78"
-                className="w-full border border-beige bg-white px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-rose-gold"
+                className="w-full border border-form-border bg-form-bg px-3 py-2.5 font-sans text-xs text-luxury-charcoal focus:outline-none focus:border-form-border-focus"
               />
-              {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
+              {errors.phone && <p className="text-error-text text-[10px] mt-1">{errors.phone}</p>}
             </div>
 
             <label className="flex items-center gap-2.5 pt-2 cursor-pointer">
@@ -187,7 +187,7 @@ export default function AddressModal({ isOpen, onClose, onSave, addressToEdit = 
                 onChange={handleChange}
                 className="sr-only peer"
               />
-              <span className="w-4 h-4 border border-beige bg-white peer-checked:bg-luxury-charcoal peer-checked:border-luxury-charcoal flex items-center justify-center transition-colors">
+              <span className="w-4 h-4 border border-form-check-border bg-form-bg peer-checked:bg-luxury-charcoal peer-checked:border-luxury-charcoal flex items-center justify-center transition-colors">
                 <FiCheck size={10} className="text-white opacity-0 peer-checked:opacity-100" />
               </span>
               <span className="font-sans text-xs text-luxury-charcoal">

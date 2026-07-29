@@ -11,8 +11,10 @@ export default defineConfig({
   build: {
     target: 'es2020',
     sourcemap: false,
-    // Warn threshold for individual chunks (500 KB)
+    cssCodeSplit: true,
+    assetsInlineLimit: 4096,
     chunkSizeWarningLimit: 500,
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
         // Production asset file naming for long-term caching

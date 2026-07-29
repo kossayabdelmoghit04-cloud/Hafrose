@@ -136,7 +136,7 @@ const PrivateAppointmentModal = memo(function PrivateAppointmentModal({ isOpen, 
                         value={form.name}
                         onChange={(e) => setForm({ ...form, name: e.target.value })}
                         placeholder="Mme. / M. Votre Nom"
-                        className="w-full px-3 py-2.5 bg-white border border-beige text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-luxury-gold outline-none"
+                        className="w-full px-3 py-2.5 bg-form-bg border border-form-border text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-form-border-focus outline-none"
                       />
                     </div>
                   </div>
@@ -151,7 +151,7 @@ const PrivateAppointmentModal = memo(function PrivateAppointmentModal({ isOpen, 
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="votre@email.com"
-                      className="w-full px-3 py-2.5 bg-white border border-beige text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-luxury-gold outline-none"
+                      className="w-full px-3 py-2.5 bg-form-bg border border-form-border text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-form-border-focus outline-none"
                     />
                   </div>
                 </div>
@@ -167,7 +167,7 @@ const PrivateAppointmentModal = memo(function PrivateAppointmentModal({ isOpen, 
                       required
                       value={form.date}
                       onChange={(e) => setForm({ ...form, date: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-white border border-beige text-xs text-luxury-charcoal focus:border-luxury-gold outline-none"
+                      className="w-full px-3 py-2.5 bg-form-bg border border-form-border text-xs text-luxury-charcoal focus:border-form-border-focus outline-none"
                     />
                   </div>
 
@@ -178,7 +178,7 @@ const PrivateAppointmentModal = memo(function PrivateAppointmentModal({ isOpen, 
                     <select
                       value={form.time}
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
-                      className="w-full px-3 py-2.5 bg-white border border-beige text-xs text-luxury-charcoal focus:border-luxury-gold outline-none"
+                      className="w-full px-3 py-2.5 bg-form-bg border border-form-border text-xs text-luxury-charcoal focus:border-form-border-focus outline-none"
                     >
                       <option value="10:00">10:00 - 11:00</option>
                       <option value="11:30">11:30 - 12:30</option>

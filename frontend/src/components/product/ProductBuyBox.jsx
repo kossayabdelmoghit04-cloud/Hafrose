@@ -105,9 +105,14 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
               <span className="font-sans text-sm text-warm-gray line-through">
                 {formatPrice(product.original_price)}
               </span>
-              <span className="font-sans text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 bg-red-100 text-red-800 rounded">
-                Économisez {formatPrice(product.original_price - product.price)}
-              </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="font-sans text-[9px] font-semibold tracking-[0.15em] uppercase px-2.5 py-1 bg-anthracite text-luxury-gold border border-luxury-gold/30"
+              >
+                −{formatPrice(product.original_price - product.price)}
+              </motion.span>
             </>
           )}
         </div>
@@ -191,17 +196,33 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
               variant="primary"
               fullWidth
               onClick={handleAddToCart}
-              className="h-12"
+              className="h-12 relative overflow-hidden"
             >
-              {addedToast ? (
-                <span className="flex items-center gap-2">
-                  <FiCheck size={16} /> Ajouté au Panier !
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <FiShoppingBag size={16} /> Ajouter au Panier
-                </span>
-              )}
+              <AnimatePresence mode="wait" initial={false}>
+                {addedToast ? (
+                  <motion.span
+                    key="added"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex items-center gap-2 absolute inset-0 justify-center"
+                  >
+                    <FiCheck size={16} /> Ajouté au Panier
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="add"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex items-center gap-2 absolute inset-0 justify-center"
+                  >
+                    <FiShoppingBag size={16} /> Ajouter au Panier
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </Button>
 
             {/* Bouton Wishlist */}
@@ -222,6 +243,26 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
           <Button variant="secondary" fullWidth disabled>
             Produit Indisponible
           </Button>
+        )}
+
+        {/* Free shipping progress */}
+        {isAvailable && product.price < 150 && (
+          <div className="pt-1">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="font-sans text-[10px] text-warm-gray tracking-wider">
+                Plus que <strong className="text-rose-gold font-medium">{formatPrice(150 - product.price * qty)}</strong> pour la livraison offerte
+              </span>
+              <FiTruck size={12} className="text-rose-gold" />
+            </div>
+            <div className="h-[2px] bg-beige overflow-hidden">
+              <motion.div
+                className="h-full bg-rose-gold"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, (product.price * qty / 150) * 100)}%` }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+              />
+            </div>
+          </div>
         )}
       </div>
 
@@ -282,12 +323,16 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-off-white/95 backdrop-blur-md border-t border-beige p-3 shadow-luxury hidden md:block"
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-0 left-0 right-0 z-40 bg-off-white/98 backdrop-blur-xl border-t border-luxury-gold/20 py-3 shadow-[0_-4px_32px_rgba(0,0,0,0.08)] hidden md:block"
           >
             <div className="max-w-7xl mx-auto px-12 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h4 className="font-serif text-base text-anthracite">{product.name}</h4>
+              <div className="flex items-center gap-5">
+                <div className="w-[1px] h-8 bg-luxury-gold/30" />
+                <div>
+                  <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-warm-gray">Maison Hafrose</p>
+                  <h4 className="font-serif text-base text-anthracite leading-tight">{product.name}</h4>
+                </div>
                 <span className="font-sans text-sm font-semibold text-rose-gold">
                   {formatPrice(product.price)}
                 </span>
@@ -296,7 +341,7 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
                 <button
                   type="button"
                   onClick={() => toggleWishlist(product)}
-                  className={`p-2.5 border transition-colors ${isWishlisted ? 'text-rose-gold border-rose-gold' : 'text-warm-gray border-beige'}`}
+                  className={`p-2.5 border transition-colors ${isWishlisted ? 'text-rose-gold border-rose-gold' : 'text-warm-gray border-beige hover:border-rose-gold hover:text-rose-gold'}`}
                 >
                   <FiHeart size={16} className={isWishlisted ? 'fill-current' : ''} />
                 </button>

@@ -75,7 +75,7 @@ const EditorialJournal = memo(function EditorialJournal() {
             <motion.article
               key={article.id}
               variants={fadeUp}
-              className="group flex flex-col justify-between bg-white border border-beige p-6 hover-elevate transition-all duration-500"
+              className="group flex flex-col justify-between bg-off-white border border-beige p-6 hover-elevate transition-all duration-500"
             >
               <div className="space-y-4">
                 {/* Image */}

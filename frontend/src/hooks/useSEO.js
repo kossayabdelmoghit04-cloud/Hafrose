@@ -25,15 +25,21 @@ function setMeta(selector, attr, value, attrs = {}) {
 
 /**
  * Sets or creates a <link> tag in <head>.
- * @param {string} rel   - Relation (e.g. 'canonical')
- * @param {string} href  - URL value
+ * @param {string} rel        - Relation (e.g. 'canonical')
+ * @param {string} href       - URL value
+ * @param {Object} extraAttrs - Extra attributes (e.g. { hreflang: 'fr' })
  */
-function setLink(rel, href) {
+function setLink(rel, href, extraAttrs = {}) {
   if (!href) return;
-  let el = document.querySelector(`link[rel="${rel}"]`);
+  const hreflang = extraAttrs.hreflang;
+  const selector = hreflang 
+    ? `link[rel="${rel}"][hreflang="${hreflang}"]` 
+    : `link[rel="${rel}"]:not([hreflang])`;
+  let el = document.querySelector(selector);
   if (!el) {
     el = document.createElement('link');
     el.setAttribute('rel', rel);
+    Object.entries(extraAttrs).forEach(([k, v]) => el.setAttribute(k, v));
     document.head.appendChild(el);
   }
   el.setAttribute('href', href);
@@ -98,13 +104,20 @@ export default function useSEO({
       name: 'description',
     });
 
+    // ── Meta author, keywords & theme-color ────────────────────────────────
+    setMeta('meta[name="author"]', 'content', 'Maison Hafrose', { name: 'author' });
+    setMeta('meta[name="theme-color"]', 'content', '#111111', { name: 'theme-color' });
+    setMeta('meta[name="keywords"]', 'content', 'Hafrose, luxe, maroquinerie, sacs, bijoux, montres, lunettes, ceintures, portefeuilles, mode, Paris', { name: 'keywords' });
+
     // ── Robots ─────────────────────────────────────────────────────────────
     setMeta('meta[name="robots"]', 'content', robots, { name: 'robots' });
 
-    // ── Canonical ──────────────────────────────────────────────────────────
+    // ── Canonical & Hreflang ────────────────────────────────────────────────
     const canonicalUrl =
       canonical || `${SITE_URL}${window.location.pathname}`;
     setLink('canonical', canonicalUrl);
+    setLink('alternate', canonicalUrl, { hreflang: 'fr' });
+    setLink('alternate', canonicalUrl, { hreflang: 'x-default' });
 
     // ── Open Graph ─────────────────────────────────────────────────────────
     const ogTitle = title

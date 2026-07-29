@@ -39,7 +39,7 @@ export default function OptimizedImage({
       {/* Blur Skeleton Placeholder while image is downloading */}
       {!isLoaded && !error && (
         <div 
-          className="absolute inset-0 bg-neutral-200 dark:bg-neutral-800 animate-pulse transition-opacity duration-500"
+          className="absolute inset-0 bg-[var(--color-travertin)] animate-pulse transition-opacity duration-500"
           aria-hidden="true"
         />
       )}

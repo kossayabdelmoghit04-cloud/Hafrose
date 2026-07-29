@@ -54,7 +54,7 @@ const GiftOptionsModal = memo(function GiftOptionsModal({ isOpen, onClose, onSav
             <div
               onClick={() => setGiftBox(!giftBox)}
               className={`p-4 border flex items-center justify-between cursor-pointer transition-colors ${
-                giftBox ? 'border-luxury-gold bg-luxury-gold/5' : 'border-beige bg-white'
+                giftBox ? 'border-luxury-gold bg-luxury-gold/5' : 'border-form-border bg-form-bg'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -85,7 +85,7 @@ const GiftOptionsModal = memo(function GiftOptionsModal({ isOpen, onClose, onSav
                 value={cardMessage}
                 onChange={(e) => setCardMessage(e.target.value)}
                 placeholder="Rédigez votre message d'attention ici... Nos calligraphes le retranscriront à l'encre sur carte dorée."
-                className="w-full p-3 bg-white border border-beige text-xs font-serif italic text-luxury-charcoal placeholder:font-sans placeholder:not-italic placeholder:text-luxury-gray/40 focus:border-luxury-gold outline-none resize-none"
+                className="w-full p-3 bg-form-bg border border-form-border text-xs font-serif italic text-luxury-charcoal placeholder:font-sans placeholder:not-italic placeholder:text-luxury-gray/40 focus:border-form-border-focus outline-none resize-none"
               />
             </div>
 
@@ -99,7 +99,7 @@ const GiftOptionsModal = memo(function GiftOptionsModal({ isOpen, onClose, onSav
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
                 placeholder="Ex: De la part de Marie"
-                className="w-full px-3 py-2 bg-white border border-beige text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-luxury-gold outline-none"
+                className="w-full px-3 py-2 bg-form-bg border border-form-border text-xs text-luxury-charcoal placeholder:text-luxury-gray/40 focus:border-form-border-focus outline-none"
               />
             </div>
 
