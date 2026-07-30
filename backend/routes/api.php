@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\CustomerAddressController;
+use App\Http\Controllers\Api\CustomerAuthController;
+use App\Http\Controllers\Api\CustomerNotificationController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +29,39 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// ── Authentification Client (throttle:6 req/min pour la sécurité) ─────────────
+Route::prefix('auth')->middleware('throttle:6,1')->group(function () {
+    Route::post('/login', [CustomerAuthController::class, 'login']);
+    Route::post('/register', [CustomerAuthController::class, 'register']);
+    Route::post('/forgot-password', [CustomerAuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [CustomerAuthController::class, 'resetPassword']);
+});
+
+// ── Routes Client Authentifiées ───────────────────────────────────────────────
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+    Route::post('/logout', [CustomerAuthController::class, 'logout']);
+    Route::get('/me', [CustomerAuthController::class, 'me']);
+    Route::put('/profile', [CustomerAuthController::class, 'updateProfile']);
+    Route::put('/password', [CustomerAuthController::class, 'updatePassword']);
+
+    // Adresses
+    Route::get('/addresses', [CustomerAddressController::class, 'index']);
+    Route::post('/addresses', [CustomerAddressController::class, 'store']);
+    Route::put('/addresses/{id}', [CustomerAddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [CustomerAddressController::class, 'destroy']);
+    Route::patch('/addresses/{id}/default', [CustomerAddressController::class, 'setDefault']);
+
+    // Notifications
+    Route::get('/notifications', [CustomerNotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [CustomerNotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/read-all', [CustomerNotificationController::class, 'markAllAsRead']);
+    Route::patch('/notifications/{id}/read', [CustomerNotificationController::class, 'markAsRead']);
+
+    // Commandes client
+    Route::get('/orders', [OrderController::class, 'myOrders']);
+    Route::get('/orders/{id}', [OrderController::class, 'myOrderDetails']);
+});
 
 // ── Wishlist (authentifiée, budget dédié anti-flood) ──────────────────────────
 // throttle:wishlist  → 30 req/min par user_id
@@ -87,8 +123,9 @@ Route::prefix('admin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
 
-        // Dashboard
+        // Dashboard & Analytics
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/analytics', [\App\Http\Controllers\Api\Admin\AnalyticsController::class, 'index']);
 
         // Exports CSV & Excel
         Route::get('/export/{resource}/csv', [ExportController::class, 'exportCsv']);

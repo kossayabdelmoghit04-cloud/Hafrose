@@ -1,58 +1,88 @@
+import api from './api';
+
+/**
+ * notificationService — Service de gestion des notifications client HAFROSE.
+ * Connecté à l'API Laravel /api/auth/notifications.
+ * Aucune donnée mockée pré-remplie.
+ */
+
 const LOCAL_KEY = 'hafrose_user_notifications';
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 1,
-    title: 'Bienvenue dans la Maison Hafrose',
-    message: 'Votre compte privilège a été activé. Profitez de la livraison offerte sur votre première création.',
-    date: new Date().toISOString(),
-    read: false,
-    type: 'promo',
-  },
-  {
-    id: 2,
-    title: 'Nouvelle Collection Automne-Hiver',
-    message: 'Découvrez en avant-première nos nouvelles pièces de Haute Maroquinerie.',
-    date: new Date(Date.now() - 86400000 * 2).toISOString(),
-    read: true,
-    type: 'announcement',
-  },
-];
+function cacheGet() {
+  try {
+    const stored = localStorage.getItem(LOCAL_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSet(list) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch {
+    // ignore
+  }
+}
+
+function cacheClear() {
+  localStorage.removeItem(LOCAL_KEY);
+}
 
 export const notificationService = {
-  getAll() {
+  /**
+   * Récupérer toutes les notifications du client connecté
+   * GET /api/auth/notifications
+   */
+  async getAll() {
     try {
-      const stored = localStorage.getItem(LOCAL_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_NOTIFICATIONS;
+      const res = await api.get('/auth/notifications');
+      const list = res?.data ?? res ?? [];
+      cacheSet(list);
+      return list;
     } catch {
-      return INITIAL_NOTIFICATIONS;
+      return cacheGet() ?? [];
     }
   },
 
-  saveAll(list) {
+  /**
+   * Marquer une notification comme lue
+   * PATCH /api/auth/notifications/{id}/read
+   */
+  async markAsRead(id) {
     try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
-    } catch (e) {
-      console.error('Erreur sauvegarde notifications :', e);
+      await api.patch(`/auth/notifications/${id}/read`);
+    } catch {
+      // ignore
     }
+    cacheClear();
   },
 
-  markAsRead(id) {
-    const list = this.getAll();
-    const updated = list.map((n) => (n.id === id ? { ...n, read: true } : n));
-    this.saveAll(updated);
-    return updated;
+  /**
+   * Marquer toutes les notifications comme lues
+   * PATCH /api/auth/notifications/read-all
+   */
+  async markAllAsRead() {
+    try {
+      await api.patch('/auth/notifications/read-all');
+    } catch {
+      // ignore
+    }
+    cacheClear();
   },
 
-  markAllAsRead() {
-    const list = this.getAll();
-    const updated = list.map((n) => ({ ...n, read: true }));
-    this.saveAll(updated);
-    return updated;
-  },
-
-  getUnreadCount() {
-    return this.getAll().filter((n) => !n.read).length;
+  /**
+   * Compter les notifications non lues
+   * GET /api/auth/notifications/unread-count
+   */
+  async getUnreadCount() {
+    try {
+      const res = await api.get('/auth/notifications/unread-count');
+      return res?.data?.count ?? res?.count ?? 0;
+    } catch {
+      const cached = cacheGet();
+      return cached ? cached.filter((n) => !n.read).length : 0;
+    }
   },
 };
 

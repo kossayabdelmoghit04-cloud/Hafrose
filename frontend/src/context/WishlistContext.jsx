@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import wishlistService from '../services/wishlistService';
 
 const WishlistContext = createContext(null);
 
@@ -28,27 +29,46 @@ export function WishlistProvider({ children }) {
     return wishlist.some((item) => item.id === productId);
   }, [wishlist]);
 
-  const addToWishlist = useCallback((product) => {
+  const addToWishlist = useCallback(async (product) => {
     setWishlist((prev) => {
       if (prev.some((item) => item.id === product.id)) return prev;
       return [...prev, product];
     });
+    try {
+      await wishlistService.add(product.id);
+    } catch {
+      // Swallowed silently: guest mode fallback to localStorage
+    }
   }, []);
 
-  const removeFromWishlist = useCallback((productId) => {
+  const removeFromWishlist = useCallback(async (productId) => {
     setWishlist((prev) => prev.filter((item) => item.id !== productId));
+    try {
+      await wishlistService.remove(productId);
+    } catch {
+      // Swallowed silently: guest mode fallback to localStorage
+    }
   }, []);
 
-  const toggleWishlist = useCallback((product) => {
+  const toggleWishlist = useCallback(async (product) => {
+    const isPresent = wishlist.some((item) => item.id === product.id);
     setWishlist((prev) => {
-      const exists = prev.some((item) => item.id === product.id);
-      if (exists) {
+      if (isPresent) {
         return prev.filter((item) => item.id !== product.id);
       } else {
         return [...prev, product];
       }
     });
-  }, []);
+    try {
+      if (isPresent) {
+        await wishlistService.remove(product.id);
+      } else {
+        await wishlistService.add(product.id);
+      }
+    } catch {
+      // Swallowed silently: guest mode fallback to localStorage
+    }
+  }, [wishlist]);
 
   const clearWishlist = useCallback(() => {
     setWishlist([]);

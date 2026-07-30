@@ -6,27 +6,36 @@ import useSEO from '../../hooks/useSEO';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useSEO({
     title: 'Notifications — Espace Client',
     description: 'Consultez vos messages et notifications privées Maison Hafrose.',
   });
 
-  const loadNotifications = () => {
-    setNotifications(notificationService.getAll());
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await notificationService.getAll();
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     loadNotifications();
   }, []);
 
-  const handleMarkRead = (id) => {
-    notificationService.markAsRead(id);
+  const handleMarkRead = async (id) => {
+    await notificationService.markAsRead(id);
     loadNotifications();
   };
 
-  const handleMarkAllRead = () => {
-    notificationService.markAllAsRead();
+  const handleMarkAllRead = async () => {
+    await notificationService.markAllAsRead();
     loadNotifications();
   };
 

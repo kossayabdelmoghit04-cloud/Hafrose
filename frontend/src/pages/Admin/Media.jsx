@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import Loader from '../../components/ui/Loader';
-import Skeleton from '../../components/ui/Skeleton';
 import Swal from 'sweetalert2';
 import Button from '../../components/ui/Button';
 import AdminActionButton from '../../components/ui/AdminActionButton';
 import Card from '../../components/ui/Card';
-import { FiUpload, FiTrash2, FiImage, FiX, FiGrid } from 'react-icons/fi';
+import { FiUpload, FiTrash2, FiImage, FiGrid } from 'react-icons/fi';
 
 export default function Media() {
   const queryClient = useQueryClient();

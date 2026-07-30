@@ -60,35 +60,37 @@ export default function InstallPWA() {
       role="dialog"
       aria-labelledby="pwa-title"
       aria-describedby="pwa-desc"
-      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-2xl p-4 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-300"
+      className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-50 bg-off-white border border-luxury-gold/30 shadow-2xl p-5 flex items-center gap-4 animate-in slide-in-from-bottom-4 duration-300"
     >
-      <div className="w-12 h-12 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center flex-shrink-0">
-        <img src="/favicon.svg" alt="Hafrose" className="w-8 h-8" />
+      <div className="w-12 h-12 rounded-none bg-luxury-charcoal flex items-center justify-center flex-shrink-0 border border-luxury-gold/40">
+        <img src="/favicon.svg" alt="Hafrose" className="w-7 h-7" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p id="pwa-title" className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+        <p id="pwa-title" className="font-serif text-sm text-luxury-charcoal font-light tracking-wide">
           Installer Maison Hafrose
         </p>
-        <p id="pwa-desc" className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
-          Accès rapide, expérience offline et notifications.
+        <p id="pwa-desc" className="font-sans text-[11px] text-warm-gray mt-0.5 leading-relaxed">
+          Accès rapide, expérience offline & services privilèges.
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
         <button
+          type="button"
           onClick={handleInstall}
-          className="px-3 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-semibold rounded-lg hover:opacity-80 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="px-3.5 py-2 bg-luxury-charcoal text-off-white text-[9px] uppercase tracking-widest font-sans font-medium hover:bg-rose-gold transition-colors"
           aria-label="Installer l'application Hafrose"
         >
           Installer
         </button>
         <button
+          type="button"
           onClick={handleDismiss}
-          className="px-3 py-1.5 text-neutral-400 text-xs font-medium hover:text-neutral-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="px-3.5 py-1 text-warm-gray text-[9px] uppercase tracking-widest font-sans hover:text-luxury-charcoal transition-colors"
           aria-label="Fermer la bannière d'installation"
         >
-          Non merci
+          Plus tard
         </button>
       </div>
     </div>

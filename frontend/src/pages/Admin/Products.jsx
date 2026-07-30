@@ -5,7 +5,6 @@ import Swal from 'sweetalert2';
 import {
   FiPlus,
   FiTrash2,
-  FiSearch,
   FiX,
   FiUpload,
   FiImage,

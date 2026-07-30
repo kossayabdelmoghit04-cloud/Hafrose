@@ -4,7 +4,7 @@ import ProductCard from '../cards/ProductCard';
 import Button from '../ui/Button';
 import Skeleton from '../ui/Skeleton';
 import productService from '../../services/productService';
-import { scrollRevealProps, staggerContainer, fadeUp, revealLine } from '../../utils/motionConfig';
+import { scrollRevealProps, fadeUp, revealLine } from '../../utils/motionConfig';
 
 /* ─────────────────────────────────────────────────────────────
    Local animation variants for Featured Products

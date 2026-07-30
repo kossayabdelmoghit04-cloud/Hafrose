@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo } from 'react';
+import { useRef, memo } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -35,8 +35,6 @@ export function getRecentlyViewed(excludeId) {
 
 /* ── Horizontal Scroll Section ────────────────────────────────────── */
 function HorizontalSection({ title, link, linkLabel, products }) {
-  const trackRef = useRef(null);
-
   if (!products?.length) return null;
 
   return (

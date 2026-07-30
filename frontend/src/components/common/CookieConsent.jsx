@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { grantAnalyticsConsent, revokeAnalyticsConsent, hasAnalyticsConsent } from '../../services/analytics';
+import { grantAnalyticsConsent, revokeAnalyticsConsent } from '../../services/analytics';
 
 /**
  * HAFROSE — GDPR/CCPA Cookie Consent Banner (Phase 5.11)

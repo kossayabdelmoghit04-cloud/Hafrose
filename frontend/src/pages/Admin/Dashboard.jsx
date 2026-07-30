@@ -5,10 +5,8 @@ import Card from '../../components/ui/Card';
 import { 
   FiDollarSign, 
   FiShoppingCart, 
-  FiFolder, 
   FiMail, 
   FiStar, 
-  FiBox, 
   FiArrowRight, 
   FiCalendar
 } from 'react-icons/fi';

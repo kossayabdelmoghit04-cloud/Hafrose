@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { FiCompass, FiTruck, FiAward, FiMessageCircle } from 'react-icons/fi';
-import { scrollRevealProps, staggerContainer, fadeUp, scaleIn } from '../../utils/motionConfig';
+import { scrollRevealProps, staggerContainer, fadeUp } from '../../utils/motionConfig';
 
 const assets = [
   {

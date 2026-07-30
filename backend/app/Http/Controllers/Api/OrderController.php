@@ -25,12 +25,44 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        $order = $this->orderService->createOrder($request->validated());
+        $data = $request->validated();
+        if ($request->user()) {
+            $data['user_id'] = $request->user()->id;
+        }
+
+        $order = $this->orderService->createOrder($data);
 
         return $this->successResponse(
             new OrderResource($order),
             'Commande créée avec succès.',
             201
         );
+    }
+
+    /**
+     * GET /api/auth/orders
+     * Obtenir l'historique des commandes du client connecté.
+     */
+    public function myOrders(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $orders = \App\Models\Order::with('orderItems.product')
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $this->successResponse(OrderResource::collection($orders));
+    }
+
+    /**
+     * GET /api/auth/orders/{id}
+     * Obtenir les détails d'une commande du client connecté.
+     */
+    public function myOrderDetails(\Illuminate\Http\Request $request, int $id): JsonResponse
+    {
+        $order = \App\Models\Order::with('orderItems.product')
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($id);
+
+        return $this->successResponse(new OrderResource($order));
     }
 }

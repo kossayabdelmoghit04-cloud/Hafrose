@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiTruck, FiPackage, FiCheck } from 'react-icons/fi';
+import { FiCheck } from 'react-icons/fi';
 import { formatPrice } from '../../utils/format';
 
 const SHIPPING_METHODS = [

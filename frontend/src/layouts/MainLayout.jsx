@@ -1,9 +1,10 @@
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import AnnouncementBar from '../components/common/AnnouncementBar';
 import MobileBottomNav from '../components/common/MobileBottomNav';
 import Footer from '../components/common/Footer';
+import InstallPWA from '../components/common/InstallPWA';
 import Loader from '../components/ui/Loader';
 
 // Helper : scroll en haut à chaque changement de route
@@ -16,13 +17,13 @@ function ScrollToTop() {
 }
 
 export default function MainLayout() {
-  const [announcementVisible, setAnnouncementVisible] = useState(() => {
+  const announcementVisible = (() => {
     try {
       return sessionStorage.getItem('hafrose_announcement_dismissed') !== 'true';
     } catch {
       return true;
     }
-  });
+  })();
 
   return (
     <div
@@ -48,6 +49,9 @@ export default function MainLayout() {
 
       {/* Mobile Bottom Navigation (Mobile uniquement) */}
       <MobileBottomNav />
+
+      {/* PWA Installation Prompt */}
+      <InstallPWA />
     </div>
   );
 }

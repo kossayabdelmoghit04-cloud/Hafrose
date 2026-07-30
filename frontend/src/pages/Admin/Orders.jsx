@@ -3,15 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
 import { 
-  FiSearch, 
-  FiEye, 
   FiPrinter, 
   FiDownload, 
-  FiX, 
-  FiCheckCircle, 
-  FiCalendar, 
   FiUser, 
-  FiMapPin 
+  FiMapPin,
+  FiShoppingCart
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';

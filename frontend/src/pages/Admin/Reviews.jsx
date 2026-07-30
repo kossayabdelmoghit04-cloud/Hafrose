@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import Skeleton from '../../components/ui/Skeleton';
-import Swal from 'sweetalert2';
 import { 
-  FiCheck, 
-  FiX, 
-  FiTrash2, 
   FiStar, 
   FiMessageSquare 
 } from 'react-icons/fi';

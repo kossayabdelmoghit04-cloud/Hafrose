@@ -25,15 +25,14 @@ function ProductCard({ product }) {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  if (!product) return null;
+  // All hooks must be called before any conditional returns (rules-of-hooks)
+  const isAvailable = product ? product.stock > 0 : false;
+  const isLowStock = product ? product.stock > 0 && product.stock <= 3 : false;
+  const isFeatured = product?.is_featured ?? false;
+  const isWishlisted = isInWishlist(product?.id);
 
-  const isAvailable = product.stock > 0;
-  const isLowStock = product.stock > 0 && product.stock <= 3;
-  const isFeatured = product.is_featured;
-  const isWishlisted = isInWishlist(product.id);
-
-  const gallery = useMemo(() => getProductGallery(product), [product]);
-  const primaryImg = gallery[0] || getProductImage(product);
+  const gallery = useMemo(() => product ? getProductGallery(product) : [], [product]);
+  const primaryImg = gallery[0] || (product ? getProductImage(product) : null);
   const secondaryImg = gallery[1] || null;
 
   /* ── Event Handlers ── */
@@ -80,6 +79,9 @@ function ProductCard({ product }) {
   const tiltStyle = shouldReduceMotion
     ? {}
     : { transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` };
+
+  // Guard must come after all hooks
+  if (!product) return null;
 
   return (
     <>

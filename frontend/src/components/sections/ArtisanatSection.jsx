@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { fadeUp, staggerContainer, scrollRevealProps, slideRight, slideLeft } from '../../utils/motionConfig';
+import { fadeUp, scrollRevealProps, slideRight, slideLeft } from '../../utils/motionConfig';
 
 /**
  * ArtisanatSection — Storytelling savoir-faire

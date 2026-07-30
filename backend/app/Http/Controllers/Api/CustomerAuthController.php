@@ -1,0 +1,227 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Traits\HttpResponses;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * CustomerAuthController — Gère l'authentification des clients (inscription, connexion, déconnexion,
+ * récupération de mot de passe) via l'API REST Sanctum.
+ */
+class CustomerAuthController extends Controller
+{
+    use HttpResponses;
+
+    /**
+     * POST /api/auth/login
+     * Connecte un client et génère un token Sanctum.
+     */
+    public function login(Request $request): JsonResponse
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email|max:255',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Identifiants incorrects. Veuillez vérifier votre email et votre mot de passe.'],
+            ]);
+        }
+
+        // Interdire la connexion client aux comptes administrateurs
+        if ($user->isAdmin()) {
+            throw ValidationException::withMessages([
+                'email' => ['Ce compte est réservé à l\'espace administrateur.'],
+            ]);
+        }
+
+        // Révoquer les anciens tokens pour éviter l'accumulation
+        $user->tokens()->where('name', 'customer-token')->delete();
+
+        $token = $user->createToken('customer-token')->plainTextToken;
+
+        return $this->successResponse([
+            'token' => $token,
+            'user'  => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role ?? 'customer',
+                'created_at' => $user->created_at?->toISOString(),
+            ],
+        ], 'Connexion réussie. Bienvenue dans la Maison HAFROSE.');
+    }
+
+    /**
+     * POST /api/auth/register
+     * Crée un compte client et génère un token Sanctum.
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name'                  => 'required|string|max:255',
+            'email'                 => 'required|email|max:255|unique:users,email',
+            'password'              => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
+        ]);
+
+        $user = User::create([
+            'name'     => $data['name'],
+            'email'    => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role'     => 'customer',
+        ]);
+
+        $token = $user->createToken('customer-token')->plainTextToken;
+
+        return $this->successResponse([
+            'token' => $token,
+            'user'  => [
+                'id'         => $user->id,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'role'       => $user->role,
+                'created_at' => $user->created_at?->toISOString(),
+            ],
+        ], 'Compte créé avec succès. Bienvenue dans la Maison HAFROSE.', 201);
+    }
+
+    /**
+     * POST /api/auth/logout
+     * Révoque le token du client connecté.
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->successResponse(null, 'Déconnexion réussie.');
+    }
+
+    /**
+     * POST /api/auth/forgot-password
+     * Envoie un email de réinitialisation de mot de passe.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email|max:255',
+        ]);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            return $this->errorResponse(
+                'Impossible d\'envoyer l\'email de réinitialisation. Vérifiez votre adresse email.',
+                422
+            );
+        }
+
+        return $this->successResponse(null, 'Un lien de réinitialisation vous a été envoyé par email.');
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     * Réinitialise le mot de passe via le token de réinitialisation.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token'                 => 'required|string',
+            'email'                 => 'required|email|max:255',
+            'password'              => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill(['password' => Hash::make($password)])->save();
+                $user->tokens()->delete();
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return $this->errorResponse('Le lien de réinitialisation est invalide ou expiré.', 422);
+        }
+
+        return $this->successResponse(null, 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.');
+    }
+
+    /**
+     * GET /api/auth/me
+     * Retourne le profil complet du client connecté.
+     */
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return $this->successResponse([
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role ?? 'customer',
+            'created_at' => $user->created_at?->toISOString(),
+        ]);
+    }
+
+    /**
+     * PUT /api/auth/profile
+     * Met à jour le profil du client connecté.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'name'  => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+        ]);
+
+        $user->fill($data)->save();
+
+        return $this->successResponse([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'role'  => $user->role ?? 'customer',
+        ], 'Profil mis à jour avec succès.');
+    }
+
+    /**
+     * PUT /api/auth/password
+     * Met à jour le mot de passe du client connecté.
+     */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'current_password'      => 'required|string',
+            'password'              => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|min:8',
+        ]);
+
+        if (! Hash::check($data['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Le mot de passe actuel est incorrect.'],
+            ]);
+        }
+
+        $user->update(['password' => Hash::make($data['password'])]);
+        // Révoquer tous les autres tokens pour forcer une reconnexion sécurisée
+        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+
+        return $this->successResponse(null, 'Mot de passe mis à jour avec succès.');
+    }
+}

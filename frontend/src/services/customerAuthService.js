@@ -2,8 +2,8 @@ import api from './api';
 
 /**
  * customerAuthService — Service d'authentification client HAFROSE.
- * Gère la connexion, l'inscription, la déconnexion, la récupération de profil,
- * ainsi que la réinitialisation de mot de passe via Sanctum API (avec fallback gracieux).
+ * Connecté à l'API Laravel /api/auth/* via Sanctum.
+ * Aucun fallback de données mockées en mode production.
  */
 
 const TOKEN_KEY = 'hafrose_customer_token';
@@ -41,110 +41,94 @@ export const customerAuthService = {
     }
   },
 
+  /**
+   * Authentifier un client via POST /api/auth/login
+   */
   async login(credentials) {
-    try {
-      const res = await api.post('/auth/login', credentials);
-      if (res?.success && res.data?.token) {
-        this.setToken(res.data.token);
-        this.setUser(res.data.user);
-        return res;
-      }
-      throw new Error(res?.message || 'Identifiants invalides.');
-    } catch (err) {
-      // Offline / dev fallback mode
-      if (err.message?.includes('Impossible de contacter') || err.status === 404) {
-        const dummyUser = {
-          id: 1,
-          name: credentials.email.split('@')[0],
-          email: credentials.email,
-          created_at: new Date().toISOString(),
-        };
-        const dummyToken = 'demo_customer_token_' + Date.now();
-        this.setToken(dummyToken);
-        this.setUser(dummyUser);
-        return { success: true, data: { user: dummyUser, token: dummyToken } };
-      }
-      throw err;
+    const res = await api.post('/auth/login', credentials);
+    if (res?.success && res.data?.token) {
+      this.setToken(res.data.token);
+      this.setUser(res.data.user);
     }
+    return res;
   },
 
+  /**
+   * Inscrire un client via POST /api/auth/register
+   */
   async register(data) {
-    try {
-      const res = await api.post('/auth/register', data);
-      if (res?.success && res.data?.token) {
-        this.setToken(res.data.token);
-        this.setUser(res.data.user);
-        return res;
-      }
-      return res;
-    } catch (err) {
-      if (err.message?.includes('Impossible de contacter') || err.status === 404) {
-        const dummyUser = {
-          id: Date.now(),
-          name: data.name,
-          email: data.email,
-          created_at: new Date().toISOString(),
-        };
-        const dummyToken = 'demo_customer_token_' + Date.now();
-        this.setToken(dummyToken);
-        this.setUser(dummyUser);
-        return { success: true, data: { user: dummyUser, token: dummyToken } };
-      }
-      throw err;
+    const res = await api.post('/auth/register', data);
+    if (res?.success && res.data?.token) {
+      this.setToken(res.data.token);
+      this.setUser(res.data.user);
     }
+    return res;
   },
 
+  /**
+   * Déconnecter le client via POST /api/auth/logout
+   */
   async logout() {
     try {
       const token = this.getToken();
-      if (token && !token.startsWith('demo_')) {
+      if (token) {
         await api.post('/auth/logout');
       }
     } catch (e) {
-      console.warn('Erreur serveur lors de la déconnexion client :', e);
+      // Ignore network errors during logout — toujours nettoyer la session locale
     } finally {
       this.setToken(null);
       this.setUser(null);
     }
   },
 
+  /**
+   * Récupérer le profil client connecté via GET /api/auth/me (ou /api/user Sanctum)
+   */
   async fetchMe() {
     const token = this.getToken();
     if (!token) return null;
-    if (token.startsWith('demo_')) {
-      return this.getUser();
-    }
     try {
-      const res = await api.get('/user');
+      const res = await api.get('/auth/me');
       if (res) {
-        this.setUser(res);
-        return res;
+        this.setUser(res.data ?? res);
+        return res.data ?? res;
       }
     } catch {
       return this.getUser();
     }
   },
 
+  /**
+   * Demander un lien de réinitialisation via POST /api/auth/forgot-password
+   */
   async requestPasswordReset(email) {
-    try {
-      return await api.post('/auth/forgot-password', { email });
-    } catch (err) {
-      if (err.message?.includes('Impossible de contacter') || err.status === 404) {
-        return { success: true, message: 'Un lien de réinitialisation a été simulé.' };
-      }
-      throw err;
-    }
+    return api.post('/auth/forgot-password', { email });
   },
 
+  /**
+   * Réinitialiser le mot de passe via POST /api/auth/reset-password
+   */
   async resetPassword(data) {
-    try {
-      return await api.post('/auth/reset-password', data);
-    } catch (err) {
-      if (err.message?.includes('Impossible de contacter') || err.status === 404) {
-        return { success: true, message: 'Mot de passe réinitialisé avec succès.' };
-      }
-      throw err;
+    return api.post('/auth/reset-password', data);
+  },
+
+  /**
+   * Mettre à jour le profil du client connecté via PUT /api/auth/profile
+   */
+  async updateProfile(data) {
+    const res = await api.put('/auth/profile', data);
+    if (res?.data) {
+      this.setUser({ ...this.getUser(), ...res.data });
     }
+    return res;
+  },
+
+  /**
+   * Mettre à jour le mot de passe du client connecté via PUT /api/auth/password
+   */
+  async updatePassword(data) {
+    return api.put('/auth/password', data);
   },
 };
 

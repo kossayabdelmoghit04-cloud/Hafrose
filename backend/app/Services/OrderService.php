@@ -37,6 +37,7 @@ class OrderService
         return DB::transaction(function () use ($data) {
             // 1. Créer la commande initiale
             $order = $this->orderRepository->create([
+                'user_id' => $data['user_id'] ?? null,
                 'customer_name' => $data['customer'],
                 'phone' => $data['phone'],
                 'address' => $data['address'],

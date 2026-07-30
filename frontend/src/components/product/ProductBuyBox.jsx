@@ -41,20 +41,20 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
 
   const buyBoxRef = useRef(null);
 
-  if (!product) return null;
-
-  const isWishlisted = isInWishlist(product.id);
-  const isAvailable = product.stock > 0;
-  const isLowStock = product.stock > 0 && product.stock <= 3;
+  // All hooks must be declared before conditional returns (rules-of-hooks)
+  const isWishlisted = isInWishlist(product?.id);
+  const isAvailable = product ? product.stock > 0 : false;
+  const isLowStock = product ? product.stock > 0 && product.stock <= 3 : false;
 
   // Détecter si la BuyBox principale est sortie de l'écran pour afficher la Sticky Bar
   useEffect(() => {
+    if (!product) return;
     let ticking = false;
     const handleScroll = () => {
       if (!ticking && buyBoxRef.current) {
         window.requestAnimationFrame(() => {
-          const rect = buyBoxRef.current.getBoundingClientRect();
-          setShowStickyBar(rect.bottom < 0);
+          const rect = buyBoxRef.current?.getBoundingClientRect();
+          if (rect) setShowStickyBar(rect.bottom < 0);
           ticking = false;
         });
         ticking = true;
@@ -62,7 +62,7 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [product]);
 
   const handleAddToCart = useCallback(() => {
     if (!isAvailable) return;
@@ -76,6 +76,9 @@ const ProductBuyBox = memo(function ProductBuyBox({ product, onOpenAppointment, 
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 2500);
   }, [addToCart, isAvailable, product, qty, selectedColor, selectedMaterial]);
+
+  // Guard must come after all hooks
+  if (!product) return null;
 
   return (
     <div ref={buyBoxRef} className="flex flex-col gap-6">

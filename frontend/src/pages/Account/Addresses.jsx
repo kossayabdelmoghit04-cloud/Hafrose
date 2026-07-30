@@ -7,6 +7,7 @@ import useSEO from '../../hooks/useSEO';
 
 export default function Addresses() {
   const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddr, setEditingAddr] = useState(null);
 
@@ -15,8 +16,16 @@ export default function Addresses() {
     description: 'Gérez vos adresses de livraison et de facturation Maison Hafrose.',
   });
 
-  const loadAddresses = () => {
-    setAddresses(addressService.getAll());
+  const loadAddresses = async () => {
+    setLoading(true);
+    try {
+      const data = await addressService.getAll();
+      setAddresses(Array.isArray(data) ? data : []);
+    } catch {
+      setAddresses([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

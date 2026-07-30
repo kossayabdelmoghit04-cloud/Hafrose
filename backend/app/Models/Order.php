@@ -29,6 +29,7 @@ class Order extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'customer_name',
         'phone',
         'address',
@@ -45,6 +46,14 @@ class Order extends Model
     protected $casts = [
         'total_price' => 'decimal:2',
     ];
+
+    /**
+     * Relation : Une commande appartient à un utilisateur (optionnel pour les invités).
+     */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Relation : Une commande possède plusieurs lignes de commande.

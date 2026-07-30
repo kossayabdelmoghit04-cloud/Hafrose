@@ -10,7 +10,7 @@ class AnalyticsService
 {
     public function getBusinessDashboardMetrics(): array
     {
-        $totalRevenue = (float) Order::sum('total_amount');
+        $totalRevenue = (float) Order::sum('total_price');
         $ordersCount = Order::count();
         $averageOrderValue = $ordersCount > 0 ? round($totalRevenue / $ordersCount, 2) : 0.0;
         $usersCount = User::count();

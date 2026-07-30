@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiShoppingBag, FiHeart, FiClock, FiArrowRight, FiShield, FiPackage } from 'react-icons/fi';
+import { FiShoppingBag, FiHeart, FiArrowRight, FiShield, FiPackage } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import orderService from '../../services/orderService';
@@ -14,7 +14,6 @@ export default function Dashboard() {
   const { wishlistCount } = useWishlist();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useSEO({
     title: 'Tableau de bord — Espace Client',

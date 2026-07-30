@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiLock, FiCheck } from 'react-icons/fi';
+import { FiUser, FiLock } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
 import AvatarUploader from '../../components/account/AvatarUploader';

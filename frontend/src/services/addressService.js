@@ -1,83 +1,92 @@
 import api from './api';
 
+/**
+ * addressService — Service de gestion des adresses de livraison HAFROSE.
+ * Connecté à l'API Laravel /api/auth/addresses avec persistance localStorage comme cache hors-ligne.
+ * Aucune donnée mockée pré-remplie.
+ */
+
 const LOCAL_KEY = 'hafrose_user_addresses';
 
-const INITIAL_ADDRESSES = [
-  {
-    id: 1,
-    title: 'Domicile Paris',
-    name: 'Mme Marie Dupont',
-    address: '12, Avenue Montaigne',
-    city: 'Paris',
-    postal_code: '75008',
-    country: 'France',
-    phone: '+33 6 12 34 56 78',
-    is_default: true,
-  },
-];
+/**
+ * Helpers cache localStorage
+ */
+function cacheGet() {
+  try {
+    const stored = localStorage.getItem(LOCAL_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheSet(list) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function cacheClear() {
+  localStorage.removeItem(LOCAL_KEY);
+}
 
 export const addressService = {
-  getAll() {
+  /**
+   * Récupérer toutes les adresses de l'utilisateur connecté
+   * GET /api/auth/addresses
+   */
+  async getAll() {
     try {
-      const stored = localStorage.getItem(LOCAL_KEY);
-      return stored ? JSON.parse(stored) : INITIAL_ADDRESSES;
+      const res = await api.get('/auth/addresses');
+      const list = res?.data ?? res ?? [];
+      cacheSet(list);
+      return list;
     } catch {
-      return INITIAL_ADDRESSES;
+      // Fallback sur le cache local (offline)
+      return cacheGet() ?? [];
     }
   },
 
-  saveAll(list) {
-    try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
-    } catch (e) {
-      console.error('Erreur sauvegarde adresses :', e);
-    }
-  },
-
+  /**
+   * Ajouter une adresse
+   * POST /api/auth/addresses
+   */
   async add(newAddr) {
-    const list = this.getAll();
-    const created = {
-      id: Date.now(),
-      ...newAddr,
-      is_default: list.length === 0 ? true : !!newAddr.is_default,
-    };
-    let updated = [...list];
-    if (created.is_default) {
-      updated = updated.map((a) => ({ ...a, is_default: false }));
-    }
-    updated.push(created);
-    this.saveAll(updated);
-    return created;
+    const res = await api.post('/auth/addresses', newAddr);
+    cacheClear();
+    return res?.data ?? res;
   },
 
+  /**
+   * Modifier une adresse
+   * PUT /api/auth/addresses/{id}
+   */
   async update(id, addrData) {
-    let list = this.getAll();
-    if (addrData.is_default) {
-      list = list.map((a) => ({ ...a, is_default: false }));
-    }
-    const updated = list.map((a) => (a.id === id ? { ...a, ...addrData } : a));
-    this.saveAll(updated);
-    return updated.find((a) => a.id === id);
+    const res = await api.put(`/auth/addresses/${id}`, addrData);
+    cacheClear();
+    return res?.data ?? res;
   },
 
+  /**
+   * Supprimer une adresse
+   * DELETE /api/auth/addresses/{id}
+   */
   async delete(id) {
-    const list = this.getAll();
-    const filtered = list.filter((a) => a.id !== id);
-    if (filtered.length > 0 && !filtered.some((a) => a.is_default)) {
-      filtered[0].is_default = true;
-    }
-    this.saveAll(filtered);
+    await api.delete(`/auth/addresses/${id}`);
+    cacheClear();
     return true;
   },
 
+  /**
+   * Définir une adresse comme adresse par défaut
+   * PATCH /api/auth/addresses/{id}/default
+   */
   async setDefault(id) {
-    const list = this.getAll();
-    const updated = list.map((a) => ({
-      ...a,
-      is_default: a.id === id,
-    }));
-    this.saveAll(updated);
-    return updated;
+    const res = await api.patch(`/auth/addresses/${id}/default`);
+    cacheClear();
+    return res?.data ?? res;
   },
 };
 

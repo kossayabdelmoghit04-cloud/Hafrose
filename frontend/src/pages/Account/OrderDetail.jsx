@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FiArrowLeft, FiPrinter, FiTruck, FiMapPin, FiCreditCard } from 'react-icons/fi';
+import { FiArrowLeft, FiPrinter, FiMapPin, FiCreditCard } from 'react-icons/fi';
 import orderService from '../../services/orderService';
 import OrderTimeline from '../../components/account/OrderTimeline';
 import useSEO from '../../hooks/useSEO';
