@@ -1,96 +1,140 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../queryKeys';
 import wishlistService from '../services/wishlistService';
+import { useResilientQuery } from '../hooks/api/useResilientQuery';
+import { statePersistence } from '../lib/statePersistence';
+import { crossTabSync } from '../services/network/crossTabSync';
+import { syncMonitor } from '../lib/syncMonitor';
 
 const WishlistContext = createContext(null);
-
-const STORAGE_KEY = 'hafrose_wishlist';
+const WISHLIST_PERSIST_KEY = 'wishlist';
 
 export function WishlistProvider({ children }) {
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      console.error('Erreur chargement wishlist localStorage:', e);
-      return [];
-    }
-  });
+  const queryClient = useQueryClient();
 
-  // Synchroniser avec localStorage
+  // Single Source of Truth via TanStack Query
+  const { data: serverWishlist, isLoading } = useResilientQuery(
+    queryKeys.wishlist.items(),
+    ({ signal }) => wishlistService.getAll({ signal }),
+    {
+      staleTime: 1000 * 60 * 5,
+      select: (res) => res?.data ?? res ?? [],
+    }
+  );
+
+  // Guest fallback wishlist from versioned persistence
+  const localWishlist = useMemo(
+    () => statePersistence.getItem(WISHLIST_PERSIST_KEY, []),
+    []
+  );
+
+  // Active wishlist data
+  const wishlist = useMemo(() => {
+    const list = Array.isArray(serverWishlist) && serverWishlist.length > 0 ? serverWishlist : localWishlist;
+    syncMonitor.recordStateUpdate();
+    return list;
+  }, [serverWishlist, localWishlist]);
+
+  // Sync guest wishlist to local storage
+  const updateLocalWishlist = useCallback((newList) => {
+    statePersistence.setItem(WISHLIST_PERSIST_KEY, newList);
+    crossTabSync.broadcast('WISHLIST_UPDATED', { wishlist: newList });
+  }, []);
+
+  // Listen to cross-tab updates
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(wishlist));
-    } catch (e) {
-      console.error('Erreur sauvegarde wishlist localStorage:', e);
-    }
-  }, [wishlist]);
-
-  const isInWishlist = useCallback((productId) => {
-    return wishlist.some((item) => item.id === productId);
-  }, [wishlist]);
-
-  const addToWishlist = useCallback(async (product) => {
-    setWishlist((prev) => {
-      if (prev.some((item) => item.id === product.id)) return prev;
-      return [...prev, product];
-    });
-    try {
-      await wishlistService.add(product.id);
-    } catch {
-      // Swallowed silently: guest mode fallback to localStorage
-    }
-  }, []);
-
-  const removeFromWishlist = useCallback(async (productId) => {
-    setWishlist((prev) => prev.filter((item) => item.id !== productId));
-    try {
-      await wishlistService.remove(productId);
-    } catch {
-      // Swallowed silently: guest mode fallback to localStorage
-    }
-  }, []);
-
-  const toggleWishlist = useCallback(async (product) => {
-    const isPresent = wishlist.some((item) => item.id === product.id);
-    setWishlist((prev) => {
-      if (isPresent) {
-        return prev.filter((item) => item.id !== product.id);
-      } else {
-        return [...prev, product];
+    const unsubscribe = crossTabSync.subscribe((msg) => {
+      if (msg.type === 'WISHLIST_UPDATED') {
+        syncMonitor.recordCrossTabEvent();
+        queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.items() });
       }
     });
-    try {
-      if (isPresent) {
-        await wishlistService.remove(product.id);
-      } else {
+    return unsubscribe;
+  }, [queryClient]);
+
+  const isInWishlist = useCallback(
+    (productId) => wishlist.some((item) => (item.id || item.product_id) === productId),
+    [wishlist]
+  );
+
+  const addToWishlist = useCallback(
+    async (product) => {
+      // Optimistic cache update
+      queryClient.setQueryData(queryKeys.wishlist.items(), (old = []) => {
+        if (old.some((i) => (i.id || i.product_id) === product.id)) return old;
+        return [...old, product];
+      });
+
+      try {
         await wishlistService.add(product.id);
+        queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.items() });
+        crossTabSync.broadcast('WISHLIST_UPDATED');
+      } catch (err) {
+        // Guest mode fallback
+        const current = statePersistence.getItem(WISHLIST_PERSIST_KEY, []);
+        if (!current.some((i) => i.id === product.id)) {
+          const updated = [...current, product];
+          updateLocalWishlist(updated);
+        }
       }
-    } catch {
-      // Swallowed silently: guest mode fallback to localStorage
-    }
-  }, [wishlist]);
+    },
+    [queryClient, updateLocalWishlist]
+  );
+
+  const removeFromWishlist = useCallback(
+    async (productId) => {
+      // Optimistic cache update
+      queryClient.setQueryData(queryKeys.wishlist.items(), (old = []) =>
+        old.filter((i) => (i.id || i.product_id) !== productId)
+      );
+
+      try {
+        await wishlistService.remove(productId);
+        queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.items() });
+        crossTabSync.broadcast('WISHLIST_UPDATED');
+      } catch (err) {
+        const current = statePersistence.getItem(WISHLIST_PERSIST_KEY, []);
+        const updated = current.filter((i) => i.id !== productId);
+        updateLocalWishlist(updated);
+      }
+    },
+    [queryClient, updateLocalWishlist]
+  );
+
+  const toggleWishlist = useCallback(
+    async (product) => {
+      if (isInWishlist(product.id)) {
+        await removeFromWishlist(product.id);
+      } else {
+        await addToWishlist(product);
+      }
+    },
+    [isInWishlist, addToWishlist, removeFromWishlist]
+  );
 
   const clearWishlist = useCallback(() => {
-    setWishlist([]);
-  }, []);
+    queryClient.setQueryData(queryKeys.wishlist.items(), []);
+    updateLocalWishlist([]);
+  }, [queryClient, updateLocalWishlist]);
 
   const wishlistCount = wishlist.length;
 
-  return (
-    <WishlistContext.Provider
-      value={{
-        wishlist,
-        addToWishlist,
-        removeFromWishlist,
-        toggleWishlist,
-        isInWishlist,
-        clearWishlist,
-        wishlistCount,
-      }}
-    >
-      {children}
-    </WishlistContext.Provider>
+  const value = useMemo(
+    () => ({
+      wishlist,
+      wishlistCount,
+      isLoading,
+      isInWishlist,
+      addToWishlist,
+      removeFromWishlist,
+      toggleWishlist,
+      clearWishlist,
+    }),
+    [wishlist, wishlistCount, isLoading, isInWishlist, addToWishlist, removeFromWishlist, toggleWishlist, clearWishlist]
   );
+
+  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 }
 
 export function useWishlist() {

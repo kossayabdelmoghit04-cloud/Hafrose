@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
+import { sanitizeJsonLd } from '../../utils/sanitizer';
 
 /**
  * Breadcrumb — HAFROSE Design System
  * Navigation fil d'Ariane conforme WCAG 2.2 AA.
- * Schema.org BreadcrumbList intégré.
+ * Schema.org BreadcrumbList intégré avec Trusted Types JSON-LD sanitization.
  *
  * @param {Array} items - Liste de { label: string, path?: string }
  */
@@ -25,10 +26,10 @@ const Breadcrumb = memo(function Breadcrumb({ items = [] }) {
 
   return (
     <>
-      {/* Schema.org JSON-LD */}
+      {/* Schema.org JSON-LD (Sanitized against script tag injection) */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+        dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(schemaData) }}
       />
 
       <nav

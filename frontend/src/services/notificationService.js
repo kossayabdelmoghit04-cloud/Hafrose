@@ -1,11 +1,8 @@
 import api from './api';
 
 /**
- * notificationService — Service de gestion des notifications client HAFROSE.
- * Connecté à l'API Laravel /api/auth/notifications.
- * Aucune donnée mockée pré-remplie.
+ * HAFROSE — Standardized Notification Service (Phase 14)
  */
-
 const LOCAL_KEY = 'hafrose_user_notifications';
 
 function cacheGet() {
@@ -30,56 +27,42 @@ function cacheClear() {
 }
 
 export const notificationService = {
-  /**
-   * Récupérer toutes les notifications du client connecté
-   * GET /api/auth/notifications
-   */
-  async getAll() {
+  async getAll(options = {}) {
     try {
-      const res = await api.get('/auth/notifications');
+      const res = await api.get('/auth/notifications', options);
       const list = res?.data ?? res ?? [];
       cacheSet(list);
       return list;
-    } catch {
+    } catch (err) {
+      if (err.isCanceled) throw err;
       return cacheGet() ?? [];
     }
   },
 
-  /**
-   * Marquer une notification comme lue
-   * PATCH /api/auth/notifications/{id}/read
-   */
-  async markAsRead(id) {
+  async markAsRead(id, options = {}) {
     try {
-      await api.patch(`/auth/notifications/${id}/read`);
+      await api.patch(`/auth/notifications/${id}/read`, {}, options);
     } catch {
       // ignore
     }
     cacheClear();
   },
 
-  /**
-   * Marquer toutes les notifications comme lues
-   * PATCH /api/auth/notifications/read-all
-   */
-  async markAllAsRead() {
+  async markAllAsRead(options = {}) {
     try {
-      await api.patch('/auth/notifications/read-all');
+      await api.patch('/auth/notifications/read-all', {}, options);
     } catch {
       // ignore
     }
     cacheClear();
   },
 
-  /**
-   * Compter les notifications non lues
-   * GET /api/auth/notifications/unread-count
-   */
-  async getUnreadCount() {
+  async getUnreadCount(options = {}) {
     try {
-      const res = await api.get('/auth/notifications/unread-count');
+      const res = await api.get('/auth/notifications/unread-count', options);
       return res?.data?.count ?? res?.count ?? 0;
-    } catch {
+    } catch (err) {
+      if (err.isCanceled) throw err;
       const cached = cacheGet();
       return cached ? cached.filter((n) => !n.read).length : 0;
     }

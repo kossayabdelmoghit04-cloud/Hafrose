@@ -1,38 +1,23 @@
 import api from './api';
 
 /**
- * wishlistService — Service favoris connecté à Laravel API /api/wishlist
+ * HAFROSE — Standardized Wishlist Service (Phase 14)
  */
 export const wishlistService = {
-  /**
-   * Récupérer tous les favoris de l'utilisateur connecté
-   */
-  async getAll() {
-    return api.get('/wishlist');
+  getAll(options = {}) {
+    return api.get('/wishlist', options);
   },
 
-  /**
-   * Ajouter un produit aux favoris
-   * @param {number|string} productId 
-   */
-  async add(productId) {
-    return api.post('/wishlist', { product_id: productId });
+  add(productId, options = {}) {
+    return api.post('/wishlist', { product_id: productId }, options);
   },
 
-  /**
-   * Retirer un produit des favoris
-   * @param {number|string} productId 
-   */
-  async remove(productId) {
-    return api.delete(`/wishlist/${productId}`);
+  remove(productId, options = {}) {
+    return api.delete(`/wishlist/${productId}`, options);
   },
 
-  /**
-   * Vérifier si un produit est en favori
-   * @param {number|string} productId 
-   */
-  async check(productId) {
-    return api.get(`/wishlist/check/${productId}`);
+  check(productId, options = {}) {
+    return api.get(`/wishlist/check/${productId}`, options);
   },
 };
 

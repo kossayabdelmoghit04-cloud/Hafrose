@@ -1,19 +1,21 @@
 import api from './api';
 
+/**
+ * HAFROSE — Standardized Category Service (Phase 14)
+ */
 const categoryService = {
   /**
    * Récupère la liste de toutes les catégories
    */
-  getAll: () => {
-    return api.get('/categories');
+  getAll: (options = {}) => {
+    return api.get('/categories', options);
   },
 
   /**
-   * Récupère une catégorie par son slug (avec ses produits associés)
-   * @param {string} slug 
+   * Récupère une catégorie par son slug
    */
-  getBySlug: (slug) => {
-    return api.get(`/categories/${slug}`);
+  getBySlug: (slug, options = {}) => {
+    return api.get(`/categories/${slug}`, options);
   }
 };
 

@@ -1,37 +1,41 @@
 import { QueryClient } from '@tanstack/react-query';
 
 /**
- * HAFROSE — Centralized TanStack React Query Client (Phase 5.4)
+ * HAFROSE — Centralized TanStack React Query Client (Phase 8 Enterprise Configuration)
  * 
- * Cache strategy:
- * - staleTime: 5 min  — data considered fresh, no background refetch
- * - gcTime:   15 min  — inactive queries kept in memory before GC
- * - retry: 1          — one automatic retry on failure (avoids flooding on 4xx)
- * - refetchOnWindowFocus: false — prevents jarring re-fetches on tab switch
+ * Strategy:
+ * - staleTime: 5 min  — Data considered fresh; avoids aggressive background refetching
+ * - gcTime:   15 min  — Inactive query memory garbage collection threshold
+ * - retry: 2          — Exponential retry on 5xx server errors / network dropouts; zero retries on 4xx
+ * - networkMode: 'offlineFirst' — Serves cached data seamlessly when offline
+ * - refetchOnReconnect: 'always' — Automatically syncs stale data when network reconnects
  */
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,      // 5 minutes
       gcTime: 1000 * 60 * 15,         // 15 minutes
+      networkMode: 'offlineFirst',
+      refetchOnWindowFocus: false,    // Prevents sudden re-fetches when switching browser tabs
+      refetchOnReconnect: 'always',
+      refetchOnMount: true,
       retry: (failureCount, error) => {
-        // Do not retry on client errors (4xx) — only server errors (5xx)
+        // Never retry client errors (400, 401, 403, 404, 422)
         if (error?.status >= 400 && error?.status < 500) return false;
-        return failureCount < 1;
+        return failureCount < 2;
       },
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
     mutations: {
-      // Mutations retry once on network failure
+      networkMode: 'offlineFirst',
       retry: 0,
     },
   },
 });
 
 /**
- * Query key factory — ensures consistent, structured cache keys
- * Usage: queryKeys.products.list({ category: 'sacs' })
+ * Query key factory — Ensures strongly typed, structured, deduplicated cache keys across the entire app
  */
 export const queryKeys = {
   products: {
@@ -44,6 +48,7 @@ export const queryKeys = {
   categories: {
     all: ['categories'],
     list: () => ['categories', 'list'],
+    detail: (slug) => ['categories', 'detail', slug],
   },
   cart: {
     all: ['cart'],
@@ -57,5 +62,20 @@ export const queryKeys = {
   wishlist: {
     all: ['wishlist'],
     items: () => ['wishlist', 'items'],
+  },
+  reviews: {
+    all: ['reviews'],
+    byProduct: (productId) => ['reviews', 'product', productId],
+  },
+  addresses: {
+    all: ['addresses'],
+    list: () => ['addresses', 'list'],
+  },
+  notifications: {
+    all: ['notifications'],
+    unread: () => ['notifications', 'unread'],
+  },
+  auth: {
+    user: () => ['auth', 'user'],
   },
 };

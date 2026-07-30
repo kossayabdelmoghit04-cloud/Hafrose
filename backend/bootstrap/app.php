@@ -4,6 +4,7 @@ use App\Http\Middleware\BlockSpamHoneypot;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MonitoringMiddleware;
 use App\Http\Middleware\PerformanceMonitoringMiddleware;
+use App\Http\Middleware\SanitizeInputMiddleware;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\VerifyTurnstileToken;
 use Illuminate\Auth\AccessDeniedException;
@@ -40,9 +41,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'turnstile' => VerifyTurnstileToken::class,
             'perf.monitor' => PerformanceMonitoringMiddleware::class,
             'monitoring' => MonitoringMiddleware::class,
+            'sanitize.input' => SanitizeInputMiddleware::class,
         ]);
 
         $middleware->api(append: [
+            SanitizeInputMiddleware::class,
             MonitoringMiddleware::class,
             SecurityHeadersMiddleware::class,
         ]);
@@ -51,7 +54,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $status = 500;
-                $message = $e->getMessage() ?: 'Server Error';
+                $isProduction = config('app.env') === 'production';
+                $message = ($isProduction && !($e instanceof ValidationException))
+                    ? 'Le serveur MAISON HAFROSE rencontre une indisponibilité temporaire.'
+                    : ($e->getMessage() ?: 'Server Error');
+                
                 $errors = null;
                 $data = null;
 

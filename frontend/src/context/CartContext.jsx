@@ -1,105 +1,110 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { statePersistence } from '../lib/statePersistence';
+import { crossTabSync } from '../services/network/crossTabSync';
+import { syncMonitor } from '../lib/syncMonitor';
 
 const CartContext = createContext(null);
+const CART_PERSIST_KEY = 'cart';
 
-/**
- * CartProvider holds global shopping cart state with local storage persistence.
- */
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
-    try {
-      const storedCart = localStorage.getItem('hafrose_cart');
-      return storedCart ? JSON.parse(storedCart) : [];
-    } catch (e) {
-      console.error('Error loading cart from localStorage:', e);
-      return [];
-    }
+    return statePersistence.getItem(CART_PERSIST_KEY, []);
   });
 
-  // Sync cart state with localStorage on changes
+  // Sync to versioned persistence and broadcast cross-tab
+  const updateCartState = useCallback((newCart) => {
+    setCart(newCart);
+    statePersistence.setItem(CART_PERSIST_KEY, newCart);
+    crossTabSync.broadcast('CART_UPDATED', { cart: newCart });
+    syncMonitor.recordStateUpdate();
+  }, []);
+
+  // Listen to cross-tab updates
   useEffect(() => {
-    try {
-      localStorage.setItem('hafrose_cart', JSON.stringify(cart));
-    } catch (e) {
-      console.error('Error saving cart to localStorage:', e);
-    }
-  }, [cart]);
-
-  /**
-   * Add an item to the cart or increment quantity if already present
-   * Clamps quantity to the product's available stock
-   */
-  const addToCart = (product, quantity = 1) => {
-    setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex((item) => item.product.id === product.id);
-      const maxStock = product.stock !== undefined ? product.stock : 10;
-
-      if (existingItemIndex > -1) {
-        const newCart = [...prevCart];
-        const existingItem = newCart[existingItemIndex];
-        const newQty = existingItem.quantity + quantity;
-        existingItem.quantity = Math.min(newQty, maxStock);
-        return newCart;
-      } else {
-        const qty = Math.min(quantity, maxStock);
-        return [...prevCart, { product, quantity: qty }];
+    const unsubscribe = crossTabSync.subscribe((msg) => {
+      if (msg.type === 'CART_UPDATED') {
+        syncMonitor.recordCrossTabEvent();
+        const latest = statePersistence.getItem(CART_PERSIST_KEY, []);
+        setCart(latest);
       }
     });
-  };
+    return unsubscribe;
+  }, []);
 
-  /**
-   * Remove a product from the cart completely
-   */
-  const removeFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
-  };
+  const addToCart = useCallback(
+    (product, quantity = 1) => {
+      setCart((prevCart) => {
+        const existingItemIndex = prevCart.findIndex((item) => item.product.id === product.id);
+        const maxStock = product.stock !== undefined ? product.stock : 10;
+        let newCart;
 
-  /**
-   * Update quantity of a specific item in the cart
-   */
-  const updateQuantity = (productId, quantity) => {
-    setCart((prevCart) =>
-      prevCart.map((item) => {
+        if (existingItemIndex > -1) {
+          newCart = [...prevCart];
+          const existingItem = { ...newCart[existingItemIndex] };
+          const newQty = existingItem.quantity + quantity;
+          existingItem.quantity = Math.min(newQty, maxStock);
+          newCart[existingItemIndex] = existingItem;
+        } else {
+          const qty = Math.min(quantity, maxStock);
+          newCart = [...prevCart, { product, quantity: qty }];
+        }
+
+        statePersistence.setItem(CART_PERSIST_KEY, newCart);
+        crossTabSync.broadcast('CART_UPDATED', { cart: newCart });
+        return newCart;
+      });
+    },
+    []
+  );
+
+  const removeFromCart = useCallback((productId) => {
+    setCart((prevCart) => {
+      const newCart = prevCart.filter((item) => item.product.id !== productId);
+      statePersistence.setItem(CART_PERSIST_KEY, newCart);
+      crossTabSync.broadcast('CART_UPDATED', { cart: newCart });
+      return newCart;
+    });
+  }, []);
+
+  const updateQuantity = useCallback((productId, quantity) => {
+    setCart((prevCart) => {
+      const newCart = prevCart.map((item) => {
         if (item.product.id === productId) {
           const maxStock = item.product.stock !== undefined ? item.product.stock : 10;
           const cleanQty = Math.max(1, Math.min(quantity, maxStock));
           return { ...item, quantity: cleanQty };
         }
         return item;
-      })
-    );
-  };
+      });
+      statePersistence.setItem(CART_PERSIST_KEY, newCart);
+      crossTabSync.broadcast('CART_UPDATED', { cart: newCart });
+      return newCart;
+    });
+  }, []);
 
-  /**
-   * Clear all items from the cart
-   */
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = useCallback(() => {
+    updateCartState([]);
+  }, [updateCartState]);
 
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const cartCount = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
+  const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.product.price || 0) * item.quantity, 0), [cart]);
 
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        cartCount,
-        cartTotal,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const value = useMemo(
+    () => ({
+      cart,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      cartCount,
+      cartTotal,
+    }),
+    [cart, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal]
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-/**
- * Custom hook to use the Cart Context
- */
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {

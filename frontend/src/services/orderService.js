@@ -1,35 +1,19 @@
 import api from './api';
 
 /**
- * orderService — Service de gestion des commandes HAFROSE.
- * Connecté aux endpoints Laravel :
- * - POST /api/orders (Passer une commande)
- * - GET /api/auth/orders (Historique du client connecté)
- * - GET /api/auth/orders/{id} (Détails d'une commande du client)
+ * HAFROSE — Standardized Order Service (Phase 14)
  */
 const orderService = {
-  /**
-   * Passer une nouvelle commande
-   * @param {Object} orderData - Informations de livraison et articles
-   */
-  create: (orderData) => {
-    return api.post('/orders', orderData);
+  create: (orderData, options = {}) => {
+    return api.post('/orders', orderData, options);
   },
 
-  /**
-   * Récupérer l'historique des commandes du client connecté
-   * GET /api/auth/orders
-   */
-  getAll: async () => {
-    return api.get('/auth/orders');
+  getAll: (options = {}) => {
+    return api.get('/auth/orders', options);
   },
 
-  /**
-   * Récupérer les détails d'une commande spécifique
-   * GET /api/auth/orders/{id}
-   */
-  getById: async (id) => {
-    return api.get(`/auth/orders/${id}`);
+  getById: (id, options = {}) => {
+    return api.get(`/auth/orders/${id}`, options);
   },
 };
 

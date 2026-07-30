@@ -1,78 +1,79 @@
-import { useQuery, usePrefetchQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '../services/queryClient';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
+import { useResilientQuery } from './api/useResilientQuery';
 
 /**
- * Hook — Products list with optional filtering
+ * HAFROSE — Resilient Product & Category Hooks (Phase 8 & 14)
  */
-export function useProducts(filters = {}) {
-  return useQuery({
-    queryKey: queryKeys.products.list(filters),
-    queryFn: () => productService.getProducts(filters),
-    select: (data) => data?.data ?? [],
-  });
+
+export function useProducts(filters = {}, options = {}) {
+  return useResilientQuery(
+    queryKeys.products.list(filters),
+    ({ signal }) => productService.getAll(filters, { signal }),
+    {
+      select: (data) => data?.data ?? data ?? [],
+      ...options,
+    }
+  );
 }
 
-/**
- * Hook — Single product by slug
- */
-export function useProduct(slug) {
-  return useQuery({
-    queryKey: queryKeys.products.detail(slug),
-    queryFn: () => productService.getProduct(slug),
-    enabled: !!slug,
-    select: (data) => data?.data ?? null,
-  });
+export function useProduct(slug, options = {}) {
+  return useResilientQuery(
+    queryKeys.products.detail(slug),
+    ({ signal }) => productService.getBySlug(slug, { signal }),
+    {
+      enabled: !!slug,
+      select: (data) => data?.data ?? data ?? null,
+      ...options,
+    }
+  );
 }
 
-/**
- * Hook — Featured products for homepage
- */
-export function useFeaturedProducts() {
-  return useQuery({
-    queryKey: queryKeys.products.featured(),
-    queryFn: () => productService.getProducts({ featured: 1 }),
-    staleTime: 1000 * 60 * 10, // Featured products stale after 10 min
-    select: (data) => data?.data ?? [],
-  });
+export function useFeaturedProducts(options = {}) {
+  return useResilientQuery(
+    queryKeys.products.featured(),
+    ({ signal }) => productService.getAll({ featured: 1 }, { signal }),
+    {
+      staleTime: 1000 * 60 * 10,
+      select: (data) => data?.data ?? data ?? [],
+      ...options,
+    }
+  );
 }
 
-/**
- * Hook — Related products (used in product detail)
- */
-export function useRelatedProducts(slug) {
-  return useQuery({
-    queryKey: queryKeys.products.related(slug),
-    queryFn: () => productService.getRelatedProducts(slug),
-    enabled: !!slug,
-    select: (data) => data?.data ?? [],
-  });
+export function useRelatedProducts(slug, options = {}) {
+  return useResilientQuery(
+    queryKeys.products.related(slug),
+    ({ signal }) => productService.getRelated(slug, { signal }),
+    {
+      enabled: !!slug,
+      select: (data) => data?.data ?? data ?? [],
+      ...options,
+    }
+  );
 }
 
-/**
- * Hook — Categories list
- */
-export function useCategories() {
-  return useQuery({
-    queryKey: queryKeys.categories.list(),
-    queryFn: () => categoryService.getCategories(),
-    staleTime: 1000 * 60 * 15, // Categories rarely change — 15 min
-    select: (data) => data?.data ?? [],
-  });
+export function useCategories(options = {}) {
+  return useResilientQuery(
+    queryKeys.categories.list(),
+    ({ signal }) => categoryService.getAll({ signal }),
+    {
+      staleTime: 1000 * 60 * 15,
+      select: (data) => data?.data ?? data ?? [],
+      ...options,
+    }
+  );
 }
 
-/**
- * Prefetch product detail on hover — improves navigation UX
- * Call this from product card mouse-enter event
- */
 export function usePrefetchProduct() {
-  const prefetch = usePrefetchQuery();
+  const queryClient = useQueryClient();
   return (slug) => {
     if (!slug) return;
-    prefetch({
+    queryClient.prefetchQuery({
       queryKey: queryKeys.products.detail(slug),
-      queryFn: () => productService.getProduct(slug),
+      queryFn: ({ signal }) => productService.getBySlug(slug, { signal }),
       staleTime: 1000 * 60 * 2,
     });
   };

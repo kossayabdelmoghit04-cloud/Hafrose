@@ -1,32 +1,25 @@
 import api from './api';
 
 /**
- * loyaltyService — Service du programme de fidélité HAFROSE.
- * Connecté aux endpoints Laravel /api/loyalty/account et /api/loyalty/rewards.
+ * HAFROSE — Standardized Loyalty Service (Phase 14)
  */
 export const loyaltyService = {
-  /**
-   * Obtenir le compte fidélité du client
-   * GET /api/loyalty/account
-   */
-  async getAccount() {
+  async getAccount(options = {}) {
     try {
-      const res = await api.get('/loyalty/account');
+      const res = await api.get('/loyalty/account', options);
       return res?.data ?? res ?? null;
-    } catch {
+    } catch (err) {
+      if (err.isCanceled) throw err;
       return null;
     }
   },
 
-  /**
-   * Obtenir la liste des récompenses disponibles
-   * GET /api/loyalty/rewards
-   */
-  async getRewards() {
+  async getRewards(options = {}) {
     try {
-      const res = await api.get('/loyalty/rewards');
+      const res = await api.get('/loyalty/rewards', options);
       return res?.data ?? res ?? [];
-    } catch {
+    } catch (err) {
+      if (err.isCanceled) throw err;
       return [];
     }
   },

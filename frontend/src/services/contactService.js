@@ -1,12 +1,11 @@
 import api from './api';
 
+/**
+ * HAFROSE — Standardized Contact Service (Phase 14)
+ */
 const contactService = {
-  /**
-   * Envoie le formulaire de contact au backend
-   * @param {Object} contactData - { name, email, subject, message }
-   */
-  submit: (contactData) => {
-    return api.post('/contact', contactData);
+  submit: (contactData, options = {}) => {
+    return api.post('/contact', contactData, options);
   }
 };
 

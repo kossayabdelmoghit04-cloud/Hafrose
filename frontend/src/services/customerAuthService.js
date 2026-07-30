@@ -1,11 +1,8 @@
 import api from './api';
 
 /**
- * customerAuthService — Service d'authentification client HAFROSE.
- * Connecté à l'API Laravel /api/auth/* via Sanctum.
- * Aucun fallback de données mockées en mode production.
+ * HAFROSE — Standardized Customer Auth Service (Phase 14)
  */
-
 const TOKEN_KEY = 'hafrose_customer_token';
 const USER_KEY = 'hafrose_customer_user';
 
@@ -41,11 +38,8 @@ export const customerAuthService = {
     }
   },
 
-  /**
-   * Authentifier un client via POST /api/auth/login
-   */
-  async login(credentials) {
-    const res = await api.post('/auth/login', credentials);
+  async login(credentials, options = {}) {
+    const res = await api.post('/auth/login', credentials, options);
     if (res?.success && res.data?.token) {
       this.setToken(res.data.token);
       this.setUser(res.data.user);
@@ -53,11 +47,8 @@ export const customerAuthService = {
     return res;
   },
 
-  /**
-   * Inscrire un client via POST /api/auth/register
-   */
-  async register(data) {
-    const res = await api.post('/auth/register', data);
+  async register(data, options = {}) {
+    const res = await api.post('/auth/register', data, options);
     if (res?.success && res.data?.token) {
       this.setToken(res.data.token);
       this.setUser(res.data.user);
@@ -65,70 +56,53 @@ export const customerAuthService = {
     return res;
   },
 
-  /**
-   * Déconnecter le client via POST /api/auth/logout
-   */
-  async logout() {
+  async logout(options = {}) {
     try {
       const token = this.getToken();
       if (token) {
-        await api.post('/auth/logout');
+        await api.post('/auth/logout', {}, options);
       }
     } catch (e) {
-      // Ignore network errors during logout — toujours nettoyer la session locale
+      // Ignore network errors during logout
     } finally {
       this.setToken(null);
       this.setUser(null);
     }
   },
 
-  /**
-   * Récupérer le profil client connecté via GET /api/auth/me (ou /api/user Sanctum)
-   */
-  async fetchMe() {
+  async fetchMe(options = {}) {
     const token = this.getToken();
     if (!token) return null;
     try {
-      const res = await api.get('/auth/me');
+      const res = await api.get('/auth/me', options);
       if (res) {
         this.setUser(res.data ?? res);
         return res.data ?? res;
       }
-    } catch {
+    } catch (err) {
+      if (err.isCanceled) throw err;
       return this.getUser();
     }
   },
 
-  /**
-   * Demander un lien de réinitialisation via POST /api/auth/forgot-password
-   */
-  async requestPasswordReset(email) {
-    return api.post('/auth/forgot-password', { email });
+  async requestPasswordReset(email, options = {}) {
+    return api.post('/auth/forgot-password', { email }, options);
   },
 
-  /**
-   * Réinitialiser le mot de passe via POST /api/auth/reset-password
-   */
-  async resetPassword(data) {
-    return api.post('/auth/reset-password', data);
+  async resetPassword(data, options = {}) {
+    return api.post('/auth/reset-password', data, options);
   },
 
-  /**
-   * Mettre à jour le profil du client connecté via PUT /api/auth/profile
-   */
-  async updateProfile(data) {
-    const res = await api.put('/auth/profile', data);
+  async updateProfile(data, options = {}) {
+    const res = await api.put('/auth/profile', data, options);
     if (res?.data) {
       this.setUser({ ...this.getUser(), ...res.data });
     }
     return res;
   },
 
-  /**
-   * Mettre à jour le mot de passe du client connecté via PUT /api/auth/password
-   */
-  async updatePassword(data) {
-    return api.put('/auth/password', data);
+  async updatePassword(data, options = {}) {
+    return api.put('/auth/password', data, options);
   },
 };
 
