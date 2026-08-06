@@ -44,6 +44,7 @@ export const Drawer: React.FC<DrawerProps> = ({
     right: 'right-0 top-0 bottom-0 animate-slide-left border-l',
     left: 'left-0 top-0 bottom-0 animate-slide-right border-r',
     bottom: 'bottom-0 left-0 right-0 max-h-[85vh] animate-slide-up border-t rounded-t-2xl',
+    top: 'top-0 left-0 right-0 max-h-[85vh] animate-slide-down border-b rounded-b-2xl',
   };
 
   return (

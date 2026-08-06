@@ -1,75 +1,119 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { PublicLayout, AccountLayout, AdminLayout, AuthLayout } from '../layouts';
 import { ProtectedRoute } from './ProtectedRoute';
-import { ROUTES } from '../constants/routes.constants';
+import { Spinner } from '../components/ui/Spinner';
 
-/**
- * Route Tree & Code-Splitting Architecture
- * All page components are lazily imported to ensure optimal bundle performance
- */
+// Lazy-loaded pages
+const HomePage = lazy(() => import('../pages/home/HomePage'));
+const ShopPage = lazy(() => import('../pages/shop/ShopPage'));
+const ProductDetailPage = lazy(() => import('../pages/product/ProductDetailPage'));
+const SearchPage = lazy(() => import('../pages/search/SearchPage'));
+const WishlistPage = lazy(() => import('../pages/wishlist/WishlistPage'));
+const CartPage = lazy(() => import('../pages/cart/CartPage'));
+const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'));
 
-// Shell Fallback Spinner
-const PageFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-hafrose-cream">
-    <div className="w-8 h-8 border-4 border-hafrose-burgundy border-t-transparent rounded-full animate-spin" />
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-cream-100">
+    <Spinner size="xl" variant="burgundy" />
   </div>
 );
 
-// Router Config Definition
 const router = createBrowserRouter([
-  // Public Routes (Header + Footer Layout)
+  // Public routes under PublicLayout
   {
-    path: ROUTES.PUBLIC.HOME,
+    path: '/',
     element: <PublicLayout />,
     children: [
-      { index: true, element: <Suspense fallback={<PageFallback />}><div>Home Page Shell</div></Suspense> },
-      { path: ROUTES.PUBLIC.CATALOG, element: <Suspense fallback={<PageFallback />}><div>Catalog Page Shell</div></Suspense> },
-      { path: ROUTES.PUBLIC.PRODUCT_DETAILS, element: <Suspense fallback={<PageFallback />}><div>Product Details Page Shell</div></Suspense> },
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <HomePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'shop',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ShopPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'product/:slug',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ProductDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'search',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <SearchPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'wishlist',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <WishlistPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'cart',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <CartPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'checkout',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <CheckoutPage />
+          </Suspense>
+        ),
+      },
     ],
   },
-  // Auth Routes (Login / Register)
+  // Auth routes
   {
     path: '/',
     element: <AuthLayout />,
     children: [
-      { path: ROUTES.AUTH.LOGIN, element: <Suspense fallback={<PageFallback />}><div>Login Page Shell</div></Suspense> },
-      { path: ROUTES.AUTH.REGISTER, element: <Suspense fallback={<PageFallback />}><div>Register Page Shell</div></Suspense> },
+      { path: 'login', element: <div>Connexion</div> },
+      { path: 'register', element: <div>Inscription</div> },
     ],
   },
-  // Customer Protected Account Routes
+  // Protected customer account routes
   {
-    element: <ProtectedRoute requiredRole="customer" />,
+    path: '/account',
+    element: (
+      <ProtectedRoute requiredRole="customer">
+        <AccountLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      {
-        element: <PublicLayout />,
-        children: [
-          {
-            path: ROUTES.CUSTOMER.ACCOUNT,
-            element: <AccountLayout />,
-            children: [
-              { path: ROUTES.CUSTOMER.PROFILE, element: <div>Account Profile Shell</div> },
-              { path: ROUTES.CUSTOMER.ORDERS, element: <div>Account Orders Shell</div> },
-              { path: ROUTES.CUSTOMER.WISHLIST, element: <div>Account Wishlist Shell</div> },
-            ],
-          },
-        ],
-      },
+      { index: true, element: <div>Tableau de Bord Client</div> },
     ],
   },
-  // Admin Protected Back-Office Routes
+  // Protected admin back-office routes
   {
-    path: ROUTES.ADMIN.DASHBOARD,
-    element: <ProtectedRoute requiredRole="admin" />,
+    path: '/admin',
+    element: (
+      <ProtectedRoute requiredRole="admin">
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
-      {
-        element: <AdminLayout />,
-        children: [
-          { index: true, element: <div>Admin Dashboard Shell</div> },
-          { path: ROUTES.ADMIN.PRODUCTS, element: <div>Admin Products Shell</div> },
-          { path: ROUTES.ADMIN.ORDERS, element: <div>Admin Orders Shell</div> },
-        ],
-      },
+      { index: true, element: <div>Tableau de Bord Admin</div> },
     ],
   },
 ]);

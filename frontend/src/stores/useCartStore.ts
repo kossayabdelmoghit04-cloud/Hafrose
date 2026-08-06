@@ -19,8 +19,29 @@ export const useCartStore = create<CartState>((set) => ({
   items: [],
   isDrawerOpen: false,
 
-  addItem: () => {
-    // Implementation placeholder - to be populated in future feature phase
+  addItem: (product, quantity = 1, selectedSize, selectedColor) => {
+    const cartItemId = `${product.id}-${selectedSize ?? 'default'}-${selectedColor ?? 'default'}`;
+    set((state) => {
+      const existing = state.items.find((item) => item.id === cartItemId);
+      if (existing) {
+        return {
+          items: state.items.map((item) =>
+            item.id === cartItemId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          ),
+        };
+      }
+      const newItem: CartItem = {
+        id: cartItemId,
+        product,
+        quantity,
+        unit_price: product.sale_price ?? product.price,
+        selected_size: selectedSize,
+        selected_color: selectedColor,
+      };
+      return { items: [...state.items, newItem] };
+    });
   },
 
   removeItem: (cartItemId) => {

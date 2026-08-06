@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export type DrawerPosition = 'left' | 'right' | 'bottom';
+export type DrawerPosition = 'left' | 'right' | 'bottom' | 'top';
 export type DrawerSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export interface DrawerProps {

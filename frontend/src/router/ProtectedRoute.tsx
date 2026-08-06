@@ -6,13 +6,14 @@ import { ROUTES } from '../constants/routes.constants';
 
 interface ProtectedRouteProps {
   requiredRole?: RoleType;
+  children?: React.ReactNode;
 }
 
 /**
  * Route Navigation Guard Architecture
  * Controls access to Customer Account and Admin Panel based on Sanctum Auth state and user roles
  */
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole, children }) => {
   const { isAuthenticated, user, isLoading } = useAuthStore();
 
   if (isLoading) {
@@ -27,5 +28,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) 
     return <Navigate to={ROUTES.PUBLIC.HOME} replace />;
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
