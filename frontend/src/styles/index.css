@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-burgundy: #8A1538;
+    --color-rose-powder: #F8D7DA;
+    --color-cream: #FAF6F0;
+    --color-gold: #D4AF37;
+    --color-charcoal: #1A1A1A;
+  }
+
+  body {
+    @apply bg-hafrose-cream text-hafrose-charcoal font-sans antialiased selection:bg-hafrose-burgundy selection:text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
