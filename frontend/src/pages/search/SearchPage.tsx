@@ -5,7 +5,13 @@ import { Container } from '../../components/ui/Container';
 import { Section } from '../../components/ui/Section';
 import { SearchInput } from '../../components/ui/SearchInput';
 import { ProductCard } from '../../components/ui/ProductCard';
+import { ProductCardSkeleton } from '../../components/ui/ProductCard/ProductCardSkeleton';
 import { Button } from '../../components/ui/Button';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { useProducts } from '../../hooks/useProductHooks';
+import { useDebounce } from '../../hooks/useUtilities';
+import { getImageUrl } from '../../utils/formatters';
+import { Product } from '../../types/models';
 
 const POPULAR_SUGGESTIONS = [
   'Robe Soirée Bordeaux',
@@ -16,23 +22,16 @@ const POPULAR_SUGGESTIONS = [
   'Blazer Crème',
 ];
 
-const SEARCH_DATABASE = [
-  { id: 301, name: 'Robe Fourreau Bordeaux Silk', slug: 'robe-fourreau-bordeaux-silk', price: 28900, categoryName: 'Robes', badgeText: 'Nouveau' },
-  { id: 302, name: 'Sac Mini Bucket Rose Poudré', slug: 'sac-mini-bucket-rose', price: 34500, categoryName: 'Sacs', badgeText: '-20%' },
-  { id: 303, name: 'Escarpins Satin Noir Prestige', slug: 'escarpins-satin-noir', price: 21000, categoryName: 'Chaussures' },
-  { id: 304, name: 'Robe Plissée Soleil Ivoire', slug: 'robe-plissee-soleil-ivoire', price: 26500, categoryName: 'Robes' },
-];
-
 export const SearchPage = () => {
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
 
-  const results = query.trim()
-    ? SEARCH_DATABASE.filter((p) =>
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.categoryName.toLowerCase().includes(query.toLowerCase())
-      )
-    : [];
+  const { data: searchResponse, isLoading, isError, refetch } = useProducts(
+    debouncedQuery.trim() ? { search: debouncedQuery } : undefined
+  );
+
+  const results: Product[] = debouncedQuery.trim() ? (searchResponse?.data ?? []) : [];
 
   return (
     <div className="bg-cream-100 min-h-screen">
@@ -77,18 +76,37 @@ export const SearchPage = () => {
                 ))}
               </div>
             </div>
+          ) : isLoading ? (
+            /* Loading State */
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : isError ? (
+            /* Error State */
+            <ErrorState
+              title="Erreur lors de la recherche"
+              message="Une erreur est survenue lors de la connexion au serveur HAFROSE."
+              onRetry={() => refetch()}
+            />
           ) : results.length > 0 ? (
             /* Results Grid */
             <div className="space-y-6">
               <p className="text-body-base text-neutral-600">
-                <strong>{results.length}</strong> résultat(s) pour « <strong>{query}</strong> »
+                <strong>{results.length}</strong> résultat(s) pour « <strong>{debouncedQuery}</strong> »
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
                 {results.map((product) => (
                   <ProductCard
                     key={product.id}
-                    {...product}
-                    badgeText={product.badgeText ?? undefined}
+                    id={product.id}
+                    name={product.name}
+                    slug={product.slug}
+                    price={product.price}
+                    salePrice={product.sale_price}
+                    imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                    categoryName={product.category?.name}
                     onClick={(slug) => navigate(`/product/${slug}`)}
                   />
                 ))}

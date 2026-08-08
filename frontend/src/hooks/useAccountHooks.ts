@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ordersService } from '../services/orders.service';
+import { ordersService, CreateOrderPayload } from '../services/orders.service';
 import { addressesService, CreateAddressPayload, UpdateAddressPayload } from '../services/addresses.service';
 import { wishlistService } from '../services/wishlist.service';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -115,5 +115,19 @@ export function useWishlistQuery() {
       return response.data;
     },
     enabled: Boolean(token),
+  });
+}
+
+export function useCreateOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateOrderPayload) => {
+      const response = await ordersService.createOrder(payload);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY });
+    },
   });
 }

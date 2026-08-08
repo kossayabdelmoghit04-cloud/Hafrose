@@ -15,11 +15,15 @@ export interface AuthState {
   logout: () => void;
 }
 
+const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+
 export const useAuthStore = create<AuthState>((set) => ({
+  // If a token exists in storage, start as authenticated while session rehydrates.
+  // isLoading=true prevents ProtectedRoute from redirecting prematurely.
   user: null,
-  token: localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
-  isAuthenticated: Boolean(localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)),
-  isLoading: true,
+  token: storedToken,
+  isAuthenticated: false, // Set to true only after profile is confirmed by useSession
+  isLoading: Boolean(storedToken), // Loading until session is validated
 
   setAuth: (user, token) => {
     localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);

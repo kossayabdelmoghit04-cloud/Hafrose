@@ -1,28 +1,23 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import { Container } from '../../components/ui/Container';
 import { Section } from '../../components/ui/Section';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
 import { ProductCard } from '../../components/ui/ProductCard';
+import { ProductCardSkeleton } from '../../components/ui/ProductCard/ProductCardSkeleton';
 import { Select } from '../../components/ui/Select';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Radio } from '../../components/ui/Radio';
 import { Button } from '../../components/ui/Button';
 import { Drawer } from '../../components/ui/Drawer';
 import { Pagination } from '../../components/ui/Pagination';
+import { ErrorState } from '../../components/ui/ErrorState';
+import { useProducts, useCategories } from '../../hooks/useProductHooks';
 import { useWishlistStore } from '../../stores/useWishlistStore';
 import { useCartStore } from '../../stores/useCartStore';
+import { getImageUrl } from '../../utils/formatters';
 import { Product } from '../../types/models';
-
-const CATEGORIES = [
-  { id: 'all', name: 'Toutes les catégories', count: 180 },
-  { id: 'robes', name: 'Robes', count: 48 },
-  { id: 'sacs', name: 'Sacs & Maroquinerie', count: 32 },
-  { id: 'chaussures', name: 'Chaussures', count: 27 },
-  { id: 'bijoux', name: 'Bijoux', count: 41 },
-  { id: 'accessoires', name: 'Accessoires', count: 32 },
-];
 
 const SIZES = ['34', '36', '38', '40', '42', '44'];
 const COLORS = [
@@ -33,29 +28,34 @@ const COLORS = [
   { name: 'Or Champagne', hex: '#D4AF37' },
 ];
 
-const MOCK_PRODUCTS: Product[] = [
-  { id: 101, name: 'Robe Fourreau Bordeaux Silk', slug: 'robe-fourreau-bordeaux-silk', sku: 'ROBE-101', description: 'Robe fourreau silk', price: 28900, category_id: 1, stock_quantity: 10, is_active: true, is_featured: true, created_at: '', updated_at: '' },
-  { id: 102, name: 'Sac Mini Bucket Rose Poudré', slug: 'sac-mini-bucket-rose', sku: 'SAC-102', description: 'Sac mini bucket', price: 34500, sale_price: 27600, category_id: 2, stock_quantity: 8, is_active: true, is_featured: false, created_at: '', updated_at: '' },
-  { id: 103, name: 'Escarpins Satin Noir Prestige', slug: 'escarpins-satin-noir', sku: 'ESC-103', description: 'Escarpins satin', price: 21000, category_id: 3, stock_quantity: 12, is_active: true, is_featured: false, created_at: '', updated_at: '' },
-  { id: 104, name: 'Manchette Or & Zircon', slug: 'manchette-or-zircon', sku: 'BIJ-104', description: 'Manchette or zircon', price: 14500, category_id: 4, stock_quantity: 15, is_active: true, is_featured: true, created_at: '', updated_at: '' },
-  { id: 105, name: 'Robe Plissée Soleil Ivoire', slug: 'robe-plissee-soleil-ivoire', sku: 'ROBE-105', description: 'Robe plissée ivoire', price: 26500, category_id: 1, stock_quantity: 6, is_active: true, is_featured: false, created_at: '', updated_at: '' },
-  { id: 106, name: 'Cabas Cuir Grainé Bordeaux', slug: 'cabas-cuir-graine-bordeaux', sku: 'SAC-106', description: 'Cabas cuir bordeaux', price: 42000, sale_price: 33600, category_id: 2, stock_quantity: 4, is_active: true, is_featured: false, created_at: '', updated_at: '' },
-  { id: 107, name: 'Mules Satin Champagne', slug: 'mules-satin-champagne', sku: 'ESC-107', description: 'Mules satin champagne', price: 19500, category_id: 3, stock_quantity: 9, is_active: true, is_featured: true, created_at: '', updated_at: '' },
-  { id: 108, name: 'Sautoir Perles de Culture', slug: 'sautoir-perles-culture', sku: 'BIJ-108', description: 'Sautoir perles', price: 16800, category_id: 4, stock_quantity: 11, is_active: true, is_featured: false, created_at: '', updated_at: '' },
-];
-
 export const ShopPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category') || 'all';
+
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [sortBy, setSortBy] = useState('featured');
+  const [sortBy, setSortBy] = useState<'featured' | 'latest' | 'price_asc' | 'price_desc'>('featured');
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
   const { addItem: addToCart } = useCartStore();
   const navigate = useNavigate();
+
+  // API Queries
+  const { data: categoriesData } = useCategories();
+  const { data: productsData, isLoading, isError, refetch } = useProducts({
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    sort: sortBy,
+    page: currentPage,
+    per_page: 12,
+  });
+
+  const categories = categoriesData?.data ?? [];
+  const products: Product[] = productsData?.data ?? [];
+  const meta = productsData?.meta;
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) =>
@@ -74,13 +74,24 @@ export const ShopPage = () => {
     setSelectedSizes([]);
     setSelectedColors([]);
     setInStockOnly(false);
+    setSearchParams({});
+  };
+
+  const handleCategoryChange = (slug: string) => {
+    setSelectedCategory(slug);
+    setCurrentPage(1);
+    if (slug === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: slug });
+    }
   };
 
   const handleWishlistToggle = (product: Product) => {
     if (isWishlisted(product.id)) {
       removeFromWishlist(product.id);
     } else {
-      addToWishlist({ id: product.id, user_id: 1, product_id: product.id, created_at: '' });
+      addToWishlist({ id: Date.now(), user_id: 0, product_id: product.id, product, created_at: new Date().toISOString() });
     }
   };
 
@@ -90,13 +101,19 @@ export const ShopPage = () => {
       <div className="space-y-3">
         <h4 className="font-serif text-h5 text-neutral-900 border-b border-neutral-200 pb-2">Catégories</h4>
         <div className="space-y-2">
-          {CATEGORIES.map((cat) => (
+          <Radio
+            name="category"
+            label="Toutes les catégories"
+            checked={selectedCategory === 'all'}
+            onChange={() => handleCategoryChange('all')}
+          />
+          {categories.map((cat) => (
             <Radio
               key={cat.id}
               name="category"
-              label={`${cat.name} (${cat.count})`}
-              checked={selectedCategory === cat.id}
-              onChange={() => setSelectedCategory(cat.id)}
+              label={cat.name}
+              checked={selectedCategory === cat.slug}
+              onChange={() => handleCategoryChange(cat.slug)}
             />
           ))}
         </div>
@@ -203,7 +220,7 @@ export const ShopPage = () => {
                 Filtres
               </Button>
               <span className="text-body-sm text-neutral-500 font-medium">
-                Affichage de <strong>{MOCK_PRODUCTS.length}</strong> produits
+                Affichage de <strong>{meta?.total ?? products.length}</strong> produits
               </span>
             </div>
 
@@ -212,7 +229,7 @@ export const ShopPage = () => {
               <span className="text-body-sm text-neutral-500 hidden sm:inline">Trier par :</span>
               <Select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => setSortBy(e.target.value as any)}
                 options={[
                   { value: 'featured', label: 'En vedette' },
                   { value: 'latest', label: 'Nouveautés' },
@@ -239,31 +256,68 @@ export const ShopPage = () => {
 
             {/* Product Grid */}
             <main className="lg:col-span-9">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-                {MOCK_PRODUCTS.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    slug={product.slug}
-                    price={product.price}
-                    salePrice={product.sale_price}
-                    isWishlisted={isWishlisted(product.id)}
-                    onWishlistToggle={() => handleWishlistToggle(product)}
-                    onQuickAdd={() => addToCart(product, 1)}
-                    onClick={(slug) => navigate(`/product/${slug}`)}
-                  />
-                ))}
-              </div>
+              {isLoading && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
+                </div>
+              )}
 
-              {/* Pagination */}
-              <div className="mt-12">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={5}
-                  onPageChange={(page) => setCurrentPage(page)}
+              {isError && (
+                <ErrorState
+                  title="Impossible de charger le catalogue"
+                  message="Une erreur est survenue lors de la connexion au serveur HAFROSE."
+                  onRetry={() => refetch()}
                 />
-              </div>
+              )}
+
+              {!isLoading && !isError && products.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-md p-8 border border-neutral-200/80 space-y-4">
+                  <h3 className="font-serif text-h3 text-neutral-950">Aucun produit trouvé</h3>
+                  <p className="text-body-base text-neutral-600">
+                    Essayez de réinitialiser vos filtres pour découvrir toutes nos créations.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={resetFilters}>
+                    Réinitialiser les filtres
+                  </Button>
+                </div>
+              )}
+
+              {!isLoading && !isError && products.length > 0 && (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        id={product.id}
+                        name={product.name}
+                        slug={product.slug}
+                        price={product.price}
+                        salePrice={product.sale_price}
+                        imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                        categoryName={product.category?.name}
+                        badgeText={product.is_featured ? 'Best-seller' : undefined}
+                        isWishlisted={isWishlisted(product.id)}
+                        onWishlistToggle={() => handleWishlistToggle(product)}
+                        onQuickAdd={() => addToCart(product, 1)}
+                        onClick={(slug) => navigate(`/product/${slug}`)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {(meta?.last_page ?? 1) > 1 && (
+                    <div className="mt-12">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={meta?.last_page ?? 1}
+                        onPageChange={(page) => setCurrentPage(page)}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
             </main>
           </div>
         </Container>
