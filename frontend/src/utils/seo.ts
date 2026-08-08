@@ -84,7 +84,8 @@ export function buildProductLD(product: {
   sku?: string;
   inStock?: boolean;
 }) {
-  const price = product.salePrice ?? product.price;
+  // Coerce to number — Laravel decimal:2 cast serializes as string in JSON
+  const numPrice = Number(product.salePrice ?? product.price);
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -100,7 +101,7 @@ export function buildProductLD(product: {
     offers: {
       '@type': 'Offer',
       priceCurrency: 'DZD',
-      price: price.toFixed(2),
+      price: numPrice.toFixed(2),
       availability: product.inStock
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',

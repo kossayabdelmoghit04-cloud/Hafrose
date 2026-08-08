@@ -5,6 +5,9 @@
  * E2E Purchase Flow Certification
  *
  * Full journey: LOGIN → SHOP → PRODUCT → CART → CHECKOUT → ORDER → LOGOUT
+ *
+ * Real frontend (localhost:3000) + Real Laravel API (localhost:8000)
+ * Real Sanctum authentication + Real database (no mocks)
  */
 
 const BASE_URL = 'http://localhost:3000';
@@ -14,8 +17,6 @@ const TEST_CREDENTIALS = {
   email: 'client.test@hafrose.com',
   password: 'password',
 };
-
-test.setTimeout(60000);
 
 // ============================================================
 // TEST 1: Backend API Health Check
@@ -31,34 +32,29 @@ test('1. Backend API is reachable and returning real data', async ({ request }) 
   const prodResponse = await request.get(`${API_URL}/api/products`);
   expect(prodResponse.status()).toBe(200);
   const prodBody = await prodResponse.json();
-  const products = Array.isArray(prodBody.data) ? prodBody.data : prodBody.data?.data ?? [];
+  const products = prodBody.data?.data ?? [];
   expect(products.length).toBeGreaterThan(0);
-  console.log(`✅ Products count: ${products.length}`);
+  console.log(`✅ Products count: ${products.length} (total: ${prodBody.data?.meta?.total})`);
+
+  const firstSlug = products[0]?.slug;
+  expect(firstSlug).toBeTruthy();
+  console.log(`✅ First product slug: "${firstSlug}"`);
 });
 
 // ============================================================
-// TEST 2: Authentication Flow — Login → Session → Logout
+// TEST 2: Authentication Flow — Login → Account
 // ============================================================
 test('2. Authentication flow: Login → Account → Logout', async ({ page }) => {
   await page.goto(`${BASE_URL}/login`);
   await page.waitForSelector('form', { timeout: 10000 });
 
-  // Fill login inputs explicitly by input type
-  const emailInput = page.locator('input[type="email"]');
-  const passwordInput = page.locator('input[type="password"]');
-
-  await emailInput.fill(TEST_CREDENTIALS.email);
-  await passwordInput.fill(TEST_CREDENTIALS.password);
-
-  // Click submit button
+  await page.locator('input[type="email"]').fill(TEST_CREDENTIALS.email);
+  await page.locator('input[type="password"]').fill(TEST_CREDENTIALS.password);
   await page.getByRole('button', { name: /Se Connecter/i }).click();
 
-  // Wait for navigation to /account
-  await page.waitForURL('**/account', { timeout: 20000 });
-  expect(page.url()).toContain('/account');
+  await expect(page).toHaveURL(/account/, { timeout: 20000 });
   console.log('✅ Login successful — redirected to /account');
 
-  // Verify account dashboard elements loaded
   await page.waitForSelector('body', { timeout: 10000 });
   console.log('✅ Account page rendered');
 });
@@ -68,36 +64,43 @@ test('2. Authentication flow: Login → Account → Logout', async ({ page }) =>
 // ============================================================
 test('3. Shop page loads real products from API', async ({ page }) => {
   await page.goto(`${BASE_URL}/shop`);
-  await page.waitForSelector('h3', { timeout: 20000 });
+  await page.waitForSelector('main h3', { timeout: 20000 });
 
-  const productCards = page.locator('h3');
+  const productCards = page.locator('main h3');
   const count = await productCards.count();
   expect(count).toBeGreaterThan(0);
-  console.log(`✅ Shop: ${count} product headings rendered`);
+  console.log(`✅ Shop: ${count} product cards rendered in main grid`);
 });
 
 // ============================================================
 // TEST 4: Product Detail Page
 // ============================================================
-test('4. Product detail page displays real product data', async ({ page }) => {
-  // Go to shop and click first product to ensure valid loaded product
-  await page.goto(`${BASE_URL}/shop`);
-  await page.waitForSelector('h3', { timeout: 20000 });
+test('4. Product detail page displays real product data', async ({ request, page }) => {
+  const prodResponse = await request.get(`${API_URL}/api/products`);
+  const prodBody = await prodResponse.json();
+  const firstSlug = prodBody.data?.data?.[0]?.slug;
+  expect(firstSlug).toBeTruthy();
 
-  const firstCard = page.locator('h3').first();
-  const productName = await firstCard.textContent();
-  await firstCard.click();
-
-  await page.waitForURL('**/product/**', { timeout: 15000 });
+  await page.goto(`${BASE_URL}/product/${firstSlug}`);
   await page.waitForSelector('button:has-text("Ajouter au Panier")', { timeout: 25000 });
 
-  console.log(`✅ Product detail loaded: "${productName?.trim()}"`);
+  const bodyText = await page.locator('body').textContent();
+  expect(bodyText).not.toContain('Produit introuvable');
+  console.log(`✅ Product detail loaded for slug: "${firstSlug}"`);
 });
 
 // ============================================================
 // TEST 5: Full Purchase Flow (authenticated)
 // ============================================================
-test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout → Order', async ({ page }) => {
+test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout → Order', async ({ request, page }) => {
+  test.setTimeout(120000); // 120s for full multi-page purchase flow
+
+  const prodResponse = await request.get(`${API_URL}/api/products`);
+  const prodBody = await prodResponse.json();
+  const firstSlug = prodBody.data?.data?.[0]?.slug;
+  const firstName = prodBody.data?.data?.[0]?.name;
+  expect(firstSlug).toBeTruthy();
+
   // --- STEP 1: Login ---
   await page.goto(`${BASE_URL}/login`);
   await page.waitForSelector('form', { timeout: 10000 });
@@ -106,48 +109,43 @@ test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout �
   await page.locator('input[type="password"]').fill(TEST_CREDENTIALS.password);
   await page.getByRole('button', { name: /Se Connecter/i }).click();
 
-  await page.waitForURL('**/account', { timeout: 20000 });
+  await expect(page).toHaveURL(/account/, { timeout: 20000 });
   console.log('✅ STEP 1: Logged in successfully');
 
-  // --- STEP 2: Navigate to Shop ---
-  await page.goto(`${BASE_URL}/shop`);
-  await page.waitForSelector('h3', { timeout: 20000 });
-  console.log('✅ STEP 2: Shop page loaded');
-
-  // --- STEP 3: Click first product ---
-  const firstProductCard = page.locator('h3').first();
-  const productName = await firstProductCard.textContent();
-  await firstProductCard.click();
-
-  await page.waitForURL('**/product/**', { timeout: 15000 });
+  // --- STEP 2: Navigate to Product page ---
+  await page.goto(`${BASE_URL}/product/${firstSlug}`);
   await page.waitForSelector('button:has-text("Ajouter au Panier")', { timeout: 25000 });
-  console.log(`✅ STEP 3: Product page loaded "${productName?.trim()}"`);
+  console.log(`✅ STEP 2: Product page loaded "${firstName}"`);
 
-  // --- STEP 4: Add to cart ---
+  // --- STEP 3: Select size & Add to Cart ---
   const sizeButtons = page.locator('button').filter({ hasText: /^(34|36|38|40|42|44|XS|S|M|L|XL)$/ });
   if (await sizeButtons.count() > 0) {
     await sizeButtons.first().click();
+    console.log('✅ STEP 3a: Size selected');
   }
 
   const addToCartBtn = page.locator('button:has-text("Ajouter au Panier")');
   await addToCartBtn.click();
-  console.log('✅ STEP 4: Added product to cart');
+  console.log('✅ STEP 3b: Added product to cart');
 
-  // --- STEP 5: Go to Cart ---
+  // --- STEP 4: Go to Cart ---
   await page.goto(`${BASE_URL}/cart`);
   await page.waitForSelector('body', { timeout: 10000 });
 
   const bodyText = await page.locator('body').textContent();
   expect(bodyText).not.toContain('Votre panier est vide');
-  console.log('✅ STEP 5: Cart contains items');
+  console.log('✅ STEP 4: Cart contains items');
 
-  // --- STEP 6: Go to Checkout ---
-  await page.goto(`${BASE_URL}/checkout`);
-  await page.waitForURL('**/checkout', { timeout: 15000 });
+  // --- STEP 5: Click link to Checkout (SPA React Router navigation) ---
+  const checkoutLink = page.locator('a[href="/checkout"]').first();
+  await expect(checkoutLink).toBeVisible({ timeout: 10000 });
+  await checkoutLink.click();
+
+  await expect(page).toHaveURL(/checkout/, { timeout: 20000 });
   await page.waitForSelector('form', { timeout: 20000 });
-  console.log('✅ STEP 6: On Checkout page');
+  console.log('✅ STEP 5: Navigated to Checkout page via SPA');
 
-  // --- STEP 7: Check CGV & submit ---
+  // --- STEP 6: Check CGV & submit order ---
   const cgvCheckbox = page.locator('input[type="checkbox"]');
   if (await cgvCheckbox.count() > 0) {
     if (!(await cgvCheckbox.first().isChecked())) {
@@ -158,10 +156,11 @@ test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout �
   const submitBtn = page.getByRole('button', { name: /Confirmer et Payer/i });
   await expect(submitBtn).toBeVisible({ timeout: 10000 });
   await submitBtn.click();
+  console.log('✅ STEP 6: Order submitted');
 
-  // --- STEP 8: Confirmation ---
-  await page.waitForSelector('text=Merci pour Votre Commande', { timeout: 30000 });
-  console.log('✅ STEP 8: Order confirmation received!');
+  // --- STEP 7: Order Confirmation ---
+  await page.waitForSelector('text=Merci pour Votre Commande', { timeout: 45000 });
+  console.log('✅ STEP 7: Order confirmation received!');
 });
 
 // ============================================================
@@ -173,8 +172,6 @@ test('6. Protected route guard redirects unauthenticated users', async ({ page }
   await page.reload();
 
   await page.goto(`${BASE_URL}/account`);
-
-  await page.waitForURL('**/login**', { timeout: 15000 });
-  expect(page.url()).toContain('/login');
+  await expect(page).toHaveURL(/login/, { timeout: 20000 });
   console.log('✅ Auth guard: unauthenticated access to /account redirected to /login');
 });

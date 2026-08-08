@@ -1,11 +1,12 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { CartItem } from '../types/cart';
 import { Product } from '../types/models';
 
 export interface CartState {
   items: CartItem[];
   isDrawerOpen: boolean;
-  
+
   // Actions
   addItem: (product: Product, quantity?: number, selectedSize?: string, selectedColor?: string) => void;
   removeItem: (cartItemId: string) => void;
@@ -15,50 +16,58 @@ export interface CartState {
   setDrawerOpen: (isOpen: boolean) => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
-  items: [],
-  isDrawerOpen: false,
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      items: [],
+      isDrawerOpen: false,
 
-  addItem: (product, quantity = 1, selectedSize, selectedColor) => {
-    const cartItemId = `${product.id}-${selectedSize ?? 'default'}-${selectedColor ?? 'default'}`;
-    set((state) => {
-      const existing = state.items.find((item) => item.id === cartItemId);
-      if (existing) {
-        return {
+      addItem: (product, quantity = 1, selectedSize, selectedColor) => {
+        const cartItemId = `${product.id}-${selectedSize ?? 'default'}-${selectedColor ?? 'default'}`;
+        set((state) => {
+          const existing = state.items.find((item) => item.id === cartItemId);
+          if (existing) {
+            return {
+              items: state.items.map((item) =>
+                item.id === cartItemId
+                  ? { ...item, quantity: item.quantity + quantity }
+                  : item
+              ),
+            };
+          }
+          const newItem: CartItem = {
+            id: cartItemId,
+            product,
+            quantity,
+            unit_price: Number(product.sale_price ?? product.price),
+            selected_size: selectedSize,
+            selected_color: selectedColor,
+          };
+          return { items: [...state.items, newItem] };
+        });
+      },
+
+      removeItem: (cartItemId) => {
+        set((state) => ({ items: state.items.filter((item) => item.id !== cartItemId) }));
+      },
+
+      updateQuantity: (cartItemId, quantity) => {
+        set((state) => ({
           items: state.items.map((item) =>
-            item.id === cartItemId
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
+            item.id === cartItemId ? { ...item, quantity: Math.max(1, quantity) } : item
           ),
-        };
-      }
-      const newItem: CartItem = {
-        id: cartItemId,
-        product,
-        quantity,
-        unit_price: product.sale_price ?? product.price,
-        selected_size: selectedSize,
-        selected_color: selectedColor,
-      };
-      return { items: [...state.items, newItem] };
-    });
-  },
+        }));
+      },
 
-  removeItem: (cartItemId) => {
-    set((state) => ({ items: state.items.filter((item) => item.id !== cartItemId) }));
-  },
+      clearCart: () => set({ items: [] }),
 
-  updateQuantity: (cartItemId, quantity) => {
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === cartItemId ? { ...item, quantity: Math.max(1, quantity) } : item
-      ),
-    }));
-  },
+      toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen })),
 
-  clearCart: () => set({ items: [] }),
-
-  toggleDrawer: () => set((state) => ({ isDrawerOpen: !state.isDrawerOpen })),
-
-  setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
-}));
+      setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
+    }),
+    {
+      name: 'hafrose_cart',
+      partialize: (state) => ({ items: state.items }),
+    }
+  )
+);
