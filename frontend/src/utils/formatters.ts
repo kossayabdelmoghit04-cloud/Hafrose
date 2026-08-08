@@ -54,15 +54,64 @@ export function truncateText(text: string, maxLength: number): string {
 
 /**
  * getImageUrl
- * Constructs an absolute URL for a media file path from Laravel Storage.
- * Falls back to a placeholder when the path is null or undefined.
+ * Constructs an absolute URL for media file paths coming from Laravel Storage,
+ * Laravel public directory, or static asset paths.
+ * Falls back gracefully to a placeholder when the path is null, undefined, or empty.
  */
 export function getImageUrl(
   filePath: string | null | undefined,
-  fallback = '/assets/images/placeholder.webp'
+  fallback = 'assets/images/placeholder.webp'
 ): string {
-  if (!filePath) return fallback;
-  if (filePath.startsWith('http')) return filePath;
-  const baseUrl = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
-  return `${baseUrl}/${filePath}`;
+  if (!filePath || typeof filePath !== 'string' || !filePath.trim()) {
+    if (filePath === fallback) return '/assets/images/placeholder.webp';
+    return getImageUrl(fallback);
+  }
+
+  const trimmed = filePath.trim();
+
+  // Return full URLs and data URIs as-is
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
+  }
+
+  // Base server URL (e.g. http://localhost:8000)
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+  const serverUrl = storageUrl.replace(/\/storage\/?$/, '');
+
+  // Strip leading slashes
+  const cleanPath = trimmed.replace(/^\/+/, '');
+
+  // 1. Direct storage path (e.g. storage/products/...)
+  if (cleanPath.startsWith('storage/')) {
+    return `${serverUrl}/${cleanPath}`;
+  }
+
+  // 2. Direct public images path (e.g. images/products/sacs/...)
+  if (cleanPath.startsWith('images/')) {
+    return `${serverUrl}/${cleanPath}`;
+  }
+
+  // 3. Direct public assets path (e.g. assets/images/...)
+  if (cleanPath.startsWith('assets/')) {
+    return `${serverUrl}/${cleanPath}`;
+  }
+
+  // 4. Relative storage paths (e.g. products/..., categories/..., galleries/..., uploads/...)
+  if (
+    cleanPath.startsWith('products/') ||
+    cleanPath.startsWith('categories/') ||
+    cleanPath.startsWith('galleries/') ||
+    cleanPath.startsWith('uploads/')
+  ) {
+    return `${serverUrl}/storage/${cleanPath}`;
+  }
+
+  // Default: append cleanPath to storage URL
+  return `${serverUrl}/storage/${cleanPath}`;
 }
+

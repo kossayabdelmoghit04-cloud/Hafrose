@@ -1,4 +1,4 @@
-﻿import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * HAFROSE — Phase 8.2.6.6
@@ -17,6 +17,8 @@ const TEST_CREDENTIALS = {
   email: 'client.test@hafrose.com',
   password: 'password',
 };
+
+test.setTimeout(90000);
 
 // ============================================================
 // TEST 1: Backend API Health Check
@@ -93,8 +95,6 @@ test('4. Product detail page displays real product data', async ({ request, page
 // TEST 5: Full Purchase Flow (authenticated)
 // ============================================================
 test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout → Order', async ({ request, page }) => {
-  test.setTimeout(120000); // 120s for full multi-page purchase flow
-
   const prodResponse = await request.get(`${API_URL}/api/products`);
   const prodBody = await prodResponse.json();
   const firstSlug = prodBody.data?.data?.[0]?.slug;
@@ -145,7 +145,16 @@ test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout �
   await page.waitForSelector('form', { timeout: 20000 });
   console.log('✅ STEP 5: Navigated to Checkout page via SPA');
 
-  // --- STEP 6: Check CGV & submit order ---
+  // --- STEP 6: Fill all required fields & submit ---
+  await page.getByRole('textbox', { name: /Prénom/i }).fill('Jean');
+  await page.getByRole('textbox', { name: /^Nom/i }).fill('Dupont');
+  await page.getByRole('textbox', { name: /E-mail/i }).fill('jean.dupont@example.com');
+  await page.getByRole('textbox', { name: /Téléphone/i }).fill('+33612345678');
+  await page.getByRole('textbox', { name: /Adresse/i }).fill('124 Avenue Montaigne');
+  await page.getByRole('textbox', { name: /Code Postal/i }).fill('75008');
+  await page.getByRole('textbox', { name: /Ville/i }).fill('Paris');
+
+  // Ensure CGV checkbox is checked
   const cgvCheckbox = page.locator('input[type="checkbox"]');
   if (await cgvCheckbox.count() > 0) {
     if (!(await cgvCheckbox.first().isChecked())) {
@@ -159,7 +168,7 @@ test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout �
   console.log('✅ STEP 6: Order submitted');
 
   // --- STEP 7: Order Confirmation ---
-  await page.waitForSelector('text=Merci pour Votre Commande', { timeout: 45000 });
+  await page.waitForSelector('text=Merci pour Votre Commande', { timeout: 30000 });
   console.log('✅ STEP 7: Order confirmation received!');
 });
 

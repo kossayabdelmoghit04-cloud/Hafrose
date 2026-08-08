@@ -33,6 +33,12 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
 
+  React.useEffect(() => {
+    setCurrentSrc(src);
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
+
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
   }, []);

@@ -8,16 +8,11 @@ const TEST_CREDENTIALS = {
   password: 'password',
 };
 
-test.setTimeout(90000);
-
-test('debug order creation', async ({ request, page }) => {
-  page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+test('debug order submit', async ({ request, page }) => {
   page.on('response', async resp => {
-    if (resp.url().includes('/api/')) {
+    if (resp.url().includes('/api/orders')) {
       console.log(`API [${resp.status()}] ${resp.url()}`);
-      if (resp.status() >= 400) {
-        console.log('API ERROR BODY:', await resp.text());
-      }
+      console.log('RESPONSE BODY:', await resp.text());
     }
   });
 
@@ -30,24 +25,30 @@ test('debug order creation', async ({ request, page }) => {
   await page.locator('input[type="email"]').fill(TEST_CREDENTIALS.email);
   await page.locator('input[type="password"]').fill(TEST_CREDENTIALS.password);
   await page.getByRole('button', { name: /Se Connecter/i }).click();
-  await expect(page).toHaveURL(/account/, { timeout: 20000 });
+  await expect(page).toHaveURL(/account/);
 
   // Add product to cart
   await page.goto(`${BASE_URL}/product/${firstSlug}`);
-  await page.waitForSelector('button:has-text("Ajouter au Panier")', { timeout: 25000 });
-
-  const sizeButtons = page.locator('button').filter({ hasText: /^(34|36|38|40|42|44|XS|S|M|L|XL)$/ });
-  if (await sizeButtons.count() > 0) {
-    await sizeButtons.first().click();
-  }
+  await page.waitForSelector('button:has-text("Ajouter au Panier")');
   await page.locator('button:has-text("Ajouter au Panier")').click();
 
-  // Go to cart & click checkout
+  // Cart -> Checkout link
   await page.goto(`${BASE_URL}/cart`);
   const checkoutLink = page.locator('a[href="/checkout"]').first();
   await checkoutLink.click();
-  await expect(page).toHaveURL(/checkout/, { timeout: 20000 });
-  await page.waitForSelector('form', { timeout: 20000 });
+  await expect(page).toHaveURL(/checkout/);
+  await page.waitForSelector('form');
+
+  // Fill form inputs cleanly
+  const inputs = page.locator('form input[type="text"], form input[type="email"], form input[type="tel"]');
+  const count = await inputs.count();
+  for (let i = 0; i < count; i++) {
+    const input = inputs.nth(i);
+    const val = await input.inputValue();
+    if (!val || val.trim() === '') {
+      await input.fill('+33612345678');
+    }
+  }
 
   // Ensure CGV checked
   const cgvCheckbox = page.locator('input[type="checkbox"]');
@@ -57,18 +58,8 @@ test('debug order creation', async ({ request, page }) => {
     }
   }
 
-  // Click submit order
   const submitBtn = page.getByRole('button', { name: /Confirmer et Payer/i });
   await submitBtn.click();
 
-  // Wait 10s and check URL and page content
-  await page.waitForTimeout(10000);
-
-  const currentText = await page.locator('body').textContent();
-  console.log('Page content after submit:', currentText?.substring(0, 500));
-
-  const alertMsg = await page.locator('[role="alert"]').textContent().catch(() => null);
-  if (alertMsg) {
-    console.log('Alert on page:', alertMsg.trim());
-  }
+  await page.waitForTimeout(5000);
 });
