@@ -17,8 +17,10 @@ import { useCartStore } from '../../stores/useCartStore';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useCreateOrder } from '../../hooks/useAccountHooks';
 import { Order } from '../../types/models';
+import { useSEO } from '../../hooks/useSEO';
 
 export const CheckoutPage = () => {
+  useSEO({ title: 'Commande | HAFROSE', noIndex: true });
   const { items, clearCart } = useCartStore();
   const { user } = useAuthStore();
   const createOrderMutation = useCreateOrder();
@@ -43,7 +45,7 @@ export const CheckoutPage = () => {
   });
 
   const subtotal = items.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
-  const shipping = formData.shippingMethod === 'vip' ? 1500 : 0;
+  const shipping = formData.shippingMethod === 'vip' ? 15 : 0;
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -58,9 +60,22 @@ export const CheckoutPage = () => {
       setFormError('Veuillez accepter les Conditions Générales de Vente.');
       return;
     }
+    if (items.length === 0) {
+      setFormError('Votre panier est vide.');
+      return;
+    }
 
     try {
       const order = await createOrderMutation.mutateAsync({
+        customer: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        country: formData.country,
+        shipping_amount: shipping,
+        shipping_method: formData.shippingMethod,
+        payment_method: formData.paymentMethod,
         shipping_address: {
           first_name: formData.firstName,
           last_name: formData.lastName,
@@ -71,7 +86,6 @@ export const CheckoutPage = () => {
           postal_code: formData.postalCode,
           country: formData.country,
         },
-        payment_method: formData.paymentMethod,
         items: items.map((i) => ({
           product_id: i.product.id,
           quantity: i.quantity,
@@ -83,12 +97,33 @@ export const CheckoutPage = () => {
       setCreatedOrder(order);
       clearCart();
       setStep('confirmed');
-    } catch {
-      // Fallback confirmation for standalone preview testing
-      clearCart();
-      setStep('confirmed');
+    } catch (err: any) {
+      const msg = err?.message || (err?.errors ? Object.values(err.errors).flat().join(' ') : null);
+      setFormError(msg || 'Une erreur s\'est produite lors de la création de votre commande. Veuillez réessayer.');
     }
   };
+
+  if (step === 'form' && items.length === 0) {
+    return (
+      <div className="bg-cream-100 min-h-screen">
+        <Section spacing="xl">
+          <Container size="sm">
+            <Card className="p-8 md:p-12 text-center space-y-5 bg-white shadow-hafrose-card">
+              <h2 className="font-serif text-h2 text-neutral-950">Votre panier est vide</h2>
+              <p className="text-body-base text-neutral-600">
+                Vous n'avez aucun article dans votre panier à commander.
+              </p>
+              <div className="pt-2">
+                <Button variant="primary" size="lg" onClick={() => navigate('/shop')}>
+                  Découvrir la Collection
+                </Button>
+              </div>
+            </Card>
+          </Container>
+        </Section>
+      </div>
+    );
+  }
 
   if (step === 'confirmed') {
     return (
@@ -118,9 +153,18 @@ export const CheckoutPage = () => {
                 <p className="text-neutral-600">{formData.address}, {formData.postalCode} {formData.city}</p>
               </div>
 
-              <div className="pt-4">
-                <Button variant="primary" size="lg" onClick={() => navigate('/')}>
-                  Retourner à l'Accueil
+              <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                {createdOrder?.id ? (
+                  <Button variant="primary" size="lg" onClick={() => navigate(`/account/orders/${createdOrder.id}`)}>
+                    Consulter la Commande
+                  </Button>
+                ) : (
+                  <Button variant="primary" size="lg" onClick={() => navigate('/account/orders')}>
+                    Mes Commandes
+                  </Button>
+                )}
+                <Button variant="outline" size="lg" onClick={() => navigate('/')}>
+                  Retour à l'Accueil
                 </Button>
               </div>
             </Card>

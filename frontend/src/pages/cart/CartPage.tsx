@@ -8,13 +8,15 @@ import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { formatPrice, getImageUrl } from '../../utils/formatters';
 import { useCartStore } from '../../stores/useCartStore';
+import { useSEO } from '../../hooks/useSEO';
 
 export const CartPage = () => {
+  useSEO({ title: 'Mon Panier | HAFROSE', noIndex: true });
   const { items, updateQuantity, removeItem } = useCartStore();
 
   const subtotal = items.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
-  const shipping = subtotal >= 15000 || subtotal === 0 ? 0 : 900;
-  const vat = Math.round(subtotal * 0.2);
+  const shipping = subtotal >= 150 || subtotal === 0 ? 0 : 9;
+  const vat = Math.round((subtotal - (subtotal / 1.2)) * 100) / 100;
   const total = subtotal + shipping;
 
   return (
@@ -60,7 +62,7 @@ export const CartPage = () => {
                     <div className="flex gap-4 sm:gap-6">
                       <div className="w-20 sm:w-28 aspect-[3/4] rounded-xs bg-cream-200 overflow-hidden flex-shrink-0">
                         <img
-                          src={getImageUrl(item.product.media?.[0]?.url ?? null)}
+                          src={getImageUrl(item.product.image ?? item.product.media?.[0]?.url ?? null)}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />

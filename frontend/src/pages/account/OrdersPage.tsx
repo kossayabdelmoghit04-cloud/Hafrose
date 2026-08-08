@@ -10,39 +10,13 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { useOrders } from '../../hooks/useAccountHooks';
 import { formatPrice, formatDate, getImageUrl } from '../../utils/formatters';
 
-import heroImg from '../../assets/images/hero-main.png';
-import bagsImg from '../../assets/images/category-bags.jpg';
-import shoesImg from '../../assets/images/category-shoes.jpg';
+
 
 const STATUS_TABS = [
   { id: 'all', label: 'Toutes les commandes' },
   { id: 'processing', label: 'En cours' },
   { id: 'shipped', label: 'Expédiées' },
   { id: 'delivered', label: 'Livrées' },
-];
-
-const FALLBACK_ORDERS = [
-  {
-    id: 849201,
-    order_number: 'HF-849201',
-    created_at: new Date().toISOString(),
-    status: 'shipped',
-    total_amount: 56500,
-    items: [
-      { id: 1, product_name: 'Robe Fourreau Bordeaux Silk', unit_price: 28900, quantity: 1, product: { media: [{ url: heroImg }] } },
-      { id: 2, product_name: 'Sac Mini Bucket Rose Poudré', unit_price: 27600, quantity: 1, product: { media: [{ url: bagsImg }] } },
-    ],
-  },
-  {
-    id: 848912,
-    order_number: 'HF-848912',
-    created_at: new Date().toISOString(),
-    status: 'delivered',
-    total_amount: 21000,
-    items: [
-      { id: 3, product_name: 'Escarpins Satin Noir Prestige', unit_price: 21000, quantity: 1, product: { media: [{ url: shoesImg }] } },
-    ],
-  },
 ];
 
 export const OrdersPage: React.FC = () => {
@@ -52,14 +26,14 @@ export const OrdersPage: React.FC = () => {
 
   const { data: ordersData, isLoading, isError, refetch } = useOrders();
 
-  const ordersList = (ordersData && ordersData.length > 0) ? ordersData : FALLBACK_ORDERS;
+  const ordersList = ordersData || [];
 
   const filteredOrders = ordersList.filter((order: any) => {
-    const matchesTab = activeTab === 'all' || order.status === activeTab;
+    const matchesTab = activeTab === 'all' || order.status === activeTab || (activeTab === 'processing' && order.status === 'En attente');
     const matchesQuery =
       !searchQuery.trim() ||
-      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.items?.some((item: any) => item.product_name?.toLowerCase().includes(searchQuery.toLowerCase()));
+      order.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items?.some((item: any) => (item.product?.name || item.product_name)?.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesTab && matchesQuery;
   });
 
@@ -181,16 +155,26 @@ export const OrdersPage: React.FC = () => {
                     {order.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-3 p-2.5 bg-cream-100/60 rounded-xs border border-cream-300">
                         <img
-                          src={getImageUrl(item.product?.media?.[0]?.url ?? null)}
+                          src={getImageUrl(item.product?.image ?? item.product?.media?.[0]?.url ?? null)}
                           alt={item.product_name}
                           className="w-14 aspect-[3/4] object-cover rounded-xs"
                         />
                         <div className="min-w-0 flex-1">
                           <h4 className="font-serif text-body-sm font-medium text-neutral-900 truncate">
-                            {item.product_name}
+                            {item.product?.name || item.product_name || 'Article HAFROSE'}
                           </h4>
-                          <p className="text-caption text-neutral-500">
-                            Qté : {item.quantity}
+                          <p className="text-caption text-neutral-500 flex flex-wrap items-center gap-1.5 mt-0.5">
+                            <span>Qté : {item.quantity}</span>
+                            {item.size && (
+                              <span className="bg-cream-200 text-burgundy-700 px-1.5 py-0.2 rounded-xs text-[11px] font-medium border border-cream-400">
+                                Taille : {item.size}
+                              </span>
+                            )}
+                            {item.color && (
+                              <span className="bg-cream-200 text-burgundy-700 px-1.5 py-0.2 rounded-xs text-[11px] font-medium border border-cream-400">
+                                {item.color}
+                              </span>
+                            )}
                           </p>
                           <p className="text-caption font-semibold text-neutral-900">
                             {formatPrice(item.unit_price)}

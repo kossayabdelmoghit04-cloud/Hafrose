@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, ChevronDown } from 'lucide-react';
 import { Container } from '../../components/ui/Container';
@@ -14,6 +14,9 @@ import { formatPrice, getImageUrl } from '../../utils/formatters';
 import { useProduct, useRelatedProducts } from '../../hooks/useProductHooks';
 import { useCartStore } from '../../stores/useCartStore';
 import { useWishlistStore } from '../../stores/useWishlistStore';
+import { useSEO, useJsonLD } from '../../hooks/useSEO';
+import { buildProductLD, buildBreadcrumbLD, SITE_URL } from '../../utils/seo';
+import { LazyImage } from '../../components/ui/LazyImage';
 
 const SIZES = ['34', '36', '38', '40', '42'];
 const COLORS = [
@@ -42,6 +45,47 @@ export const ProductDetailPage = () => {
   const product = productResponse?.data;
   const relatedProducts = relatedResponse?.data ?? [];
 
+  // ── SEO ──────────────────────────────────────────────────────────────────
+  const mainImgUrl = product?.image ? getImageUrl(product.image) : product?.media?.[0]?.url ? getImageUrl(product.media[0].url) : undefined;
+
+  useSEO({
+    title: product ? `${product.name} | HAFROSE` : 'Produit | HAFROSE',
+    description: product?.description
+      ? product.description.slice(0, 160)
+      : 'Découvrez ce produit exclusif HAFROSE — élégance et artisanat d\'exception.',
+    ogType: 'product',
+    ogImage: mainImgUrl,
+    canonical: `${SITE_URL}/product/${slug}`,
+  });
+
+  const productLD = useMemo(() =>
+    product
+      ? buildProductLD({
+          name: product.name,
+          description: product.description,
+          imageUrl: mainImgUrl ?? null,
+          price: product.price,
+          salePrice: product.sale_price,
+          slug: product.slug,
+          sku: product.sku ?? '',
+          inStock: (product.stock ?? product.stock_quantity ?? 0) > 0,
+        })
+      : null,
+  [product, mainImgUrl]);
+
+  const breadcrumbLD = useMemo(() =>
+    product
+      ? buildBreadcrumbLD([
+          { name: 'Accueil', url: '/' },
+          { name: 'Boutique', url: '/shop' },
+          { name: product.name, url: `/product/${product.slug}` },
+        ])
+      : null,
+  [product]);
+
+  useJsonLD(productLD);
+  useJsonLD(breadcrumbLD);
+
   const isItemWishlisted = product ? isWishlisted(product.id) : false;
 
   const handleWishlistToggle = () => {
@@ -57,10 +101,10 @@ export const ProductDetailPage = () => {
     setOpenAccordion((prev) => (prev === id ? null : id));
   };
 
-  const mediaList = product?.media ?? [];
-  const galleryImages = mediaList.length > 0
-    ? mediaList.map((m) => getImageUrl(m.url))
-    : ['/assets/images/hero-main.png', '/assets/images/category-dresses.jpg'];
+  const rawGalleryList = product?.galleries?.map((g) => g.image) ?? product?.media?.map((m) => m.url) ?? [];
+  const galleryImages = rawGalleryList.length > 0
+    ? rawGalleryList.map((img) => getImageUrl(img))
+    : product?.image ? [getImageUrl(product.image)] : ['/assets/images/hero-main.png'];
 
   return (
     <div className="bg-cream-100 min-h-screen">
@@ -109,10 +153,12 @@ export const ProductDetailPage = () => {
               {/* Gallery Column */}
               <div className="lg:col-span-7 space-y-4">
                 <div className="relative aspect-[3/4] w-full rounded-md overflow-hidden bg-cream-200 shadow-hafrose-md">
-                  <img
+                  <LazyImage
                     src={galleryImages[selectedImg]}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-350"
+                    wrapperClassName="w-full h-full"
+                    priority
                   />
                 </div>
 
@@ -128,7 +174,7 @@ export const ProductDetailPage = () => {
                           selectedImg === idx ? 'border-burgundy-500 shadow-hafrose-xs' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <LazyImage src={img} alt="" className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
                       </button>
                     ))}
                   </div>
@@ -156,7 +202,7 @@ export const ProductDetailPage = () => {
                       </span>
                     )}
                     <span className="text-caption font-medium text-success-600 bg-success-50 px-2 py-0.5 rounded-xs border border-success-100">
-                      {product.stock_quantity > 0 ? `En Stock (${product.stock_quantity} pièces)` : 'Sur commande'}
+                      {(product.stock ?? product.stock_quantity ?? 0) > 0 ? `En Stock (${product.stock ?? product.stock_quantity ?? 0} pièces)` : 'Sur commande'}
                     </span>
                   </div>
                 </div>
@@ -311,7 +357,7 @@ export const ProductDetailPage = () => {
                     slug={p.slug}
                     price={p.price}
                     salePrice={p.sale_price}
-                    imageUrl={getImageUrl(p.media?.[0]?.url ?? null)}
+                    imageUrl={getImageUrl(p.image ?? p.media?.[0]?.url ?? null)}
                     categoryName={p.category?.name}
                     onClick={(s) => navigate(`/product/${s}`)}
                   />

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { BannerCardProps } from './BannerCard.types';
+import { LazyImage } from '../LazyImage';
 import { getImageUrl } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 
-export const BannerCard: React.FC<BannerCardProps> = ({
+export const BannerCard: React.FC<BannerCardProps> = memo(({
   title,
   subtitle,
   description,
@@ -31,11 +32,11 @@ export const BannerCard: React.FC<BannerCardProps> = ({
       {/* Background Image (optional) */}
       {imageUrl && (
         <>
-          <img
+          <LazyImage
             src={imageSrc}
             alt=""
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-30"
+            className="w-full h-full object-cover object-center opacity-30"
+            wrapperClassName="absolute inset-0 w-full h-full"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-cream-200/95 to-cream-200/40" />
         </>
@@ -63,4 +64,6 @@ export const BannerCard: React.FC<BannerCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+BannerCard.displayName = 'BannerCard';

@@ -27,7 +27,7 @@ export const CategoriesSection = () => {
     ? apiCategories.map((c, i) => ({
         name: c.name,
         slug: c.slug,
-        imageUrl: getImageUrl(c.image_url ?? DEFAULT_CATEGORIES[i % DEFAULT_CATEGORIES.length].imageUrl),
+        imageUrl: getImageUrl(c.image ?? c.image_url ?? DEFAULT_CATEGORIES[i % DEFAULT_CATEGORIES.length].imageUrl),
         productCount: 24 + i * 5,
       }))
     : DEFAULT_CATEGORIES;

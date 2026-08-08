@@ -21,6 +21,23 @@ class CustomerAuthController extends Controller
     use HttpResponses;
 
     /**
+     * Formatage canonique du payload utilisateur pour les réponses API.
+     */
+    protected function formatUserPayload(User $user): array
+    {
+        return [
+            'id'         => $user->id,
+            'first_name' => $user->first_name,
+            'last_name'  => $user->last_name,
+            'name'       => $user->full_name ?: $user->name,
+            'email'      => $user->email,
+            'phone'      => $user->phone,
+            'role'       => $user->role ?? 'customer',
+            'created_at' => $user->created_at?->toISOString(),
+        ];
+    }
+
+    /**
      * POST /api/auth/login
      * Connecte un client et génère un token Sanctum.
      */
@@ -53,13 +70,7 @@ class CustomerAuthController extends Controller
 
         return $this->successResponse([
             'token' => $token,
-            'user'  => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role ?? 'customer',
-                'created_at' => $user->created_at?->toISOString(),
-            ],
+            'user'  => $this->formatUserPayload($user),
         ], 'Connexion réussie. Bienvenue dans la Maison HAFROSE.');
     }
 
@@ -70,30 +81,29 @@ class CustomerAuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name'                  => 'required|string|max:255',
+            'first_name'            => 'required|string|max:100',
+            'last_name'             => 'required|string|max:100',
             'email'                 => 'required|email|max:255|unique:users,email',
+            'phone'                 => 'nullable|string|max:30',
             'password'              => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|min:8',
         ]);
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role'     => 'customer',
+            'first_name' => $data['first_name'],
+            'last_name'  => $data['last_name'],
+            'name'       => trim($data['first_name'] . ' ' . $data['last_name']),
+            'email'      => $data['email'],
+            'phone'      => $data['phone'] ?? null,
+            'password'   => Hash::make($data['password']),
+            'role'       => 'customer',
         ]);
 
         $token = $user->createToken('customer-token')->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
-            'user'  => [
-                'id'         => $user->id,
-                'name'       => $user->name,
-                'email'      => $user->email,
-                'role'       => $user->role,
-                'created_at' => $user->created_at?->toISOString(),
-            ],
+            'user'  => $this->formatUserPayload($user),
         ], 'Compte créé avec succès. Bienvenue dans la Maison HAFROSE.', 201);
     }
 
@@ -166,13 +176,7 @@ class CustomerAuthController extends Controller
     {
         $user = $request->user();
 
-        return $this->successResponse([
-            'id'         => $user->id,
-            'name'       => $user->name,
-            'email'      => $user->email,
-            'role'       => $user->role ?? 'customer',
-            'created_at' => $user->created_at?->toISOString(),
-        ]);
+        return $this->successResponse($this->formatUserPayload($user));
     }
 
     /**
@@ -184,18 +188,19 @@ class CustomerAuthController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'name'  => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'first_name' => 'sometimes|string|max:100',
+            'last_name'  => 'sometimes|string|max:100',
+            'email'      => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'phone'      => 'nullable|string|max:30',
         ]);
 
-        $user->fill($data)->save();
+        $user->fill($data);
+        if (isset($data['first_name']) || isset($data['last_name'])) {
+            $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+        }
+        $user->save();
 
-        return $this->successResponse([
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'role'  => $user->role ?? 'customer',
-        ], 'Profil mis à jour avec succès.');
+        return $this->successResponse($this->formatUserPayload($user), 'Profil mis à jour avec succès.');
     }
 
     /**

@@ -5,6 +5,7 @@ import { Header } from '../pages/home/sections/Header';
 import { Footer } from '../pages/home/sections/Footer';
 import { Drawer } from '../components/ui/Drawer';
 import { SearchInput } from '../components/ui/SearchInput';
+import { GlobalErrorBoundary } from '../components/ui/ErrorBoundary';
 import { useCartStore } from '../stores/useCartStore';
 import { useWishlistStore } from '../stores/useWishlistStore';
 
@@ -13,6 +14,8 @@ import { useWishlistStore } from '../stores/useWishlistStore';
  * Single source of truth for:
  * - AnnouncementBar (permanent top banner)
  * - Header with sticky navigation
+ * - Skip-to-content link (WCAG 2.2 AA — 2.4.1)
+ * - Global Error Boundary wrapping the page content
  * - Global search drawer overlay
  * - Global quick-cart drawer overlay
  * - Footer
@@ -31,10 +34,26 @@ export const PublicLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-cream-100 text-neutral-900 font-sans">
-      {/* Permanent Announcement Bar */}
+
+      {/* ── Skip-to-Content (WCAG 2.4.1) ────────────────────────── */}
+      <a
+        href="#main-content"
+        className={[
+          'sr-only focus:not-sr-only',
+          'focus:fixed focus:top-4 focus:left-4 focus:z-[9999]',
+          'focus:px-4 focus:py-2 focus:rounded-sm',
+          'focus:bg-burgundy-500 focus:text-white focus:font-sans focus:text-body-sm focus:font-medium',
+          'focus:shadow-hafrose-hover focus:outline-none',
+          'transition-all duration-200',
+        ].join(' ')}
+      >
+        Passer au contenu principal
+      </a>
+
+      {/* ── Permanent Announcement Bar ────────────────────────────── */}
       <AnnouncementBar />
 
-      {/* Sticky Header with dynamic cart/wishlist badge counts */}
+      {/* ── Sticky Header ────────────────────────────────────────── */}
       <Header
         cartCount={cartCount}
         wishlistCount={wishlistCount}
@@ -42,15 +61,22 @@ export const PublicLayout: React.FC = () => {
         onCartOpen={() => setIsCartOpen(true)}
       />
 
-      {/* Main Page Content Outlet */}
-      <main id="main-content" className="flex-grow" tabIndex={-1}>
-        <Outlet />
+      {/* ── Main Page Content — Error-Bounded ────────────────────── */}
+      <main
+        id="main-content"
+        className="flex-grow"
+        tabIndex={-1}
+        aria-label="Contenu principal"
+      >
+        <GlobalErrorBoundary>
+          <Outlet />
+        </GlobalErrorBoundary>
       </main>
 
-      {/* Global Footer */}
+      {/* ── Global Footer ─────────────────────────────────────────── */}
       <Footer />
 
-      {/* Global Search Overlay Drawer */}
+      {/* ── Global Search Overlay Drawer ──────────────────────────── */}
       <Drawer
         isOpen={isSearchOpen}
         onClose={() => { setIsSearchOpen(false); setSearchQuery(''); }}
@@ -68,7 +94,7 @@ export const PublicLayout: React.FC = () => {
         </div>
       </Drawer>
 
-      {/* Global Quick-Cart Drawer */}
+      {/* ── Global Quick-Cart Drawer ──────────────────────────────── */}
       <Drawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

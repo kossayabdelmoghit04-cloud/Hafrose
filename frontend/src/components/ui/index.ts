@@ -49,3 +49,10 @@ export * from './Section';
 export * from './Grid';
 export * from './Stack';
 export * from './Divider';
+
+// ── Media ────────────────────────────────────────────────────────────────────
+export * from './LazyImage';
+
+// ── Error Handling ────────────────────────────────────────────────────────────
+export * from './ErrorBoundary';
+export * from './ErrorState';

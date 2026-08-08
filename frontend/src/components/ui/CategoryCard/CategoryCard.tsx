@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { CategoryCardProps } from './CategoryCard.types';
+import { LazyImage } from '../LazyImage';
 import { getImageUrl } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 
-export const CategoryCard: React.FC<CategoryCardProps> = ({
+export const CategoryCard: React.FC<CategoryCardProps> = memo(({
   name,
   slug,
   imageUrl,
@@ -27,11 +28,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       )}
     >
       {/* Background Image */}
-      <img
+      <LazyImage
         src={imageSrc}
         alt={name}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-luxury group-hover:scale-105"
+        className="w-full h-full object-cover object-center transition-transform duration-700 ease-luxury group-hover:scale-105"
+        wrapperClassName="absolute inset-0 w-full h-full"
       />
 
       {/* Gradient Mask */}
@@ -53,4 +54,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+CategoryCard.displayName = 'CategoryCard';

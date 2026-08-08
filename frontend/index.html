@@ -1,27 +1,101 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- SEO -->
+    <!-- ── Favicon ──────────────────────────────────────────────────── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- ── Theme & Brand ────────────────────────────────────────────── -->
+    <meta name="theme-color" content="#8A1538" />
+    <meta name="msapplication-TileColor" content="#8A1538" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- ── Primary SEO ──────────────────────────────────────────────── -->
     <title>HAFROSE — Maison de Luxe | Mode Féminine Premium</title>
     <meta name="description" content="HAFROSE — Maison de mode féminine de luxe. Découvrez des collections exclusives alliant élégance, raffinement et artisanat d'exception." />
-    <meta name="theme-color" content="#8A1538" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="HAFROSE" />
+    <meta name="keywords" content="mode féminine luxe, robes de luxe, vêtements femme premium, Algérie mode, HAFROSE" />
+    <link rel="canonical" href="https://hafrose.com/" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="HAFROSE — Maison de Luxe" />
-    <meta property="og:description" content="Mode féminine premium — Collections exclusives" />
+    <!-- ── Open Graph ───────────────────────────────────────────────── -->
+    <meta property="og:site_name" content="HAFROSE" />
+    <meta property="og:title" content="HAFROSE — Maison de Luxe | Mode Féminine Premium" />
+    <meta property="og:description" content="Mode féminine premium — Collections exclusives alliant élégance et artisanat d'exception." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://hafrose.com/" />
+    <meta property="og:image" content="https://hafrose.com/og-cover.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="HAFROSE — Maison de Mode Féminine de Luxe" />
+    <meta property="og:locale" content="fr_FR" />
 
-    <!-- Google Fonts -->
+    <!-- ── Twitter Card ─────────────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@hafrose" />
+    <meta name="twitter:creator" content="@hafrose" />
+    <meta name="twitter:title" content="HAFROSE — Maison de Luxe" />
+    <meta name="twitter:description" content="Mode féminine premium — Collections exclusives." />
+    <meta name="twitter:image" content="https://hafrose.com/og-cover.jpg" />
+
+    <!-- ── Security Headers (via meta where no server config) ──────── -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+
+    <!-- ── DNS Prefetch & Preconnect ────────────────────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- ── Google Fonts ─────────────────────────────────────────────── -->
     <link
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
+
+    <!-- ── Base JSON-LD (Organization + WebSite) ────────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://hafrose.com/#organization",
+          "name": "HAFROSE",
+          "url": "https://hafrose.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://hafrose.com/logo.svg"
+          },
+          "sameAs": [
+            "https://www.instagram.com/hafrose",
+            "https://www.facebook.com/hafrose"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://hafrose.com/#website",
+          "url": "https://hafrose.com",
+          "name": "HAFROSE",
+          "publisher": { "@id": "https://hafrose.com/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://hafrose.com/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

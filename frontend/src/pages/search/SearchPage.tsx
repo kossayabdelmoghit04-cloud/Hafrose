@@ -12,6 +12,7 @@ import { useProducts } from '../../hooks/useProductHooks';
 import { useDebounce } from '../../hooks/useUtilities';
 import { getImageUrl } from '../../utils/formatters';
 import { Product } from '../../types/models';
+import { useSEO } from '../../hooks/useSEO';
 
 const POPULAR_SUGGESTIONS = [
   'Robe Soirée Bordeaux',
@@ -23,6 +24,11 @@ const POPULAR_SUGGESTIONS = [
 ];
 
 export const SearchPage = () => {
+  useSEO({
+    title: 'Recherche | HAFROSE',
+    description: 'Recherchez parmi les collections HAFROSE — robes, accessoires et tenues féminines de luxe.',
+    noIndex: false,
+  });
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
@@ -105,7 +111,7 @@ export const SearchPage = () => {
                     slug={product.slug}
                     price={product.price}
                     salePrice={product.sale_price}
-                    imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                    imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
                     categoryName={product.category?.name}
                     onClick={(slug) => navigate(`/product/${slug}`)}
                   />

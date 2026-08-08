@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CustomerAddressResource;
 use App\Models\UserAddress;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +28,7 @@ class CustomerAddressController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return $this->successResponse($addresses);
+        return $this->successResponse(CustomerAddressResource::collection($addresses));
     }
 
     /**
@@ -62,7 +63,11 @@ class CustomerAddressController extends Controller
 
         $address = UserAddress::create(['user_id' => $userId] + $data);
 
-        return $this->successResponse($address, 'Adresse ajoutée avec succès.', 201);
+        return $this->successResponse(
+            new CustomerAddressResource($address),
+            'Adresse ajoutée avec succès.',
+            201
+        );
     }
 
     /**
@@ -92,7 +97,10 @@ class CustomerAddressController extends Controller
 
         $address->update($data);
 
-        return $this->successResponse($address, 'Adresse mise à jour avec succès.');
+        return $this->successResponse(
+            new CustomerAddressResource($address),
+            'Adresse mise à jour avec succès.'
+        );
     }
 
     /**
@@ -131,6 +139,10 @@ class CustomerAddressController extends Controller
         $address = UserAddress::where('user_id', $userId)->findOrFail($id);
         $address->update(['is_default' => true]);
 
-        return $this->successResponse($address, 'Adresse par défaut mise à jour.');
+        return $this->successResponse(
+            new CustomerAddressResource($address),
+            'Adresse par défaut mise à jour.'
+        );
     }
 }
+

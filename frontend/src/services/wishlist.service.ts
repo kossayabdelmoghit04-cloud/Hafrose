@@ -15,4 +15,9 @@ export const wishlistService = {
   async removeFromWishlist(productId: number): Promise<ApiResponse<void>> {
     return apiClient.delete(API_ENDPOINTS.WISHLIST.REMOVE(productId));
   },
+
+  async checkWishlistStatus(productId: number): Promise<ApiResponse<{ is_favorite: boolean }>> {
+    return apiClient.get(API_ENDPOINTS.WISHLIST.CHECK(productId));
+  },
 };
+

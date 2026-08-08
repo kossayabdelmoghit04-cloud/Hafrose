@@ -9,8 +9,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { formatPrice, formatDate, getImageUrl } from '../../utils/formatters';
 import { useOrderDetail } from '../../hooks/useAccountHooks';
 
-import heroImg from '../../assets/images/hero-main.png';
-import bagsImg from '../../assets/images/category-bags.jpg';
+
 
 const TIMELINE_STEPS = [
   { id: 'created', label: 'Commande reçue', date: 'Validation OK', completed: true, active: false, icon: Package },
@@ -19,52 +18,13 @@ const TIMELINE_STEPS = [
   { id: 'delivered', label: 'Livraison estimée', date: 'Sous 24h-48h', completed: false, active: false, icon: CheckCircle2 },
 ];
 
-const MOCK_FALLBACK_ORDER = {
-  id: 849201,
-  order_number: 'HF-849201',
-  created_at: new Date().toISOString(),
-  status: 'Expédiée',
-  payment_status: 'paid',
-  payment_method: 'Carte Bancaire (•••• 4242)',
-  subtotal_amount: 56500,
-  shipping_amount: 0,
-  tax_amount: 11300,
-  total_amount: 56500,
-  shipping_address: {
-    recipient_name: 'Mme. Éléonore De Saint-Germain',
-    street_address: '124 Avenue Montaigne',
-    city: 'Paris',
-    postal_code: '75008',
-    country: 'France',
-    phone_number: '+33 6 12 34 56 78',
-  },
-  items: [
-    {
-      id: 101,
-      product_name: 'Robe Fourreau Bordeaux Silk',
-      quantity: 1,
-      unit_price: 28900,
-      subtotal: 28900,
-      product: { slug: 'robe-fourreau-bordeaux-silk', media: [{ url: heroImg }] },
-    },
-    {
-      id: 102,
-      product_name: 'Sac Mini Bucket Rose Poudré',
-      quantity: 1,
-      unit_price: 27600,
-      subtotal: 27600,
-      product: { slug: 'sac-mini-bucket-rose', media: [{ url: bagsImg }] },
-    },
-  ],
-};
-
 export const OrderDetailPage: React.FC = () => {
   const { id = '' } = useParams<{ id: string }>();
   const numericId = parseInt(id, 10);
 
   const { data: apiOrder, isLoading, isError, refetch } = useOrderDetail(numericId);
 
-  const order: any = apiOrder || MOCK_FALLBACK_ORDER;
+  const order: any = apiOrder;
 
   if (isLoading) {
     return (
@@ -158,16 +118,26 @@ export const OrderDetailPage: React.FC = () => {
           {order.items?.map((item: any) => (
             <div key={item.id} className="flex gap-4 p-3 bg-cream-100/60 rounded-xs border border-cream-300 items-center">
               <img
-                src={getImageUrl(item.product?.media?.[0]?.url ?? null)}
+                src={getImageUrl(item.product?.image ?? item.product?.media?.[0]?.url ?? null)}
                 alt={item.product_name}
                 className="w-16 aspect-[3/4] object-cover rounded-xs"
               />
               <div className="flex-1 min-w-0">
                 <Link to={`/product/${item.product?.slug || ''}`} className="font-serif text-h5 text-neutral-950 hover:text-burgundy-600 transition-colors">
-                  {item.product_name}
+                  {item.product?.name || item.product_name || 'Article HAFROSE'}
                 </Link>
-                <p className="text-caption text-neutral-500 mt-0.5">
-                  Qté : {item.quantity} × {formatPrice(item.unit_price)}
+                <p className="text-caption text-neutral-500 mt-0.5 flex flex-wrap items-center gap-2">
+                  <span>Qté : {item.quantity} × {formatPrice(item.unit_price)}</span>
+                  {item.size && (
+                    <span className="bg-cream-200 text-burgundy-700 px-2 py-0.5 rounded-xs text-[11px] font-medium border border-cream-400">
+                      Taille : {item.size}
+                    </span>
+                  )}
+                  {item.color && (
+                    <span className="bg-cream-200 text-burgundy-700 px-2 py-0.5 rounded-xs text-[11px] font-medium border border-cream-400">
+                      {item.color}
+                    </span>
+                  )}
                 </p>
               </div>
               <span className="font-sans font-semibold text-body-base text-neutral-950">
@@ -188,10 +158,10 @@ export const OrderDetailPage: React.FC = () => {
                 <MapPin className="w-4 h-4 text-burgundy-500" /> Adresse de Livraison
               </h4>
               <div className="text-body-sm text-neutral-700 space-y-0.5">
-                <p className="font-semibold text-neutral-950">{order.shipping_address.recipient_name}</p>
-                <p>{order.shipping_address.street_address}</p>
+                <p className="font-semibold text-neutral-950">{order.shipping_address.name}</p>
+                <p>{order.shipping_address.address}</p>
                 <p>{order.shipping_address.postal_code} {order.shipping_address.city}, {order.shipping_address.country}</p>
-                <p className="text-neutral-500 pt-1">Tél : {order.shipping_address.phone_number}</p>
+                {order.shipping_address.phone && <p className="text-neutral-500 pt-1">Tél : {order.shipping_address.phone}</p>}
               </div>
             </Card>
           )}

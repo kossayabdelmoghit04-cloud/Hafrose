@@ -27,8 +27,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'name',        // kept for legacy compat — NOT used by new API endpoints
+        'first_name',
+        'last_name',
         'email',
+        'phone',
         'password',
         'role',
     ];
@@ -55,6 +58,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => 'string',
         ];
+    }
+
+    /**
+     * Convenience accessor: returns "Prénom Nom" as a single string.
+     * Usage: $user->full_name
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->last_name}");
     }
 
     /**

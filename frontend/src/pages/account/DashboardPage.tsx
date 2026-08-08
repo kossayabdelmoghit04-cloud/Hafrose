@@ -33,7 +33,7 @@ export const DashboardPage: React.FC = () => {
   const { items: wishlistItems } = useWishlistStore();
   const { data: ordersData } = useOrders();
 
-  const userName = user?.first_name || 'Éléonore';
+  const userName = user?.first_name || user?.name || 'Membre HAFROSE';
   const realOrders = ordersData || [];
   const recentOrders = realOrders.length > 0 ? realOrders.slice(0, 2) : FALLBACK_RECENT_ORDERS;
 

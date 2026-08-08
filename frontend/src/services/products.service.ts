@@ -6,15 +6,22 @@ import { ApiResponse, ApiPaginatedResponse } from '../types/api';
 export interface ProductQueryFilters {
   category?: string;
   search?: string;
-  sort?: 'price_asc' | 'price_desc' | 'latest' | 'featured';
+  q?: string;
+  sort?: 'price_asc' | 'price_desc' | 'latest' | 'featured' | 'name' | 'price' | 'created_at';
+  sort_by?: 'name' | 'price' | 'created_at';
+  direction?: 'asc' | 'desc' | 'ASC' | 'DESC';
   page?: number;
   per_page?: number;
-  is_featured?: boolean;
+  is_featured?: boolean | string;
   is_new?: boolean;
+  price_min?: number;
   min_price?: number;
+  price_max?: number;
   max_price?: number;
   sizes?: string[];
   colors?: string[];
+  color?: string;
+  material?: string;
 }
 
 export const productsService = {
@@ -26,25 +33,25 @@ export const productsService = {
     return apiClient.get(API_ENDPOINTS.PRODUCTS.DETAILS(slug));
   },
 
-  async getFeaturedProducts(limit = 8): Promise<ApiPaginatedResponse<Product>> {
-    return apiClient.get(API_ENDPOINTS.PRODUCTS.LIST, {
-      params: { is_featured: true, per_page: limit, sort: 'featured' },
+  async getFeaturedProducts(limit = 8): Promise<ApiResponse<Product[]>> {
+    return apiClient.get(API_ENDPOINTS.PRODUCTS.POPULAR, {
+      params: { limit },
     });
   },
 
   async getNewArrivals(limit = 6): Promise<ApiPaginatedResponse<Product>> {
     return apiClient.get(API_ENDPOINTS.PRODUCTS.LIST, {
-      params: { is_new: true, per_page: limit, sort: 'latest' },
+      params: { sort: 'created_at', direction: 'desc', per_page: limit },
     });
   },
 
-  async getRelatedProducts(slug: string, limit = 4): Promise<ApiPaginatedResponse<Product>> {
-    return apiClient.get(`${API_ENDPOINTS.PRODUCTS.DETAILS(slug)}/related`, {
-      params: { per_page: limit },
-    });
+  async getRelatedProducts(idOrSlug: number | string, _limit = 4): Promise<ApiResponse<Product[]>> {
+    return apiClient.get(API_ENDPOINTS.PRODUCTS.RELATED(idOrSlug));
   },
 
   async getCategories(): Promise<ApiResponse<Category[]>> {
     return apiClient.get(API_ENDPOINTS.CATEGORIES.LIST);
   },
 };
+
+

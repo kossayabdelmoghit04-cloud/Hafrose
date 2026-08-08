@@ -18,6 +18,7 @@ import { useWishlistStore } from '../../stores/useWishlistStore';
 import { useCartStore } from '../../stores/useCartStore';
 import { getImageUrl } from '../../utils/formatters';
 import { Product } from '../../types/models';
+import { useSEO } from '../../hooks/useSEO';
 
 const SIZES = ['34', '36', '38', '40', '42', '44'];
 const COLORS = [
@@ -29,6 +30,13 @@ const COLORS = [
 ];
 
 export const ShopPage = () => {
+  useSEO({
+    title: 'Boutique — Collections HAFROSE | Mode Féminine Luxe',
+    description: 'Explorez toutes les collections HAFROSE — robes, accessoires et tenues premium pour femme. Filtrez par catégorie, taille et couleur.',
+    ogType: 'website',
+    canonical: 'https://hafrose.com/shop',
+  });
+
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
 
@@ -54,8 +62,8 @@ export const ShopPage = () => {
   });
 
   const categories = categoriesData?.data ?? [];
-  const products: Product[] = productsData?.data ?? [];
-  const meta = productsData?.meta;
+  const products: Product[] = Array.isArray(productsData?.data) ? productsData.data : (productsData?.data as any)?.data ?? [];
+  const meta = productsData?.meta ?? (productsData?.data as any)?.meta;
 
   const toggleSize = (size: string) => {
     setSelectedSizes((prev) =>
@@ -295,7 +303,7 @@ export const ShopPage = () => {
                         slug={product.slug}
                         price={product.price}
                         salePrice={product.sale_price}
-                        imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                        imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
                         categoryName={product.category?.name}
                         badgeText={product.is_featured ? 'Best-seller' : undefined}
                         isWishlisted={isWishlisted(product.id)}

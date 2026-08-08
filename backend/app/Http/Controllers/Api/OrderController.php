@@ -26,8 +26,9 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): JsonResponse
     {
         $data = $request->validated();
-        if ($request->user()) {
-            $data['user_id'] = $request->user()->id;
+        $user = auth('sanctum')->user() ?? $request->user();
+        if ($user) {
+            $data['user_id'] = $user->id;
         }
 
         $order = $this->orderService->createOrder($data);

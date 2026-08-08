@@ -24,8 +24,8 @@ export const AccountSidebar: React.FC = () => {
     navigate('/login');
   };
 
-  const userInitial = user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'H';
-  const fullName = user ? `${user.first_name} ${user.last_name}` : 'Membres HAFROSE';
+  const userInitial = user?.first_name ? user.first_name.charAt(0).toUpperCase() : (user?.name?.charAt(0).toUpperCase() || 'H');
+  const fullName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || 'Membre HAFROSE' : 'Membre HAFROSE';
 
   return (
     <Card className="p-6 bg-white border border-neutral-200/60 shadow-hafrose-card space-y-6">

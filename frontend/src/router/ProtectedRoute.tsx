@@ -3,6 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { RoleType } from '../types/models';
 import { ROUTES } from '../constants/routes.constants';
+import { Spinner } from '../components/ui/Spinner';
 
 interface ProtectedRouteProps {
   requiredRole?: RoleType;
@@ -17,7 +18,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole, ch
   const { isAuthenticated, user, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading session...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream-100">
+        <Spinner size="xl" variant="burgundy" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

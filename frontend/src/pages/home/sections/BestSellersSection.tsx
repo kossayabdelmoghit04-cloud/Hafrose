@@ -101,7 +101,7 @@ export const BestSellersSection = () => {
                   slug={product.slug}
                   price={product.price}
                   salePrice={product.sale_price}
-                  imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                  imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
                   categoryName={product.category?.name}
                   badgeText={product.is_featured ? 'Best-seller' : undefined}
                   isWishlisted={isWishlisted(product.id)}

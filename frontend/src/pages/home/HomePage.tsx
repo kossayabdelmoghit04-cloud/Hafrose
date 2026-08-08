@@ -1,3 +1,6 @@
+import { useSEO, useJsonLD } from '../../hooks/useSEO';
+import { buildWebSiteLD, buildOrganizationLD, SITE_DESCRIPTION } from '../../utils/seo';
+import { useMemo } from 'react';
 import { HeroSection } from './sections/HeroSection';
 import { ServicesSection } from './sections/ServicesSection';
 import { CategoriesSection } from './sections/CategoriesSection';
@@ -13,6 +16,24 @@ import { NewsletterSection } from './sections/NewsletterSection';
  * This component renders only the page-specific content sections.
  */
 export const HomePage = () => {
+  // ── SEO ────────────────────────────────────────────────────────────────────
+  useSEO({
+    title: 'HAFROSE — Maison de Luxe | Mode Féminine Premium',
+    description: SITE_DESCRIPTION,
+    ogType: 'website',
+    canonical: 'https://hafrose.com/',
+  });
+
+  const jsonLd = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@graph': [
+      buildOrganizationLD(),
+      buildWebSiteLD(),
+    ],
+  }), []);
+
+  useJsonLD(jsonLd);
+
   return (
     <>
       {/* 1. Hero Section */}

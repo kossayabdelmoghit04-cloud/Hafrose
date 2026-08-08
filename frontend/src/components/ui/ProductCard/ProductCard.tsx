@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { ProductCardProps } from './ProductCard.types';
 import { Card } from '../Card';
 import { IconButton } from '../IconButton';
 import { Button } from '../Button';
+import { LazyImage } from '../LazyImage';
 import { formatPrice, getImageUrl } from '../../../utils/formatters';
 import { cn } from '../../../utils/cn';
 
-export const ProductCard: React.FC<ProductCardProps> = ({
+/**
+ * ProductCard — HAFROSE UI Kit
+ *
+ * Optimized with:
+ * - React.memo to prevent unnecessary re-renders in large grids
+ * - LazyImage with native lazy loading + CLS-safe aspect ratio
+ * - fetchPriority="high" disabled by default (only hero images use it)
+ */
+export const ProductCard: React.FC<ProductCardProps> = memo(({
   id,
   name,
   slug,
@@ -34,11 +43,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* 3:4 Aspect Ratio Image Container */}
       <div className="relative aspect-[3/4] w-full bg-cream-200 overflow-hidden">
-        <img
+        <LazyImage
           src={imageSrc}
           alt={name}
-          loading="lazy"
-          className="w-full h-full object-cover object-center transition-transform duration-500 ease-luxury group-hover:scale-105"
+          className="w-full h-full transition-transform duration-500 ease-luxury group-hover:scale-105"
+          wrapperClassName="w-full h-full"
+          objectFit="cover"
         />
 
         {/* Badge Slot */}
@@ -56,7 +66,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             <IconButton
               variant="default"
               size="sm"
-              aria-label={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
+              aria-label={isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               onClick={(e) => {
                 e.stopPropagation();
                 onWishlistToggle(id);
@@ -65,8 +75,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <Heart
                   className={cn(
                     'w-4 h-4 transition-colors duration-200',
-                    isWishlisted ? 'text-burgundy-500 fill-burgundy-500' : 'text-neutral-600 group-hover/btn:text-burgundy-500'
+                    isWishlisted
+                      ? 'text-burgundy-500 fill-burgundy-500'
+                      : 'text-neutral-600 group-hover/btn:text-burgundy-500'
                   )}
+                  aria-hidden="true"
                 />
               }
             />
@@ -80,7 +93,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               variant="primary"
               size="sm"
               fullWidth
-              leftIcon={<ShoppingBag className="w-4 h-4" />}
+              leftIcon={<ShoppingBag className="w-4 h-4" aria-hidden="true" />}
               onClick={(e) => {
                 e.stopPropagation();
                 onQuickAdd(id);
@@ -106,13 +119,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Price Block */}
-        <div className="flex items-baseline gap-2 pt-1">
+        <div className="flex items-baseline gap-2 pt-1" aria-label={`Prix: ${formattedSalePrice ?? formattedPrice}`}>
           {formattedSalePrice ? (
             <>
               <span className="font-sans font-semibold text-body-base text-burgundy-600">
                 {formattedSalePrice}
               </span>
-              <span className="font-sans text-body-sm text-neutral-400 line-through">
+              <span className="font-sans text-body-sm text-neutral-400 line-through" aria-label={`Ancien prix: ${formattedPrice}`}>
                 {formattedPrice}
               </span>
             </>
@@ -125,4 +138,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </Card>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';

@@ -21,26 +21,26 @@ const MOCK_FALLBACK_ADDRESSES: UserAddress[] = [
   {
     id: 1,
     user_id: 1,
-    address_name: 'Résidence Principale (Paris)',
-    recipient_name: 'Mme. Éléonore De Saint-Germain',
-    street_address: '124 Avenue Montaigne',
+    title: 'Résidence Principale (Paris)',
+    name: 'Mme. Éléonore De Saint-Germain',
+    address: '124 Avenue Montaigne',
     city: 'Paris',
     postal_code: '75008',
     country: 'France',
-    phone_number: '+33 6 12 34 56 78',
+    phone: '+33 6 12 34 56 78',
     is_default: true,
     created_at: '',
   },
   {
     id: 2,
     user_id: 1,
-    address_name: 'Maison de Campagne (Cannes)',
-    recipient_name: 'Mme. Éléonore De Saint-Germain',
-    street_address: '42 Boulevard de la Croisette',
+    title: 'Maison de Campagne (Cannes)',
+    name: 'Mme. Éléonore De Saint-Germain',
+    address: '42 Boulevard de la Croisette',
     city: 'Cannes',
     postal_code: '06400',
     country: 'France',
-    phone_number: '+33 6 98 76 54 32',
+    phone: '+33 6 98 76 54 32',
     is_default: false,
     created_at: '',
   },
@@ -60,26 +60,26 @@ export const AddressesPage: React.FC = () => {
   const addresses = (apiAddresses && apiAddresses.length > 0) ? apiAddresses : localAddresses;
 
   const [formData, setFormData] = useState({
-    address_name: '',
-    recipient_name: '',
-    street_address: '',
+    title: '',
+    name: '',
+    address: '',
     city: '',
     postal_code: '',
     country: 'France',
-    phone_number: '',
+    phone: '',
     is_default: false,
   });
 
   const handleOpenAddModal = () => {
     setEditingAddress(null);
     setFormData({
-      address_name: '',
-      recipient_name: '',
-      street_address: '',
+      title: '',
+      name: '',
+      address: '',
       city: '',
       postal_code: '',
       country: 'France',
-      phone_number: '',
+      phone: '',
       is_default: addresses.length === 0,
     });
     setIsModalOpen(true);
@@ -88,13 +88,13 @@ export const AddressesPage: React.FC = () => {
   const handleOpenEditModal = (addr: UserAddress) => {
     setEditingAddress(addr);
     setFormData({
-      address_name: addr.address_name,
-      recipient_name: addr.recipient_name,
-      street_address: addr.street_address,
+      title: addr.title,
+      name: addr.name,
+      address: addr.address,
       city: addr.city,
       postal_code: addr.postal_code,
-      country: addr.country,
-      phone_number: addr.phone_number,
+      country: addr.country || 'France',
+      phone: addr.phone || '',
       is_default: addr.is_default,
     });
     setIsModalOpen(true);
@@ -186,7 +186,7 @@ export const AddressesPage: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-serif text-h4 text-neutral-950 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-burgundy-500" /> {addr.address_name}
+                    <MapPin className="w-4 h-4 text-burgundy-500" /> {addr.title}
                   </span>
                   {addr.is_default && (
                     <span className="inline-flex items-center gap-1 text-caption font-semibold uppercase bg-burgundy-50 text-burgundy-700 px-2.5 py-0.5 rounded-xs border border-burgundy-100 shadow-hafrose-xs">
@@ -196,10 +196,10 @@ export const AddressesPage: React.FC = () => {
                 </div>
 
                 <div className="text-body-sm text-neutral-700 space-y-0.5">
-                  <p className="font-semibold text-neutral-950">{addr.recipient_name}</p>
-                  <p>{addr.street_address}</p>
+                  <p className="font-semibold text-neutral-950">{addr.name}</p>
+                  <p>{addr.address}</p>
                   <p>{addr.postal_code} {addr.city}, {addr.country}</p>
-                  <p className="text-neutral-500 pt-1">Tél : {addr.phone_number}</p>
+                  {addr.phone && <p className="text-neutral-500 pt-1">Tél : {addr.phone}</p>}
                 </div>
               </div>
 
@@ -252,22 +252,22 @@ export const AddressesPage: React.FC = () => {
           <Input
             label="Nom de l'adresse (ex: Domicile, Bureau)"
             required
-            value={formData.address_name}
-            onChange={(e) => setFormData({ ...formData, address_name: e.target.value })}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             placeholder="Résidence Principale"
           />
           <Input
             label="Nom du Destinataire"
             required
-            value={formData.recipient_name}
-            onChange={(e) => setFormData({ ...formData, recipient_name: e.target.value })}
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             placeholder="Mme. Éléonore De Saint-Germain"
           />
           <Input
             label="Adresse de rue"
             required
-            value={formData.street_address}
-            onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
             placeholder="124 Avenue Montaigne"
           />
           <div className="grid grid-cols-2 gap-4">
@@ -299,9 +299,8 @@ export const AddressesPage: React.FC = () => {
           />
           <Input
             label="Téléphone de Contact"
-            required
-            value={formData.phone_number}
-            onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             placeholder="+33 6 12 34 56 78"
           />
           <Checkbox
@@ -330,3 +329,4 @@ export const AddressesPage: React.FC = () => {
 };
 
 export default AddressesPage;
+

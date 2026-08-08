@@ -15,10 +15,10 @@ export const ProfilePage: React.FC = () => {
 
   const currentUser = profileData || user;
 
-  const [firstName, setFirstName] = useState(currentUser?.first_name || 'Éléonore');
-  const [lastName, setLastName] = useState(currentUser?.last_name || 'De Saint-Germain');
-  const [email, setEmail] = useState(currentUser?.email || 'eleonore@hafrose.com');
-  const [phone, setPhone] = useState(currentUser?.phone || '+33 6 12 34 56 78');
+  const [firstName, setFirstName] = useState(currentUser?.first_name || '');
+  const [lastName, setLastName] = useState(currentUser?.last_name || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
 
   useEffect(() => {
     if (currentUser) {

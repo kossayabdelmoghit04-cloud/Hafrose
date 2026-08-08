@@ -69,7 +69,7 @@ export const WishlistPage = () => {
                         slug={product.slug}
                         price={product.price}
                         salePrice={product.sale_price}
-                        imageUrl={getImageUrl(product.media?.[0]?.url ?? null)}
+                        imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
                         categoryName={product.category?.name}
                         isWishlisted={true}
                         onWishlistToggle={(id) => removeFromWishlist(id)}

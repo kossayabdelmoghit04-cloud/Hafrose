@@ -30,10 +30,20 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
+        'order_number',
         'customer_name',
         'phone',
         'address',
         'city',
+        'postal_code',
+        'country',
+        'subtotal_amount',
+        'tax_amount',
+        'shipping_amount',
+        'shipping_method',
+        'payment_method',
+        'payment_status',
+        'total_amount',
         'total_price',
         'status',
     ];
@@ -44,7 +54,11 @@ class Order extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'total_price' => 'decimal:2',
+        'subtotal_amount' => 'decimal:2',
+        'tax_amount'      => 'decimal:2',
+        'shipping_amount' => 'decimal:2',
+        'total_amount'    => 'decimal:2',
+        'total_price'     => 'decimal:2',
     ];
 
     /**
@@ -64,11 +78,23 @@ class Order extends Model
     }
 
     /**
-     * Recalculer le prix total de la commande basé sur ses articles.
+     * Recalculer le prix total et la ventilation financière de la commande.
      */
     public function recalculateTotal(): void
     {
-        $this->total_price = $this->orderItems()->sum('subtotal');
-        $this->save();
+        $itemsSubtotal = (float) $this->orderItems()->sum('subtotal');
+        $shipping      = (float) ($this->shipping_amount ?? 0);
+        $total         = $itemsSubtotal + $shipping;
+
+        $this->subtotal_amount = $itemsSubtotal;
+        $this->tax_amount      = round($itemsSubtotal - ($itemsSubtotal / 1.2), 2);
+        $this->total_amount    = $total;
+        $this->total_price     = $total;
+
+        if (empty($this->order_number)) {
+            $this->order_number = 'HF-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+        }
+
+        $this->saveQuietly();
     }
 }
