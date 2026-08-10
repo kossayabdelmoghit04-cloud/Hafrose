@@ -39,8 +39,8 @@ class AdminUserSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->syncPermissions($permissions);
 
-        // --- Créer le super-administrateur ---
-        $admin = User::firstOrCreate(
+        // --- Créer ou mettre à jour le super-administrateur ---
+        $admin = User::updateOrCreate(
             ['email' => 'admin@hafrose.com'],
             [
                 'name' => 'Administrateur Hafrose',

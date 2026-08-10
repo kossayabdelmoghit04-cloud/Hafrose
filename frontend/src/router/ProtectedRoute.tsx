@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { RoleType } from '../types/models';
 import { ROUTES } from '../constants/routes.constants';
@@ -12,10 +12,13 @@ interface ProtectedRouteProps {
 
 /**
  * Route Navigation Guard Architecture
- * Controls access to Customer Account and Admin Panel based on Sanctum Auth state and user roles
+ * Controls access to Customer Account and Admin Panel based on Sanctum Auth state and user roles.
+ * - Unauthenticated admin route access → redirects to /admin/login
+ * - Unauthenticated customer route access → redirects to /login
  */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole, children }) => {
   const { isAuthenticated, user, isLoading } = useAuthStore();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -26,7 +29,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole, ch
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={ROUTES.AUTH.LOGIN} replace />;
+    // Admin routes redirect to /admin/login, customer routes to /login
+    const loginTarget = requiredRole === 'admin' ? '/admin/login' : ROUTES.AUTH.LOGIN;
+    return <Navigate to={loginTarget} state={{ from: location }} replace />;
   }
 
   if (requiredRole && user?.role !== requiredRole && user?.role !== 'super_admin') {
@@ -35,3 +40,4 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole, ch
 
   return children ? <>{children}</> : <Outlet />;
 };
+

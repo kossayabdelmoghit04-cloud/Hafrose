@@ -60,10 +60,14 @@ export function truncateText(text: string, maxLength: number): string {
  */
 export function getImageUrl(
   filePath: string | null | undefined,
-  fallback = 'assets/images/placeholder.webp'
+  fallback = 'assets/images/placeholder.svg'
 ): string {
   if (!filePath || typeof filePath !== 'string' || !filePath.trim()) {
-    if (filePath === fallback) return '/assets/images/placeholder.webp';
+    if (filePath === fallback) {
+      const storageUrl = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+      const serverUrl = storageUrl.replace(/\/storage\/?$/, '');
+      return `${serverUrl}/assets/images/placeholder.svg`;
+    }
     return getImageUrl(fallback);
   }
 

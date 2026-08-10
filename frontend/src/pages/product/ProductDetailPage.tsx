@@ -104,7 +104,7 @@ export const ProductDetailPage = () => {
   const rawGalleryList = product?.galleries?.map((g) => g.image) ?? product?.media?.map((m) => m.url) ?? [];
   const galleryImages = rawGalleryList.length > 0
     ? rawGalleryList.map((img) => getImageUrl(img))
-    : product?.image ? [getImageUrl(product.image)] : [getImageUrl('assets/images/hero-main.png')];
+    : product?.image ? [getImageUrl(product.image)] : [getImageUrl('assets/images/placeholder.svg')];
 
   return (
     <div className="bg-cream-100 min-h-screen">

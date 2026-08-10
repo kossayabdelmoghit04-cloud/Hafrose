@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { cn } from '../../../utils/cn';
+import { getImageUrl } from '../../../utils/formatters';
 import { LazyImageProps } from './LazyImage.types';
 
-const DEFAULT_FALLBACK = '/assets/images/placeholder.webp';
+const DEFAULT_FALLBACK = getImageUrl('assets/images/placeholder.svg');
 
 /**
  * LazyImage — Production-ready image component for HAFROSE

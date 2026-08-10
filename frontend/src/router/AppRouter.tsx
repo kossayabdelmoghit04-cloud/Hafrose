@@ -19,6 +19,19 @@ const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('../pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage'));
 
+// Admin pages
+const AdminLoginPage = lazy(() => import('../pages/admin/AdminLoginPage'));
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
+const AdminProductsPage = lazy(() => import('../pages/admin/AdminProductsPage'));
+const AdminCategoriesPage = lazy(() => import('../pages/admin/AdminCategoriesPage'));
+const AdminOrdersPage = lazy(() => import('../pages/admin/AdminOrdersPage'));
+const AdminReviewsPage = lazy(() => import('../pages/admin/AdminReviewsPage'));
+const AdminContactsPage = lazy(() => import('../pages/admin/AdminContactsPage'));
+const AdminMediaPage = lazy(() => import('../pages/admin/AdminMediaPage'));
+const AdminAnalyticsPage = lazy(() => import('../pages/admin/AdminAnalyticsPage'));
+const AdminSettingsPage = lazy(() => import('../pages/admin/AdminSettingsPage'));
+const AdminLogsPage = lazy(() => import('../pages/admin/AdminLogsPage'));
+
 // Lazy-loaded Customer Account pages
 const DashboardPage = lazy(() => import('../pages/account/DashboardPage'));
 const ProfilePage = lazy(() => import('../pages/account/ProfilePage'));
@@ -195,7 +208,16 @@ const router = createBrowserRouter([
       },
     ],
   },
-  // Protected admin back-office routes
+  // ── PUBLIC Admin Login (no auth required) ───────────────────────
+  {
+    path: '/admin/login',
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <AdminLoginPage />
+      </Suspense>
+    ),
+  },
+  // ── PROTECTED Admin Back-Office ─────────────────────────────────
   {
     path: '/admin',
     element: (
@@ -204,7 +226,86 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <div>Tableau de Bord Admin</div> },
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminDashboardPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'products',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminProductsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'categories',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminCategoriesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'orders',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminOrdersPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'reviews',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminReviewsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'contacts',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminContactsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'media',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminMediaPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'analytics',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminAnalyticsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'settings',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminSettingsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'logs',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminLogsPage />
+          </Suspense>
+        ),
+      },
     ],
   },
 ]);
