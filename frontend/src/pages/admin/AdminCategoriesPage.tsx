@@ -27,7 +27,12 @@ export const AdminCategoriesPage: React.FC = () => {
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
 
-  const categoriesList = categoriesData?.data || (Array.isArray(categoriesData) ? categoriesData : []);
+  const categoriesList = Array.isArray(categoriesData)
+    ? categoriesData
+    : (categoriesData?.data && Array.isArray(categoriesData.data)
+      ? categoriesData.data
+      : []);
+
 
   const openCreateModal = () => {
     setEditingCategory(null);

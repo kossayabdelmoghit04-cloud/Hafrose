@@ -18,10 +18,33 @@ class UpdateProductRequest extends FormRequest
     }
 
     /**
+     * Préparer les données pour la validation (générer ou conserver le slug si omis).
+     */
+    protected function prepareForValidation(): void
+    {
+        if (empty($this->slug)) {
+            if (! empty($this->name)) {
+                $this->merge([
+                    'slug' => \Illuminate\Support\Str::slug($this->name),
+                ]);
+            } else {
+                $product = $this->route('product');
+                $productModel = is_object($product) ? $product : \App\Models\Product::find($product);
+                if ($productModel) {
+                    $this->merge([
+                        'slug' => $productModel->slug,
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
      * Règles de validation pour la mise à jour d'un produit.
      * Le slug exclut le produit en cours pour permettre de le conserver.
      */
     public function rules(): array
+
     {
         $product = $this->route('product');
         $productId = is_object($product) ? $product->id : (int) $product;

@@ -66,15 +66,11 @@ export const adminService = {
   },
 
   async createProduct(formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.post('/admin/products', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.post('/admin/products', formData);
   },
 
   async updateProduct(id: number, formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.post(`/admin/products/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.post(`/admin/products/${id}`, formData);
   },
 
   async deleteProduct(id: number): Promise<ApiResponse<any>> {
@@ -87,15 +83,11 @@ export const adminService = {
   },
 
   async createCategory(formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.post('/admin/categories', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.post('/admin/categories', formData);
   },
 
   async updateCategory(id: number, formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.post(`/admin/categories/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.post(`/admin/categories/${id}`, formData);
   },
 
   async deleteCategory(id: number): Promise<ApiResponse<any>> {
@@ -151,9 +143,7 @@ export const adminService = {
   },
 
   async uploadMedia(formData: FormData): Promise<ApiResponse<any>> {
-    return apiClient.post('/admin/media', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return apiClient.post('/admin/media', formData);
   },
 
   async deleteMedia(id: number): Promise<ApiResponse<any>> {

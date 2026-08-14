@@ -129,6 +129,109 @@ class ProductControllerTest extends TestCase
             ->assertJsonPath('data.price', '150.00');
     }
 
+    public function test_can_update_product_without_image_preserves_existing_image(): void
+    {
+        Storage::fake('public');
+        $token = $this->adminToken();
+        $product = Product::factory()->create([
+            'image' => 'products/existing-image.jpg',
+            'price' => 100.00,
+        ]);
+        $category = Category::factory()->create();
+
+        $response = $this->withToken($token)->post("/api/admin/products/{$product->id}", [
+            'name' => 'Produit Sans Nouvelle Image',
+            'price' => 120.00,
+            'stock' => 15,
+            'category_id' => $category->id,
+            'description' => 'Description mise à jour sans image.',
+        ], ['Accept' => 'application/json']);
+
+        $response->assertOk()
+            ->assertJsonPath('data.image', 'products/existing-image.jpg');
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'image' => 'products/existing-image.jpg',
+            'name' => 'Produit Sans Nouvelle Image',
+        ]);
+    }
+
+    public function test_can_update_product_with_new_image(): void
+    {
+        Storage::fake('public');
+        $token = $this->adminToken();
+        $product = Product::factory()->create([
+            'image' => 'products/old-image.jpg',
+        ]);
+        $category = Category::factory()->create();
+
+        $newImage = UploadedFile::fake()->create('nouveau-bracelet.jpg', 300, 'image/jpeg');
+
+        $response = $this->withToken($token)->post("/api/admin/products/{$product->id}", [
+            'name' => 'Bracelet Jonc Mis A Jour',
+            'price' => 350.00,
+            'stock' => 3,
+            'category_id' => $category->id,
+            'description' => 'Description du bracelet mise à jour.',
+            'image' => $newImage,
+        ], ['Accept' => 'application/json']);
+
+        $response->assertOk();
+
+        $updatedProduct = Product::find($product->id);
+        $this->assertNotNull($updatedProduct->image);
+        $this->assertStringStartsWith('products/', $updatedProduct->image);
+        $this->assertNotEquals('products/old-image.jpg', $updatedProduct->image);
+        Storage::disk('public')->assertExists($updatedProduct->image);
+    }
+
+    public function test_update_product_rejects_invalid_image_format(): void
+    {
+        Storage::fake('public');
+        $token = $this->adminToken();
+        $product = Product::factory()->create();
+        $category = Category::factory()->create();
+
+        $invalidFile = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
+
+        $response = $this->withToken($token)->post("/api/admin/products/{$product->id}", [
+            'name' => $product->name,
+            'price' => 200.00,
+            'stock' => 5,
+            'category_id' => $category->id,
+            'description' => 'Test invalide.',
+            'image' => $invalidFile,
+        ], ['Accept' => 'application/json']);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['image']);
+    }
+
+    public function test_update_product_rejects_oversized_image(): void
+    {
+        Storage::fake('public');
+        $token = $this->adminToken();
+        $product = Product::factory()->create();
+        $category = Category::factory()->create();
+
+        // 6000 KB > 5120 KB limit
+        $oversizedImage = UploadedFile::fake()->create('trop-grand.jpg', 6000, 'image/jpeg');
+
+        $response = $this->withToken($token)->post("/api/admin/products/{$product->id}", [
+            'name' => $product->name,
+            'price' => 200.00,
+            'stock' => 5,
+            'category_id' => $category->id,
+            'description' => 'Test image trop grande.',
+            'image' => $oversizedImage,
+        ], ['Accept' => 'application/json']);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['image']);
+    }
+
+
     // ─── Destroy ──────────────────────────────────────────────────────────────
 
     public function test_can_delete_product(): void

@@ -18,9 +18,22 @@ class StoreProductRequest extends FormRequest
     }
 
     /**
+     * Préparer les données pour la validation (générer le slug si omis).
+     */
+    protected function prepareForValidation(): void
+    {
+        if (empty($this->slug) && ! empty($this->name)) {
+            $this->merge([
+                'slug' => \Illuminate\Support\Str::slug($this->name),
+            ]);
+        }
+    }
+
+    /**
      * Règles de validation pour la création d'un produit.
      */
     public function rules(): array
+
     {
         return [
             'category_id' => 'required|integer|exists:categories,id',

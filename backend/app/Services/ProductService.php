@@ -65,9 +65,10 @@ class ProductService
             // Gérer l'image principale
             if ($imageFile) {
                 $path = $imageFile->store('products', 'public');
-                $data['image'] = Storage::url($path);
+                $data['image'] = $path;
             } elseif (! empty($data['image_path'])) {
-                $data['image'] = Storage::url($data['image_path']);
+                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $data['image'] = $cleanPath;
             }
 
             // Assurer la valeur par défaut pour is_featured
@@ -96,9 +97,13 @@ class ProductService
                     $this->deletePhysicalImage($product->image);
                 }
                 $path = $imageFile->store('products', 'public');
-                $data['image'] = Storage::url($path);
+                $data['image'] = $path;
             } elseif (! empty($data['image_path'])) {
-                $data['image'] = Storage::url($data['image_path']);
+                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $data['image'] = $cleanPath;
+            } else {
+                // Conserver l'image existante si aucune nouvelle image n'est envoyée
+                unset($data['image']);
             }
 
             // Mettre à jour is_featured
@@ -151,7 +156,7 @@ class ProductService
             if ($file instanceof UploadedFile) {
                 $path = $file->store('products/gallery', 'public');
                 $product->galleries()->create([
-                    'image' => Storage::url($path),
+                    'image' => $path,
                 ]);
             }
         }
@@ -159,8 +164,9 @@ class ProductService
         // Enregistrer les chemins d'accès réutilisés
         foreach ($galleryPaths as $path) {
             if (! empty($path)) {
+                $cleanPath = ltrim(str_replace('/storage/', '', $path), '/');
                 $product->galleries()->create([
-                    'image' => Storage::url($path),
+                    'image' => $cleanPath,
                 ]);
             }
         }
@@ -180,14 +186,13 @@ class ProductService
     }
 
     /**
-     * Supprimer physiquement un fichier sur le disque public à partir de son URL.
+     * Supprimer physiquement un fichier sur le disque public à partir de son URL ou chemin relatif.
      */
     private function deletePhysicalImage(string $url): void
     {
-        // L'url ressemble à /storage/products/filename.jpg ou http://localhost/storage/products/filename.jpg
-        // Nous voulons extraire products/filename.jpg
-        $path = parse_url($url, PHP_URL_PATH);
+        $path = parse_url($url, PHP_URL_PATH) ?? $url;
         $relativePath = str_replace('/storage/', '', $path);
+        $relativePath = ltrim($relativePath, '/');
 
         if (Storage::disk('public')->exists($relativePath)) {
             Storage::disk('public')->delete($relativePath);

@@ -22,7 +22,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { Pagination } from '../../components/ui/Pagination';
 import { LazyImage } from '../../components/ui/LazyImage/LazyImage';
 import { useSEO } from '../../hooks/useSEO';
-import { formatPrice, getImageUrl } from '../../utils/formatters';
+import { formatPrice, getImageUrl, slugify } from '../../utils/formatters';
 
 export const AdminProductsPage: React.FC = () => {
   useSEO({ title: 'Gestion des Produits | HAFROSE Admin', noIndex: true });
@@ -49,6 +49,7 @@ export const AdminProductsPage: React.FC = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [formError, setFormError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   // Hooks
   const { data: productsData, isLoading, isError, refetch } = useAdminProducts({
@@ -57,19 +58,27 @@ export const AdminProductsPage: React.FC = () => {
     category_id: selectedCategory || undefined,
   });
 
-  const { data: categoriesData } = useAdminCategories();
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+  } = useAdminCategories();
   const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
 
   const productsList = productsData?.data || (Array.isArray(productsData) ? productsData : []);
   const meta = productsData?.meta;
-  const categoriesList = categoriesData?.data || (Array.isArray(categoriesData) ? categoriesData : []);
+  const categoriesList = Array.isArray(categoriesData)
+    ? categoriesData
+    : (categoriesData?.data && Array.isArray(categoriesData.data)
+      ? categoriesData.data
+      : []);
 
   const openCreateModal = () => {
     setEditingProduct(null);
     setName('');
-    setCategoryId(categoriesList[0]?.id ? String(categoriesList[0].id) : '');
+    setCategoryId(categoriesList.length > 0 ? String(categoriesList[0].id) : '');
     setPrice('');
     setStock('10');
     setColor('');
@@ -78,13 +87,15 @@ export const AdminProductsPage: React.FC = () => {
     setIsFeatured(false);
     setImageFile(null);
     setFormError('');
+    setFieldErrors({});
     setIsModalOpen(true);
   };
 
   const openEditModal = (product: any) => {
     setEditingProduct(product);
     setName(product.name || '');
-    setCategoryId(product.category_id ? String(product.category_id) : '');
+    const catId = product.category_id ?? product.category?.id;
+    setCategoryId(catId ? String(catId) : (categoriesList.length > 0 ? String(categoriesList[0].id) : ''));
     setPrice(String(product.price || ''));
     setStock(String(product.stock ?? 10));
     setColor(product.color || '');
@@ -93,32 +104,45 @@ export const AdminProductsPage: React.FC = () => {
     setIsFeatured(Boolean(product.is_featured));
     setImageFile(null);
     setFormError('');
+    setFieldErrors({});
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
+    setFieldErrors({});
 
     if (!name.trim()) {
       setFormError('Le nom du produit est obligatoire.');
+      return;
+    }
+    if (!categoryId || !String(categoryId).trim()) {
+      setFieldErrors((prev) => ({ ...prev, category_id: ['La catégorie est obligatoire.'] }));
+      setFormError('La catégorie est obligatoire.');
       return;
     }
     if (!price || Number(price) <= 0) {
       setFormError('Veuillez saisir un prix valide.');
       return;
     }
+    if (!description.trim()) {
+      setFormError('La description du produit est obligatoire.');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('name', name.trim());
-    if (categoryId) formData.append('category_id', categoryId);
+    formData.append('slug', slugify(name));
+    formData.append('category_id', String(categoryId));
     formData.append('price', price);
     formData.append('stock', stock);
     if (color) formData.append('color', color);
     if (material) formData.append('material', material);
-    if (description) formData.append('description', description);
+    formData.append('description', description.trim());
     formData.append('is_featured', isFeatured ? '1' : '0');
 
+    // Only append image if a file was actually selected
     if (imageFile) {
       formData.append('image', imageFile);
     }
@@ -131,7 +155,12 @@ export const AdminProductsPage: React.FC = () => {
       }
       setIsModalOpen(false);
     } catch (err: any) {
-      setFormError(err?.message || 'Une erreur est survenue lors de l enregistrement.');
+      if (err?.errors && typeof err.errors === 'object') {
+        setFieldErrors(err.errors);
+        setFormError(err.message || 'Veuillez corriger les erreurs de validation.');
+      } else {
+        setFormError(err?.message || 'Une erreur est survenue lors de l enregistrement.');
+      }
     }
   };
 
@@ -332,23 +361,57 @@ export const AdminProductsPage: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
+                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                      fieldErrors.name ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                    }`}
                   />
+                  {fieldErrors.name && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.name[0]}</p>
+                  )}
+                  {fieldErrors.slug && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">Slug : {fieldErrors.slug[0]}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Catégorie</label>
+                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Catégorie *</label>
                   <select
+                    required
                     value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
+                    onChange={(e) => {
+                      setCategoryId(e.target.value);
+                      if (fieldErrors.category_id) {
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.category_id;
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                      fieldErrors.category_id ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                    }`}
                   >
-                    {categoriesList.map((c: any) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
+                    {isCategoriesLoading ? (
+                      <option value="" disabled>Chargement des catégories...</option>
+                    ) : isCategoriesError ? (
+                      <option value="" disabled>Erreur de chargement des catégories</option>
+                    ) : categoriesList.length === 0 ? (
+                      <option value="" disabled>Aucune catégorie disponible</option>
+                    ) : (
+                      <>
+                        <option value="" disabled>-- Sélectionner une catégorie --</option>
+                        {categoriesList.map((c: any) => (
+                          <option key={c.id} value={String(c.id)}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
                   </select>
+                  {fieldErrors.category_id && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.category_id[0]}</p>
+                  )}
                 </div>
 
                 <div>
@@ -356,21 +419,34 @@ export const AdminProductsPage: React.FC = () => {
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     required
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
+                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                      fieldErrors.price ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                    }`}
                   />
+                  {fieldErrors.price && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.price[0]}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Stock disponible</label>
+                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Stock disponible *</label>
                   <input
                     type="number"
+                    min="0"
+                    required
                     value={stock}
                     onChange={(e) => setStock(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
+                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                      fieldErrors.stock ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                    }`}
                   />
+                  {fieldErrors.stock && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.stock[0]}</p>
+                  )}
                 </div>
 
                 <div>
@@ -395,25 +471,66 @@ export const AdminProductsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Description</label>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">Description *</label>
                 <textarea
                   rows={3}
+                  required
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
+                  className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                    fieldErrors.description ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                  }`}
                 />
+                {fieldErrors.description && (
+                  <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.description[0]}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Image Produit</label>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                  Image Produit <span className="text-neutral-500 font-normal">(JPG, JPEG, PNG, WEBP — Max 5 Mo)</span>
+                </label>
+                {editingProduct?.image && !imageFile && (
+                  <div className="mb-2 flex items-center gap-3 p-2.5 bg-neutral-900 border border-neutral-800 rounded-xl">
+                    <img
+                      src={getImageUrl(editingProduct.image)}
+                      alt={editingProduct.name}
+                      className="w-12 h-12 object-cover rounded-lg border border-neutral-700 bg-neutral-950 flex-shrink-0"
+                    />
+                    <div className="text-xs text-neutral-400 min-w-0">
+                      <p className="text-neutral-200 font-medium">Image actuelle</p>
+                      <p className="text-[11px] text-neutral-500 truncate">{editingProduct.image}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <input
                     type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                    className="text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-800 file:text-white hover:file:bg-neutral-700"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setImageFile(file);
+                      if (fieldErrors.image) {
+                        setFieldErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.image;
+                          return next;
+                        });
+                      }
+                    }}
+                    className="text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-neutral-800 file:text-white hover:file:bg-neutral-700 cursor-pointer"
                   />
                 </div>
+                {imageFile && (
+                  <p className="mt-1.5 text-[11px] text-emerald-400">
+                    Fichier prêt à être envoyé : {imageFile.name} ({(imageFile.size / 1024).toFixed(0)} Ko)
+                  </p>
+                )}
+                {fieldErrors.image && (
+                  <p className="mt-1 text-[11px] text-rose-400 font-medium flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.image[0]}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center gap-2 pt-2">
