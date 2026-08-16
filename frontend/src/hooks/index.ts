@@ -4,4 +4,5 @@ export * from './useUtilities';
 export * from './useAuthHooks';
 export * from './useAccountHooks';
 export * from './useProductHooks';
+export * from './useHomeHooks';
 export * from './useErrorHandler';

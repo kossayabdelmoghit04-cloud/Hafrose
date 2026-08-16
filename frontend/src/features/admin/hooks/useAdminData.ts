@@ -272,9 +272,12 @@ export function useAdminSettings() {
 export function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (settings: Record<string, any>) => adminService.updateSettings(settings),
+    mutationFn: (formData: FormData) => adminService.updateSettings(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.settings });
+      // Invalider aussi le cache public pour que les sections home reflètent les changements
+      queryClient.invalidateQueries({ queryKey: ['home'] });
+      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
     },
   });
 }

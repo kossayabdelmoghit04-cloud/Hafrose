@@ -155,8 +155,10 @@ export const adminService = {
     return apiClient.get('/admin/settings');
   },
 
-  async updateSettings(settings: Record<string, any>): Promise<ApiResponse<any>> {
-    return apiClient.post('/admin/settings', { settings });
+  async updateSettings(formData: FormData): Promise<ApiResponse<any>> {
+    return apiClient.post('/admin/settings', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 
   // Logs

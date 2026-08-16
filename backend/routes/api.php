@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\CustomerAddressController;
 use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\CustomerNotificationController;
+use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -88,6 +89,10 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{product}/related', [ProductController::class, 'related']);
     Route::get('/products/{product}/similar', [ProductController::class, 'similar']);
+
+    // Accueil & Paramètres publics
+    Route::get('/home', [HomeController::class, 'index']);
+    Route::get('/settings', [HomeController::class, 'settings']);
 
     // Avis (lecture seule)
     Route::get('/reviews', [ReviewController::class, 'index']);

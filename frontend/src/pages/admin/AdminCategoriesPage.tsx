@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, FolderTree, X, XCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Plus, Edit2, Trash2, FolderTree, X, XCircle, Image, Upload } from 'lucide-react';
 import {
   useAdminCategories,
   useCreateCategory,
@@ -9,6 +9,7 @@ import {
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
+import { getImageUrl } from '../../utils/formatters';
 
 export const AdminCategoriesPage: React.FC = () => {
   useSEO({ title: 'Gestion des Catégories | HAFROSE Admin', noIndex: true });
@@ -21,6 +22,9 @@ export const AdminCategoriesPage: React.FC = () => {
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const imageFileRef = useRef<HTMLInputElement | null>(null);
 
   const { data: categoriesData, isLoading, isError, refetch } = useAdminCategories();
   const createMutation = useCreateCategory();
@@ -40,6 +44,9 @@ export const AdminCategoriesPage: React.FC = () => {
     setSlug('');
     setDescription('');
     setFormError('');
+    setImagePreview(null);
+    setCurrentImageUrl(null);
+    if (imageFileRef.current) imageFileRef.current.value = '';
     setIsModalOpen(true);
   };
 
@@ -49,6 +56,9 @@ export const AdminCategoriesPage: React.FC = () => {
     setSlug(cat.slug || '');
     setDescription(cat.description || '');
     setFormError('');
+    setImagePreview(null);
+    setCurrentImageUrl(cat.image_url ? getImageUrl(cat.image_url) : null);
+    if (imageFileRef.current) imageFileRef.current.value = '';
     setIsModalOpen(true);
   };
 
@@ -79,6 +89,9 @@ export const AdminCategoriesPage: React.FC = () => {
     formData.append('name', name.trim());
     if (slug) formData.append('slug', slug.trim());
     if (description) formData.append('description', description.trim());
+    if (imageFileRef.current?.files?.[0]) {
+      formData.append('image', imageFileRef.current.files[0]);
+    }
 
     try {
       if (editingCategory) {
@@ -88,7 +101,7 @@ export const AdminCategoriesPage: React.FC = () => {
       }
       setIsModalOpen(false);
     } catch (err: any) {
-      setFormError(err?.message || 'Une erreur est survenue lors de l enregistrement.');
+      setFormError(err?.message || 'Une erreur est survenue lors de l\'enregistrement.');
     }
   };
 
@@ -144,6 +157,7 @@ export const AdminCategoriesPage: React.FC = () => {
             <thead>
               <tr className="border-b border-neutral-800 text-[11px] font-semibold uppercase text-neutral-400 tracking-wider bg-neutral-900/40">
                 <th className="py-3.5 px-4">ID</th>
+                <th className="py-3.5 px-4">Image</th>
                 <th className="py-3.5 px-4">Nom</th>
                 <th className="py-3.5 px-4">Slug</th>
                 <th className="py-3.5 px-4">Description</th>
@@ -162,6 +176,20 @@ export const AdminCategoriesPage: React.FC = () => {
                 categoriesList.map((c: any) => (
                   <tr key={c.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3.5 px-4 font-mono text-neutral-400">#{c.id}</td>
+                    <td className="py-3.5 px-4">
+                      {c.image_url ? (
+                        <img
+                          src={getImageUrl(c.image_url)}
+                          alt={c.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-neutral-700"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center">
+                          <Image className="w-4 h-4 text-neutral-600" />
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3.5 px-4 font-semibold text-white text-sm">{c.name}</td>
                     <td className="py-3.5 px-4 text-amber-400 font-mono">{c.slug}</td>
                     <td className="py-3.5 px-4 text-neutral-300 max-w-md truncate">
@@ -243,6 +271,36 @@ export const AdminCategoriesPage: React.FC = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-3.5 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50"
                 />
+              </div>
+
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-neutral-300">Image de Catégorie</label>
+                <p className="text-[10px] text-neutral-500">JPEG, PNG, WEBP · Max 5 Mo</p>
+                {(imagePreview ?? currentImageUrl) && (
+                  <div className="relative w-full h-28 rounded-xl overflow-hidden border border-neutral-700">
+                    <img
+                      src={imagePreview ?? currentImageUrl ?? ''}
+                      alt="Aperçu"
+                      className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                )}
+                <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-xs text-neutral-300 hover:text-white transition-all">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Choisir une image</span>
+                  <input
+                    ref={imageFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setImagePreview(URL.createObjectURL(file));
+                    }}
+                  />
+                </label>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-neutral-800">

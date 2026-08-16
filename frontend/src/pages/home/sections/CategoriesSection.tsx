@@ -1,7 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import dressesSrc from '../../../assets/images/category-dresses.jpg';
-import bagsSrc from '../../../assets/images/category-bags.jpg';
-import shoesSrc from '../../../assets/images/category-shoes.jpg';
 import { CategoryCard } from '../../../components/ui/CategoryCard';
 import { Container } from '../../../components/ui/Container';
 import { Section } from '../../../components/ui/Section';
@@ -9,10 +6,11 @@ import { Skeleton } from '../../../components/ui/Skeleton';
 import { useCategories } from '../../../hooks/useProductHooks';
 import { getImageUrl } from '../../../utils/formatters';
 
+// Fallback catégories purement textuelles — aucun import d'asset local
 const DEFAULT_CATEGORIES = [
-  { name: 'Robes', slug: 'robes', imageUrl: dressesSrc, productCount: 48 },
-  { name: 'Sacs', slug: 'sacs', imageUrl: bagsSrc, productCount: 32 },
-  { name: 'Chaussures', slug: 'chaussures', imageUrl: shoesSrc, productCount: 27 },
+  { name: 'Robes', slug: 'robes', imageUrl: null, productCount: 48 },
+  { name: 'Sacs', slug: 'sacs', imageUrl: null, productCount: 32 },
+  { name: 'Chaussures', slug: 'chaussures', imageUrl: null, productCount: 27 },
   { name: 'Bijoux', slug: 'bijoux', imageUrl: null, productCount: 64 },
   { name: 'Accessoires', slug: 'accessoires', imageUrl: null, productCount: 41 },
   { name: 'Nouveautés', slug: 'nouveautes', imageUrl: null, productCount: 18 },
@@ -27,7 +25,8 @@ export const CategoriesSection = () => {
     ? apiCategories.map((c, i) => ({
         name: c.name,
         slug: c.slug,
-        imageUrl: getImageUrl(c.image ?? c.image_url ?? DEFAULT_CATEGORIES[i % DEFAULT_CATEGORIES.length].imageUrl),
+        // image_url est déjà une URL absolue résolue par Laravel Storage::url()
+        imageUrl: c.image_url ? getImageUrl(c.image_url) : null,
         productCount: 24 + i * 5,
       }))
     : DEFAULT_CATEGORIES;

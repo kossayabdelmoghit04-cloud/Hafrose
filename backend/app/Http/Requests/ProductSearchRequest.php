@@ -36,9 +36,9 @@ class ProductSearchRequest extends FormRequest
             'price_max' => 'nullable|numeric|min:0',
             'max_price' => 'nullable|numeric|min:0',
 
-            // Tri
-            'sort' => 'nullable|string|in:name,price,created_at',
-            'sort_by' => 'nullable|string|in:name,price,created_at',
+            // Tri (accepte les alias du frontend + les valeurs directes de la BDD)
+            'sort' => 'nullable|string|in:name,price,created_at,featured,latest,price_asc,price_desc',
+            'sort_by' => 'nullable|string|in:name,price,created_at,featured,latest,price_asc,price_desc',
             'direction' => 'nullable|string|in:asc,desc,ASC,DESC',
             'sort_order' => 'nullable|string|in:asc,desc,ASC,DESC',
 
@@ -71,8 +71,8 @@ class ProductSearchRequest extends FormRequest
             'max_price.numeric' => 'Le prix maximum doit être un nombre.',
             'max_price.min' => 'Le prix maximum ne peut pas être négatif.',
 
-            'sort.in' => 'Le champ de tri doit être : name, price ou created_at.',
-            'sort_by.in' => 'Le champ de tri doit être : name, price ou created_at.',
+            'sort.in' => 'Le champ de tri doit être : name, price, created_at, featured, latest, price_asc ou price_desc.',
+            'sort_by.in' => 'Le champ de tri doit être : name, price, created_at, featured, latest, price_asc ou price_desc.',
             'direction.in' => 'La direction du tri doit être asc ou desc.',
             'sort_order.in' => 'La direction du tri doit être asc ou desc.',
 

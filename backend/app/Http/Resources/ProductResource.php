@@ -26,6 +26,7 @@ class ProductResource extends JsonResource
             'material' => $this->material,
             'brand' => $this->brand,
             'image' => $this->image,
+            'image_url' => $this->image_url,
             'is_featured' => $this->is_featured,
             'galleries' => GalleryResource::collection($this->whenLoaded('galleries')),
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),

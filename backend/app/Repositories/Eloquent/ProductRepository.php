@@ -77,15 +77,33 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('is_featured', true);
         }
 
-        // Tri sécurisé
+        // Tri sécurisé — gestion des alias du frontend
         $allowedSorts = ['price', 'created_at', 'name'];
-        $sortBy = $filters['sort'] ?? $filters['sort_by'] ?? 'created_at';
-        $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
+        $rawSort = $filters['sort'] ?? $filters['sort_by'] ?? 'created_at';
 
-        $sortOrder = $filters['direction'] ?? $filters['sort_order'] ?? 'desc';
-        $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
+        // Mapper les alias du frontend vers les colonnes réelles
+        $sortMap = [
+            'featured'   => ['column' => 'is_featured', 'direction' => 'desc'],
+            'latest'     => ['column' => 'created_at',  'direction' => 'desc'],
+            'price_asc'  => ['column' => 'price',       'direction' => 'asc'],
+            'price_desc' => ['column' => 'price',       'direction' => 'desc'],
+        ];
 
-        $query->orderBy($sortBy, $sortOrder);
+        if (isset($sortMap[$rawSort])) {
+            $sortBy    = $sortMap[$rawSort]['column'];
+            $sortOrder = $sortMap[$rawSort]['direction'];
+        } else {
+            $sortBy    = in_array($rawSort, $allowedSorts) ? $rawSort : 'created_at';
+            $sortOrder = $filters['direction'] ?? $filters['sort_order'] ?? 'desc';
+            $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
+        }
+
+        // Cas spécial : tri "vedette" — les produits mis en avant d'abord, puis par date
+        if ($sortBy === 'is_featured') {
+            $query->orderBy('is_featured', 'desc')->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
 
         // Eager load category et galleries pour éliminer N+1
         $query->with(['category', 'galleries']);

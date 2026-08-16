@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -41,6 +42,31 @@ class Product extends Model
         'stock' => 'integer',
         'is_featured' => 'boolean',
     ];
+
+    /**
+     * Attributs ajoutés automatiquement lors de la sérialisation.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = ['image_url'];
+
+    /**
+     * Accesseur pour obtenir l'URL publique de l'image principale.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        $cleanPath = ltrim(str_replace('/storage/', '', $this->image), '/');
+
+        return Storage::url($cleanPath);
+    }
 
     /**
      * Relation : Un produit appartient à une catégorie.

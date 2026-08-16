@@ -23,19 +23,60 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'settings' => 'required|array',
-            'settings.site_name' => 'required|string|max:255',
+            'settings' => 'nullable|array',
+            'settings.site_name' => 'nullable|string|max:255',
             'settings.address' => 'nullable|string|max:500',
             'settings.phone' => 'nullable|string|max:100',
             'settings.email' => 'nullable|email|max:255',
+            'settings.contact_email' => 'nullable|email|max:255',
             'settings.facebook' => 'nullable|string|max:255',
             'settings.instagram' => 'nullable|string|max:255',
             'settings.whatsapp' => 'nullable|string|max:100',
             'settings.hours' => 'nullable|string|max:500',
+            'settings.currency' => 'nullable|string|max:10',
+            'settings.shipping_fee' => 'nullable|numeric|min:0',
+            'settings.free_shipping_threshold' => 'nullable|numeric|min:0',
             'settings.meta_title' => 'nullable|string|max:255',
             'settings.meta_description' => 'nullable|string|max:500',
+
+            // Hero settings
+            'settings.hero_eyebrow' => 'nullable|string|max:255',
+            'settings.hero_title' => 'nullable|string|max:255',
+            'settings.hero_subtitle' => 'nullable|string|max:255',
+            'settings.hero_description' => 'nullable|string|max:1000',
+            'settings.hero_primary_btn_text' => 'nullable|string|max:100',
+            'settings.hero_primary_btn_url' => 'nullable|string|max:255',
+            'settings.hero_secondary_btn_text' => 'nullable|string|max:100',
+            'settings.hero_secondary_btn_url' => 'nullable|string|max:255',
+            'settings.hero_image' => 'nullable|string|max:500',
+            'settings.hero_is_active' => 'nullable|string|in:0,1',
+
+            // Editorial settings
+            'settings.editorial_badge' => 'nullable|string|max:100',
+            'settings.editorial_title' => 'nullable|string|max:255',
+            'settings.editorial_description' => 'nullable|string|max:1000',
+            'settings.editorial_quote' => 'nullable|string|max:500',
+            'settings.editorial_btn_text' => 'nullable|string|max:100',
+            'settings.editorial_btn_url' => 'nullable|string|max:255',
+            'settings.editorial_image' => 'nullable|string|max:500',
+            'settings.editorial_badge_detail_title' => 'nullable|string|max:100',
+            'settings.editorial_badge_detail_text' => 'nullable|string|max:500',
+
+            // Promo banner settings
+            'settings.promo_badge' => 'nullable|string|max:100',
+            'settings.promo_title' => 'nullable|string|max:255',
+            'settings.promo_subtitle' => 'nullable|string|max:255',
+            'settings.promo_description' => 'nullable|string|max:1000',
+            'settings.promo_btn_text' => 'nullable|string|max:100',
+            'settings.promo_btn_url' => 'nullable|string|max:255',
+            'settings.promo_image' => 'nullable|string|max:500',
+
+            // Files
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:5120',
             'site_favicon' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg,ico|max:2048',
+            'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:10240',
+            'editorial_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:10240',
+            'promo_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:10240',
         ];
     }
 
