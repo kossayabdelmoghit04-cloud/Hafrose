@@ -77,6 +77,13 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('is_featured', true);
         }
 
+        // Filtre produits soldés
+        if (isset($filters['on_sale']) && ($filters['on_sale'] === true || $filters['on_sale'] === 'true' || $filters['on_sale'] === '1' || $filters['on_sale'] === 1)) {
+            $query->whereNotNull('sale_price')
+                ->where('sale_price', '>', 0)
+                ->whereColumn('sale_price', '<', 'price');
+        }
+
         // Tri sécurisé — gestion des alias du frontend
         $allowedSorts = ['price', 'created_at', 'name'];
         $rawSort = $filters['sort'] ?? $filters['sort_by'] ?? 'created_at';
@@ -219,6 +226,15 @@ class ProductRepository implements ProductRepositoryInterface
                 ->where('is_featured', true)
                 ->count();
 
+            $onSaleCount = Product::query()
+                ->when($hasActiveCheck, function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->whereNotNull('sale_price')
+                ->where('sale_price', '>', 0)
+                ->whereColumn('sale_price', '<', 'price')
+                ->count();
+
             return [
                 'categories' => $categories,
                 'price' => [
@@ -231,6 +247,7 @@ class ProductRepository implements ProductRepositoryInterface
                     'average_price' => $stats ? round((float) $stats->avg_price, 2) : 0,
                     'total_stock' => $stats ? (int) $stats->total_stock : 0,
                     'featured_count' => $featuredCount,
+                    'on_sale_count' => $onSaleCount,
                 ],
             ];
         }, ['filters', 'products']);
@@ -407,6 +424,12 @@ class ProductRepository implements ProductRepositoryInterface
 
         if (! empty($params['brand'])) {
             $query->where('brand', $params['brand']);
+        }
+
+        if (isset($params['on_sale']) && ($params['on_sale'] === true || $params['on_sale'] === 'true' || $params['on_sale'] === '1' || $params['on_sale'] === 1)) {
+            $query->whereNotNull('sale_price')
+                ->where('sale_price', '>', 0)
+                ->whereColumn('sale_price', '<', 'price');
         }
 
         $sort = $params['sort'] ?? 'newest';

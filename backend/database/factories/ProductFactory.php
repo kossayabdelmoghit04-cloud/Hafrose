@@ -289,4 +289,19 @@ class ProductFactory extends Factory
             'is_featured' => $this->faker->boolean(20),
         ];
     }
+
+    /**
+     * Indique que le produit est en solde.
+     */
+    public function onSale(?float $salePrice = null): static
+    {
+        return $this->state(function (array $attributes) use ($salePrice) {
+            $price = $attributes['price'] ?? 200.00;
+            $discounted = $salePrice ?? round($price * 0.75, 2);
+
+            return [
+                'sale_price' => $discounted,
+            ];
+        });
+    }
 }

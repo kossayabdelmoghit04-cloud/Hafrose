@@ -50,6 +50,7 @@ class ProductSearchRequest extends FormRequest
             'color' => 'nullable|string|max:100',
             'material' => 'nullable|string|max:100',
             'is_featured' => 'nullable|in:true,false,1,0',
+            'on_sale' => 'nullable|in:true,false,1,0',
         ];
     }
 

@@ -55,6 +55,8 @@ export interface Product {
   description: string;
   price: number;
   sale_price?: number | null;
+  is_on_sale?: boolean;
+  discount_percentage?: number | null;
   stock?: number;
   stock_quantity?: number;
   color?: string | null;

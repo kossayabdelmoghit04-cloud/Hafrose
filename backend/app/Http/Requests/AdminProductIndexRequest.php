@@ -31,6 +31,7 @@ class AdminProductIndexRequest extends FormRequest
             'material' => 'nullable|string|max:100',
             'brand' => 'nullable|string|max:100',
             'is_featured' => 'nullable|in:true,false,1,0',
+            'on_sale' => 'nullable|in:true,false,1,0',
             'sort_by' => 'nullable|string|in:name,price,created_at,stock',
             'sort_order' => 'nullable|string|in:asc,desc',
             'per_page' => 'nullable|integer|min:1|max:100',

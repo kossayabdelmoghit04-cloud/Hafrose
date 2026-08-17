@@ -40,11 +40,13 @@ export const ShopPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
   const sortParam = (searchParams.get('sort') as 'featured' | 'latest' | 'price_asc' | 'price_desc') || 'featured';
+  const saleParam = searchParams.get('on_sale') === 'true' || searchParams.get('sale') === 'true';
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [onSaleOnly, setOnSaleOnly] = useState(saleParam);
   const [sortBy, setSortBy] = useState<'featured' | 'latest' | 'price_asc' | 'price_desc'>(sortParam);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -58,6 +60,10 @@ export const ShopPage = () => {
     if (currentCat !== selectedCategory) {
       setSelectedCategory(currentCat);
     }
+    const currentSale = searchParams.get('on_sale') === 'true' || searchParams.get('sale') === 'true';
+    if (currentSale !== onSaleOnly) {
+      setOnSaleOnly(currentSale);
+    }
   }, [searchParams]);
 
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
@@ -69,6 +75,7 @@ export const ShopPage = () => {
   const { data: productsData, isLoading, isError, refetch } = useProducts({
     category: selectedCategory === 'all' ? undefined : selectedCategory,
     sort: sortBy,
+    on_sale: onSaleOnly ? true : undefined,
     page: currentPage,
     per_page: 12,
   });
@@ -89,22 +96,45 @@ export const ShopPage = () => {
     );
   };
 
+  const handleSaleToggle = (checked: boolean) => {
+    setOnSaleOnly(checked);
+    setCurrentPage(1);
+    const newParams: Record<string, string> = {};
+    if (selectedCategory !== 'all') {
+      newParams.category = selectedCategory;
+    }
+    if (sortBy !== 'featured') {
+      newParams.sort = sortBy;
+    }
+    if (checked) {
+      newParams.on_sale = 'true';
+    }
+    setSearchParams(newParams);
+  };
+
   const resetFilters = () => {
     setSelectedCategory('all');
     setSelectedSizes([]);
     setSelectedColors([]);
     setInStockOnly(false);
+    setOnSaleOnly(false);
     setSearchParams({});
   };
 
   const handleCategoryChange = (slug: string) => {
     setSelectedCategory(slug);
     setCurrentPage(1);
-    if (slug === 'all') {
-      setSearchParams({});
-    } else {
-      setSearchParams({ category: slug });
+    const newParams: Record<string, string> = {};
+    if (slug !== 'all') {
+      newParams.category = slug;
     }
+    if (sortBy !== 'featured') {
+      newParams.sort = sortBy;
+    }
+    if (onSaleOnly) {
+      newParams.on_sale = 'true';
+    }
+    setSearchParams(newParams);
   };
 
   const handleWishlistToggle = (product: Product) => {
@@ -181,6 +211,23 @@ export const ShopPage = () => {
             />
           ))}
         </div>
+      </div>
+
+      {/* Offers & Promotions */}
+      <div className="space-y-3">
+        <h4 className="font-serif text-h5 text-neutral-900 border-b border-neutral-200 pb-2">Promotions</h4>
+        <Checkbox
+          label={
+            <span className="flex items-center gap-2">
+              <span>Articles en soldes</span>
+              <span className="px-1.5 py-0.5 rounded-xs text-[10px] font-sans font-bold uppercase tracking-wider bg-burgundy-50 text-burgundy-700 border border-burgundy-200">
+                Soldes
+              </span>
+            </span>
+          }
+          checked={onSaleOnly}
+          onChange={(e) => handleSaleToggle(e.target.checked)}
+        />
       </div>
 
       {/* Availability */}
@@ -317,7 +364,13 @@ export const ShopPage = () => {
                         salePrice={product.sale_price}
                         imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
                         categoryName={product.category?.name}
-                        badgeText={product.is_featured ? 'Best-seller' : undefined}
+                        badgeText={
+                          product.is_featured
+                            ? 'Best-seller'
+                            : (product.sale_price && Number(product.sale_price) < Number(product.price))
+                              ? (product.discount_percentage ? `-${product.discount_percentage}%` : 'Soldes')
+                              : undefined
+                        }
                         isWishlisted={isWishlisted(product.id)}
                         onWishlistToggle={() => handleWishlistToggle(product)}
                         onQuickAdd={() => addToCart(product, 1)}

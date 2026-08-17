@@ -24,6 +24,7 @@ class Product extends Model
         'description',
         'short_description',
         'price',
+        'sale_price',
         'stock',
         'color',
         'material',
@@ -39,6 +40,7 @@ class Product extends Model
      */
     protected $casts = [
         'price' => 'decimal:2',
+        'sale_price' => 'decimal:2',
         'stock' => 'integer',
         'is_featured' => 'boolean',
     ];
@@ -48,7 +50,41 @@ class Product extends Model
      *
      * @var array<int, string>
      */
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'is_on_sale', 'discount_percentage'];
+
+    /**
+     * Scope pour filtrer les produits en promotion / soldes.
+     */
+    public function scopeOnSale($query)
+    {
+        return $query->whereNotNull('sale_price')
+            ->where('sale_price', '>', 0)
+            ->whereColumn('sale_price', '<', 'price');
+    }
+
+    /**
+     * Vérifie si le produit est actuellement soldé.
+     */
+    public function getIsOnSaleAttribute(): bool
+    {
+        return $this->sale_price !== null 
+            && (float) $this->sale_price > 0 
+            && (float) $this->sale_price < (float) $this->price;
+    }
+
+    /**
+     * Calcule le pourcentage de réduction en solde (entier arrondi).
+     */
+    public function getDiscountPercentageAttribute(): ?int
+    {
+        if (! $this->is_on_sale || (float) $this->price <= 0) {
+            return null;
+        }
+
+        $discount = (($this->price - $this->sale_price) / $this->price) * 100;
+
+        return (int) round($discount);
+    }
 
     /**
      * Accesseur pour obtenir l'URL publique de l'image principale.

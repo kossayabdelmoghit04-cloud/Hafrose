@@ -14,6 +14,7 @@ export interface ProductQueryFilters {
   per_page?: number;
   is_featured?: boolean | string;
   is_new?: boolean;
+  on_sale?: boolean | string;
   price_min?: number;
   min_price?: number;
   price_max?: number;

@@ -42,6 +42,7 @@ export const AdminProductsPage: React.FC = () => {
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [price, setPrice] = useState('');
+  const [salePrice, setSalePrice] = useState('');
   const [stock, setStock] = useState('');
   const [color, setColor] = useState('');
   const [material, setMaterial] = useState('');
@@ -80,6 +81,7 @@ export const AdminProductsPage: React.FC = () => {
     setName('');
     setCategoryId(categoriesList.length > 0 ? String(categoriesList[0].id) : '');
     setPrice('');
+    setSalePrice('');
     setStock('10');
     setColor('');
     setMaterial('');
@@ -97,6 +99,7 @@ export const AdminProductsPage: React.FC = () => {
     const catId = product.category_id ?? product.category?.id;
     setCategoryId(catId ? String(catId) : (categoriesList.length > 0 ? String(categoriesList[0].id) : ''));
     setPrice(String(product.price || ''));
+    setSalePrice(product.sale_price ? String(product.sale_price) : '');
     setStock(String(product.stock ?? 10));
     setColor(product.color || '');
     setMaterial(product.material || '');
@@ -126,6 +129,16 @@ export const AdminProductsPage: React.FC = () => {
       setFormError('Veuillez saisir un prix valide.');
       return;
     }
+    if (salePrice.trim() !== '') {
+      if (Number(salePrice) < 0) {
+        setFormError('Le prix soldé ne peut pas être négatif.');
+        return;
+      }
+      if (Number(salePrice) >= Number(price)) {
+        setFormError('Le prix soldé doit être strictement inférieur au prix normal.');
+        return;
+      }
+    }
     if (!description.trim()) {
       setFormError('La description du produit est obligatoire.');
       return;
@@ -136,6 +149,11 @@ export const AdminProductsPage: React.FC = () => {
     formData.append('slug', slugify(name));
     formData.append('category_id', String(categoryId));
     formData.append('price', price);
+    if (salePrice.trim() !== '') {
+      formData.append('sale_price', salePrice.trim());
+    } else if (editingProduct) {
+      formData.append('sale_price', '');
+    }
     formData.append('stock', stock);
     if (color) formData.append('color', color);
     if (material) formData.append('material', material);
@@ -275,8 +293,24 @@ export const AdminProductsPage: React.FC = () => {
                     <td className="py-3 px-4 text-neutral-300">
                       {p.category?.name || 'Général'}
                     </td>
-                    <td className="py-3 px-4 font-bold text-white">
-                      {formatPrice(Number(p.price))}
+                    <td className="py-3 px-4">
+                      {p.sale_price && Number(p.sale_price) < Number(p.price) ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-burgundy-400 text-sm">
+                            {formatPrice(Number(p.sale_price))}
+                          </span>
+                          <span className="text-[11px] text-neutral-400 line-through">
+                            {formatPrice(Number(p.price))}
+                          </span>
+                          <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-burgundy-950/60 text-burgundy-300 border border-burgundy-800/50 w-max">
+                            {p.discount_percentage ? `-${p.discount_percentage}%` : 'Soldé'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-bold text-white">
+                          {formatPrice(Number(p.price))}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
@@ -429,6 +463,26 @@ export const AdminProductsPage: React.FC = () => {
                   />
                   {fieldErrors.price && (
                     <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.price[0]}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                    Prix soldé (€) <span className="text-neutral-500 font-normal">(Optionnel, &lt; Prix)</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Ex: 149.00"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                      fieldErrors.sale_price ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                    }`}
+                  />
+                  {fieldErrors.sale_price && (
+                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.sale_price[0]}</p>
                   )}
                 </div>
 

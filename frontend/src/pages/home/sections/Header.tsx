@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { label: 'Sacs', href: '/#sacs', hasMenu: false },
   { label: 'Chaussures', href: '/#chaussures', hasMenu: false },
   { label: 'Bijoux', href: '/#bijoux', hasMenu: false },
-  { label: 'Soldes', href: '/shop', hasMenu: false, accent: true },
+  { label: 'Soldes', href: '/shop?on_sale=true', hasMenu: false, accent: true },
 ];
 
 interface HeaderProps {

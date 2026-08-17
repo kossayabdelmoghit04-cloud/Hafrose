@@ -39,6 +39,7 @@ class ProductController extends Controller
             'material' => $validated['material'] ?? null,
             'brand' => $validated['brand'] ?? null,
             'is_featured' => $validated['is_featured'] ?? null,
+            'on_sale' => $validated['on_sale'] ?? null,
             'sort_by' => $validated['sort_by'] ?? null,
             'sort_order' => $validated['sort_order'] ?? null,
         ], fn ($v) => $v !== null);
@@ -95,7 +96,7 @@ class ProductController extends Controller
         $product = $this->productService->getProductById($id);
         $oldValues = $this->adminLogService->extractModelValues(
             $product,
-            ['name', 'slug', 'price', 'stock', 'is_active', 'is_featured', 'category_id']
+            ['name', 'slug', 'price', 'sale_price', 'stock', 'is_active', 'is_featured', 'category_id']
         );
         $data = $request->validated();
         $imageFile = $request->file('image');
