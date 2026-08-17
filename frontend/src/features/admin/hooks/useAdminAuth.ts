@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminAuthService, AdminLoginPayload } from '../../../services/adminAuth.service';
+import { adminAuthService, AdminLoginPayload, AdminAuthResponse } from '../../../services/adminAuth.service';
 import { useAuthStore, AuthState } from '../../../stores/useAuthStore';
 import { User } from '../../../types/models';
 
@@ -15,11 +15,16 @@ export function useAdminLogin() {
   const setAuth = useAuthStore((state: AuthState) => state.setAuth);
 
   return useMutation({
-    mutationFn: async (payload: AdminLoginPayload) => {
+    mutationFn: async (payload: AdminLoginPayload): Promise<AdminAuthResponse> => {
       const response = await adminAuthService.login(payload);
-      return response.data;
+      const raw = response as unknown as { data?: AdminAuthResponse; token?: string; user?: any };
+      const authData: AdminAuthResponse = (raw.data?.token ? raw.data : raw) as AdminAuthResponse;
+      if (!authData || !authData.token || !authData.user) {
+        throw new Error('Réponse de connexion invalide du serveur.');
+      }
+      return authData;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: AdminAuthResponse) => {
       setAuth(data.user as User, data.token);
       queryClient.setQueryData(ADMIN_AUTH_QUERY_KEY, data.user);
     },
@@ -48,3 +53,4 @@ export function useAdminLogout() {
     },
   });
 }
+

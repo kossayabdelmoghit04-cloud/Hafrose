@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import { Container } from '../../components/ui/Container';
@@ -39,14 +39,26 @@ export const ShopPage = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
+  const sortParam = (searchParams.get('sort') as 'featured' | 'latest' | 'price_asc' | 'price_desc') || 'featured';
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'featured' | 'latest' | 'price_asc' | 'price_desc'>('featured');
+  const [sortBy, setSortBy] = useState<'featured' | 'latest' | 'price_asc' | 'price_desc'>(sortParam);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    const currentSort = searchParams.get('sort') as 'featured' | 'latest' | 'price_asc' | 'price_desc';
+    if (currentSort && currentSort !== sortBy) {
+      setSortBy(currentSort);
+    }
+    const currentCat = searchParams.get('category') || 'all';
+    if (currentCat !== selectedCategory) {
+      setSelectedCategory(currentCat);
+    }
+  }, [searchParams]);
 
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
   const { addItem: addToCart } = useCartStore();

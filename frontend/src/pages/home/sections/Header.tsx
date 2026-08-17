@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown } from 'lucide-react';
 import { IconButton } from '../../../components/ui/IconButton';
 import { cn } from '../../../utils/cn';
 
 const NAV_LINKS = [
-  { label: 'Nouveautés', href: '#', hasMenu: true },
-  { label: 'Robes', href: '#', hasMenu: true },
-  { label: 'Sacs', href: '#', hasMenu: false },
-  { label: 'Chaussures', href: '#', hasMenu: false },
-  { label: 'Bijoux', href: '#', hasMenu: false },
-  { label: 'Soldes', href: '#', hasMenu: false, accent: true },
+  { label: 'Nouveautés', href: '/#nouveautes', hasMenu: false },
+  { label: 'Robes', href: '/#robes', hasMenu: false },
+  { label: 'Sacs', href: '/#sacs', hasMenu: false },
+  { label: 'Chaussures', href: '/#chaussures', hasMenu: false },
+  { label: 'Bijoux', href: '/#bijoux', hasMenu: false },
+  { label: 'Soldes', href: '/shop', hasMenu: false, accent: true },
 ];
 
 interface HeaderProps {
@@ -29,6 +30,9 @@ export const Header = ({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 40);
   }, []);
@@ -37,6 +41,21 @@ export const Header = ({
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('/#')) {
+      e.preventDefault();
+      const anchorId = href.replace('/#', '');
+      if (location.pathname === '/') {
+        const element = document.getElementById(anchorId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        navigate(href);
+      }
+    }
+  };
 
   return (
     <header
@@ -83,6 +102,7 @@ export const Header = ({
               >
                 <a
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className={cn(
                     'inline-flex items-center gap-1 px-3 py-2 text-body-sm font-medium tracking-wider transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs',
                     link.accent ? 'text-burgundy-500 font-semibold' : 'text-neutral-700 hover:text-burgundy-500'
@@ -161,7 +181,10 @@ export const Header = ({
                   'block py-3 px-2 text-body-base font-medium border-b border-neutral-100 last:border-0 transition-colors duration-200',
                   link.accent ? 'text-burgundy-500' : 'text-neutral-800 hover:text-burgundy-500'
                 )}
-                onClick={() => setMobileOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, link.href);
+                  setMobileOpen(false);
+                }}
               >
                 {link.label}
               </a>
@@ -180,3 +203,4 @@ export const Header = ({
     </header>
   );
 };
+

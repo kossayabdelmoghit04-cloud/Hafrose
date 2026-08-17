@@ -16,21 +16,36 @@ export interface AuthState {
 }
 
 const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+const storedUserRaw = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+let storedUser: User | null = null;
+if (storedUserRaw) {
+  try {
+    storedUser = JSON.parse(storedUserRaw);
+  } catch {
+    storedUser = null;
+  }
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
-  // If a token exists in storage, start as authenticated while session rehydrates.
-  // isLoading=true prevents ProtectedRoute from redirecting prematurely.
-  user: null,
+  user: storedUser,
   token: storedToken,
-  isAuthenticated: false, // Set to true only after profile is confirmed by useSession
-  isLoading: Boolean(storedToken), // Loading until session is validated
+  isAuthenticated: Boolean(storedToken && storedUser),
+  isLoading: Boolean(storedToken && !storedUser),
 
   setAuth: (user, token) => {
     localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
     set({ user, token, isAuthenticated: true, isLoading: false });
   },
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+    }
+    set({ user });
+  },
 
   setLoading: (isLoading) => set({ isLoading }),
 
@@ -40,3 +55,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, token: null, isAuthenticated: false, isLoading: false });
   },
 }));
+

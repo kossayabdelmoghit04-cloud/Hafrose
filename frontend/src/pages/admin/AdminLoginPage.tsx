@@ -50,31 +50,53 @@ export const AdminLoginPage: React.FC = () => {
 
   /**
    * Extracts a user-friendly error message from the mutation error.
-   * Properly parses Laravel JSON error responses ({ message, errors }).
+   * Accurately distinguishes Network errors, HTTP 401, 403, 422 (validation), and 500.
    */
   const getErrorMessage = (): string => {
     if (validationError) return validationError;
     if (!adminLoginMutation.isError) return '';
 
-    const err = adminLoginMutation.error as unknown as {
-      message?: string;
-      errors?: Record<string, string[]>;
-      response?: { data?: { message?: string; errors?: Record<string, string[]> } };
-    };
+    const err = adminLoginMutation.error as any;
 
-    // Extract validation errors array if present
+    if (typeof err === 'string') {
+      const lower = err.toLowerCase();
+      if (lower.includes('network') || lower.includes('failed to fetch') || lower.includes('econnrefused')) {
+        return 'Impossible de contacter le serveur. Veuillez vérifier que le serveur backend est démarré.';
+      }
+      return err;
+    }
+
+    // Extract validation errors object if present (e.g. HTTP 422)
     const errorsObj = err?.errors || err?.response?.data?.errors;
     if (errorsObj && typeof errorsObj === 'object' && Object.keys(errorsObj).length > 0) {
       return Object.values(errorsObj).flat().join(' ');
     }
 
+    const status = err?.status || err?.status_code || err?.response?.status;
+    if (status === 403) {
+      return 'Accès refusé. Ce compte ne dispose pas des privilèges administrateur.';
+    }
+    if (status === 500) {
+      return 'Une erreur interne du serveur est survenue. Veuillez réessayer plus tard.';
+    }
+
     const msg = err?.message || err?.response?.data?.message;
-    if (msg && msg !== 'Validation failed') {
-      return msg;
+    if (msg) {
+      const lower = msg.toLowerCase();
+      if (lower.includes('network') || lower.includes('connexion') || lower.includes('econnrefused')) {
+        return 'Impossible de contacter le serveur. Veuillez vérifier que le serveur backend est démarré.';
+      }
+      if (lower.includes('unauthenticated')) {
+        return 'Identifiants incorrects. Veuillez vérifier votre adresse email et votre mot de passe.';
+      }
+      if (msg !== 'Validation failed') {
+        return msg;
+      }
     }
 
     return 'Identifiants incorrects. Veuillez vérifier votre adresse email et votre mot de passe.';
   };
+
 
   const errorMsg = getErrorMessage();
 
