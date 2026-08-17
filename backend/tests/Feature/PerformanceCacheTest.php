@@ -41,10 +41,10 @@ class PerformanceCacheTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create([
-            'email' => 'admin@hafrose.com',
-            'role' => User::ROLE_ADMIN,
-        ]);
+        $this->admin = User::firstOrCreate(
+            ['email' => 'admin@hafrose.com'],
+            ['name' => 'Admin Test', 'password' => bcrypt('password'), 'role' => User::ROLE_ADMIN]
+        );
     }
 
     // =========================================================================

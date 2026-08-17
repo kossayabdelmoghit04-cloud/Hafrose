@@ -44,6 +44,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'sanitize.input' => SanitizeInputMiddleware::class,
         ]);
 
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('api/*')) {
+                return null;
+            }
+            return '/login';
+        });
+
         $middleware->api(append: [
             SanitizeInputMiddleware::class,
             MonitoringMiddleware::class,

@@ -449,7 +449,7 @@ export const AdminProductsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Prix (€) *</label>
+                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Prix (MAD) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -468,7 +468,7 @@ export const AdminProductsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                    Prix soldé (€) <span className="text-neutral-500 font-normal">(Optionnel, &lt; Prix)</span>
+                    Prix soldé (MAD) <span className="text-neutral-500 font-normal">(Optionnel, &lt; Prix)</span>
                   </label>
                   <input
                     type="number"

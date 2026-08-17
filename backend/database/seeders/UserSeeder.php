@@ -13,15 +13,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Créer l'administrateur principal
-        $admin = User::create([
-            'name' => 'Hafrose Admin',
-            'email' => 'admin@hafrose.com',
-            'password' => Hash::make('password'),
-            'role' => User::ROLE_ADMIN,
-        ]);
-
-        // Assigner le rôle Spatie à l'administrateur
-        $admin->assignRole('admin');
+        // Créer un client de test par défaut pour les tests clients et non-régression
+        User::firstOrCreate(
+            ['email' => 'client.test@hafrose.com'],
+            [
+                'name' => 'Client Test',
+                'first_name' => 'Client',
+                'last_name' => 'Test',
+                'password' => Hash::make('password'),
+                'role' => 'customer',
+            ]
+        );
     }
 }

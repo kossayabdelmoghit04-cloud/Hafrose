@@ -17,11 +17,10 @@ class ActivityLogTest extends TestCase
 
     private function createAdmin(): User
     {
-        return User::factory()->create([
-            'email' => 'admin@hafrose.com',
-            'password' => bcrypt('Admin@Hafrose2024!'),
-            'role' => User::ROLE_ADMIN,
-        ]);
+        return User::firstOrCreate(
+            ['email' => 'admin@hafrose.com'],
+            ['name' => 'Admin User', 'password' => bcrypt('Admin@Hafrose2024!'), 'role' => User::ROLE_ADMIN]
+        );
     }
 
     private function createCustomer(): User

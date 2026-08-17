@@ -290,7 +290,7 @@ export const CheckoutPage = () => {
                   <Radio
                     name="shipping"
                     label="Chronopost Coursier VIP (Le jour même)"
-                    description="15,00 € supplémentaires"
+                    description="15,00 MAD supplémentaires"
                     checked={formData.shippingMethod === 'vip'}
                     onChange={() => setFormData({ ...formData, shippingMethod: 'vip' })}
                   />

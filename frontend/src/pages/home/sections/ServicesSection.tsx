@@ -8,7 +8,7 @@ const SERVICES = [
   {
     icon: <Truck />,
     title: 'Livraison Rapide',
-    description: 'Livraison express en 24-48h partout en Europe. Gratuite dès 150€.',
+    description: 'Livraison express en 24-48h partout au Maroc. Gratuite dès 150 MAD.',
     iconVariant: 'burgundy' as const,
   },
   {

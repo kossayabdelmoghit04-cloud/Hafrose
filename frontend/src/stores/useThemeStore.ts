@@ -12,7 +12,7 @@ export interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  currency: 'EUR',
+  currency: 'MAD',
   language: 'fr',
 
   setCurrency: (currency) => set({ currency }),

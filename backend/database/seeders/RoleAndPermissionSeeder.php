@@ -29,11 +29,11 @@ class RoleAndPermissionSeeder extends Seeder
 
         // Créer les permissions
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::findOrCreate($permission, 'web');
         }
 
         // Créer le rôle administrateur et lui affecter toutes les permissions
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::findOrCreate('admin', 'web');
+        $adminRole->syncPermissions(Permission::all());
     }
 }

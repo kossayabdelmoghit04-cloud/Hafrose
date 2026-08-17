@@ -2,14 +2,16 @@
  * formatPrice
  * Formats a numeric price value using the Intl.NumberFormat API.
  *
+ * HAFROSE official currency: MAD (Dirham Marocain)
+ *
  * @param amount   - numeric price (in decimal, e.g. 129.90)
- * @param currency - ISO 4217 currency code (default: 'EUR')
- * @param locale   - BCP 47 locale string (default: 'fr-FR')
+ * @param currency - ISO 4217 currency code (default: 'MAD')
+ * @param locale   - BCP 47 locale string (default: 'fr-MA')
  */
 export function formatPrice(
   amount: number,
-  currency = 'EUR',
-  locale = 'fr-FR'
+  currency = 'MAD',
+  locale = 'fr-MA'
 ): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',

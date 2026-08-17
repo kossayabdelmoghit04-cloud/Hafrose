@@ -18,10 +18,10 @@ class AdminLogApiTest extends TestCase
 
     private function createAdmin(): User
     {
-        return User::factory()->create([
-            'email' => 'admin@hafrose.com',
-            'role' => User::ROLE_ADMIN,
-        ]);
+        return User::firstOrCreate(
+            ['email' => 'admin@hafrose.com'],
+            ['name' => 'Admin User', 'password' => bcrypt('password'), 'role' => User::ROLE_ADMIN]
+        );
     }
 
     private function createCustomer(): User

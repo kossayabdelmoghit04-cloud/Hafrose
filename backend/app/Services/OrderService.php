@@ -81,11 +81,15 @@ class OrderService
                 // Décrémenter le stock
                 $product->decrement('stock', $item['quantity']);
 
+                $unitPrice = ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < (float) $product->price)
+                    ? $product->sale_price
+                    : $product->price;
+
                 // Créer la ligne de commande (le sous-total et le total de la commande se mettent à jour automatiquement via Eloquent)
                 $this->orderRepository->createItem($order, [
                     'product_id' => $product->id,
                     'quantity'   => $item['quantity'],
-                    'unit_price' => $product->price,
+                    'unit_price' => $unitPrice,
                     'size'       => $item['size'] ?? null,
                     'color'      => $item['color'] ?? null,
                 ]);
