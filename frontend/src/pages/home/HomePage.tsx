@@ -75,7 +75,7 @@ export const HomePage = () => {
         tagline="Silhouettes Emblématiques"
         subtitle="Coupes couture fluides et matières nobles façonnées pour sublimer chaque silhouette."
         ctaText="Voir toutes les robes"
-        limit={8}
+        limit={4}
         bg="cream"
       />
 
@@ -87,7 +87,7 @@ export const HomePage = () => {
         tagline="Haute Maroquinerie"
         subtitle="Sacs à main, cabas et pochettes façonnés dans des cuirs d'exception."
         ctaText="Voir tous les sacs"
-        limit={8}
+        limit={4}
         bg="white"
       />
 
@@ -99,7 +99,7 @@ export const HomePage = () => {
         tagline="Allure & Confort"
         subtitle="Escarpins, bottines et sandales alliant démarche gracieuse et finitions artisanales."
         ctaText="Voir toutes les chaussures"
-        limit={8}
+        limit={4}
         bg="cream"
       />
 
@@ -111,7 +111,7 @@ export const HomePage = () => {
         tagline="Créations Précieuses"
         subtitle="Bijoux dorés à l'or fin et pièces scintillantes pour magnifier chaque tenue."
         ctaText="Voir tous les bijoux"
-        limit={8}
+        limit={4}
         bg="white"
       />
 

@@ -38,7 +38,7 @@ export const CategoryProductSection: React.FC<CategoryProductSectionProps> = ({
   tagline,
   subtitle,
   ctaText,
-  limit = 8,
+  limit = 4,
   bg = 'cream',
 }) => {
   const navigate = useNavigate();

@@ -174,6 +174,58 @@ class ProductFactory extends Factory
                 'short' => 'Compact, charmant et logeable, parfait pour emporter l\'essentiel.',
             ],
         ],
+        'Robes' => [
+            [
+                'name' => 'Robe du Soir Satinée dos nu',
+                'price' => 1450.00,
+                'material' => 'Satin de soie lourd',
+                'short' => 'Une coupe sirène sculpturale au tombé fluide et sensuel.',
+            ],
+            [
+                'name' => 'Robe Midi en Dentelle de Calais',
+                'price' => 1120.00,
+                'material' => 'Dentelle de Calais & Mousseline',
+                'short' => 'L\'alliance du raffinement artisanal et d\'une allure moderne.',
+            ],
+            [
+                'name' => 'Robe Portefeuille en Crêpe de Soie',
+                'price' => 890.00,
+                'material' => 'Crêpe de soie 100%',
+                'short' => 'Une silhouette aérienne et flatteuse pour toutes les occasions.',
+            ],
+            [
+                'name' => 'Robe de Cocktail Plissée Or',
+                'price' => 1650.00,
+                'material' => 'Lamé plissé & Soie',
+                'short' => 'Un éclat d\'or captivant aux plissés minutieusement réalisés à la main.',
+            ],
+        ],
+        'Chaussures' => [
+            [
+                'name' => 'Escarpins Stiletto en Cuir Verni',
+                'price' => 780.00,
+                'material' => 'Cuir de veau verni & Semelle cuir',
+                'short' => 'Le cambré iconique sublimant la jambe avec une cambrure étudiée.',
+            ],
+            [
+                'name' => 'Sandales à Brides Dorées Bijou',
+                'price' => 850.00,
+                'material' => 'Cuir métallisé & Cristaux',
+                'short' => 'Des lanières délicates ornées de cristaux pour vos plus belles soirées.',
+            ],
+            [
+                'name' => 'Bottines Chelsea en Veau Velours',
+                'price' => 920.00,
+                'material' => 'Veau velours italien',
+                'short' => 'L\'élégance décontractée d\'un cuir suédé d\'une douceur incomparable.',
+            ],
+            [
+                'name' => 'Mules Minimalistes à Talon Sculpté',
+                'price' => 690.00,
+                'material' => 'Cuir d\'agneau nappa',
+                'short' => 'Un design architectural au confort absolu pour une allure contemporaine.',
+            ],
+        ],
     ];
 
     private static array $counts = [];
