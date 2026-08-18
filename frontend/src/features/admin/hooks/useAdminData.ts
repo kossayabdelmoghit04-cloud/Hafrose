@@ -101,6 +101,9 @@ export function useCreateCategory() {
     mutationFn: (formData: FormData) => adminService.createCategory(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.dashboard });
     },
   });
@@ -113,6 +116,9 @@ export function useUpdateCategory() {
       adminService.updateCategory(id, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['home'] });
     },
   });
 }
@@ -123,6 +129,9 @@ export function useDeleteCategory() {
     mutationFn: (id: number) => adminService.deleteCategory(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.dashboard });
     },
   });

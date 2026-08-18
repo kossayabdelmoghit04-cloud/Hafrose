@@ -15,18 +15,18 @@ import { Product } from '../../types/models';
 import { useSEO } from '../../hooks/useSEO';
 
 const POPULAR_SUGGESTIONS = [
-  'Robe Soirée Bordeaux',
-  'Sac Cuir Rose',
-  'Escarpins Satin',
-  'Bijoux Or Champagne',
-  'Foulard Soie',
-  'Blazer Crème',
+  'Sac en Cuir',
+  'Collier Or',
+  'Montre Classique',
+  'Lunettes Aviateur',
+  'Ceinture Cuir',
+  'Portefeuille Noir',
 ];
 
 export const SearchPage = () => {
   useSEO({
     title: 'Recherche | HAFROSE',
-    description: 'Recherchez parmi les collections HAFROSE — robes, accessoires et tenues féminines de luxe.',
+    description: 'Recherchez parmi les collections HAFROSE — maroquinerie, bijoux, montres et accessoires de luxe.',
     noIndex: false,
   });
   const [query, setQuery] = useState('');

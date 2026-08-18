@@ -2,6 +2,7 @@ import { useSEO, useJsonLD } from '../../hooks/useSEO';
 import { buildWebSiteLD, buildOrganizationLD, SITE_DESCRIPTION } from '../../utils/seo';
 import { useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useCategories } from '../../hooks/useProductHooks';
 import { HeroSection } from './sections/HeroSection';
 import { ServicesSection } from './sections/ServicesSection';
 import { CategoriesSection } from './sections/CategoriesSection';
@@ -21,6 +22,10 @@ import { NewsletterSection } from './sections/NewsletterSection';
 export const HomePage = () => {
   const location = useLocation();
 
+  // Source unique de vérité : catégories chargées depuis l'API backend
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.data ?? [];
+
   // ── SEO ────────────────────────────────────────────────────────────────────
   useSEO({
     title: 'HAFROSE — Maison de Luxe | Mode Féminine Premium',
@@ -39,7 +44,7 @@ export const HomePage = () => {
 
   useJsonLD(jsonLd);
 
-  // ── Smooth Hash Scrolling (e.g. #nouveautes, #robes, #sacs) ───────────────
+  // ── Smooth Hash Scrolling (e.g. #nouveautes, #sacs, #bijoux) ───────────────
   useEffect(() => {
     if (location.hash) {
       const elementId = location.hash.replace('#', '');
@@ -67,71 +72,34 @@ export const HomePage = () => {
       {/* 4. New Arrivals Section (Nouveautés) */}
       <NewArrivalsSection />
 
-      {/* 5. Category: Robes */}
-      <CategoryProductSection
-        id="robes"
-        categorySlug="robes"
-        categoryName="Robes"
-        tagline="Silhouettes Emblématiques"
-        subtitle="Coupes couture fluides et matières nobles façonnées pour sublimer chaque silhouette."
-        ctaText="Voir toutes les robes"
-        limit={4}
-        bg="cream"
-      />
+      {/* 5. Dynamic Category Product Sections (Source unique de vérité DB) */}
+      {categories.map((category, index) => (
+        <CategoryProductSection
+          key={category.id}
+          id={category.slug}
+          categorySlug={category.slug}
+          categoryName={category.name}
+          limit={4}
+          bg={index % 2 === 0 ? 'cream' : 'white'}
+        />
+      ))}
 
-      {/* 6. Category: Sacs */}
-      <CategoryProductSection
-        id="sacs"
-        categorySlug="sacs"
-        categoryName="Sacs"
-        tagline="Haute Maroquinerie"
-        subtitle="Sacs à main, cabas et pochettes façonnés dans des cuirs d'exception."
-        ctaText="Voir tous les sacs"
-        limit={4}
-        bg="white"
-      />
-
-      {/* 7. Category: Chaussures */}
-      <CategoryProductSection
-        id="chaussures"
-        categorySlug="chaussures"
-        categoryName="Chaussures"
-        tagline="Allure & Confort"
-        subtitle="Escarpins, bottines et sandales alliant démarche gracieuse et finitions artisanales."
-        ctaText="Voir toutes les chaussures"
-        limit={4}
-        bg="cream"
-      />
-
-      {/* 8. Category: Bijoux */}
-      <CategoryProductSection
-        id="bijoux"
-        categorySlug="bijoux"
-        categoryName="Bijoux"
-        tagline="Créations Précieuses"
-        subtitle="Bijoux dorés à l'or fin et pièces scintillantes pour magnifier chaque tenue."
-        ctaText="Voir tous les bijoux"
-        limit={4}
-        bg="white"
-      />
-
-      {/* 9. Best Sellers Section */}
+      {/* 6. Best Sellers Section */}
       <BestSellersSection />
 
-      {/* 10. New Collection Editorial Section */}
+      {/* 7. New Collection Editorial Section */}
       <NewCollectionSection />
 
-      {/* 11. Promotional Banner Section */}
+      {/* 8. Promotional Banner Section */}
       <PromotionalBannerSection />
 
-      {/* 12. Instagram Inspiration Section */}
+      {/* 9. Instagram Inspiration Section */}
       <InstagramInspirationSection />
 
-      {/* 13. Newsletter Section */}
+      {/* 10. Newsletter Section */}
       <NewsletterSection />
     </>
   );
 };
 
 export default HomePage;
-

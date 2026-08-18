@@ -2,16 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown } from 'lucide-react';
 import { IconButton } from '../../../components/ui/IconButton';
+import { useCategories } from '../../../hooks/useProductHooks';
 import { cn } from '../../../utils/cn';
-
-const NAV_LINKS = [
-  { label: 'Nouveautés', href: '/#nouveautes', hasMenu: false },
-  { label: 'Robes', href: '/#robes', hasMenu: false },
-  { label: 'Sacs', href: '/#sacs', hasMenu: false },
-  { label: 'Chaussures', href: '/#chaussures', hasMenu: false },
-  { label: 'Bijoux', href: '/#bijoux', hasMenu: false },
-  { label: 'Soldes', href: '/shop?on_sale=true', hasMenu: false, accent: true },
-];
 
 interface HeaderProps {
   cartCount?: number;
@@ -32,6 +24,10 @@ export const Header = ({
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Source unique de vérité : catégories chargées depuis l'API backend
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useCategories();
+  const categories = categoriesData?.data ?? [];
 
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 40);
@@ -54,8 +50,24 @@ export const Header = ({
       } else {
         navigate(href);
       }
+    } else if (href.startsWith('/')) {
+      e.preventDefault();
+      navigate(href);
     }
   };
+
+  // Liens commerciaux spéciaux (Nouveautés & Soldes)
+  const newsLink = { label: 'Nouveautés', href: '/#nouveautes', accent: false };
+  const saleLink = { label: 'Soldes', href: '/shop?on_sale=true', accent: true };
+
+  // Liens dynamiques issus de la table categories
+  const categoryLinks = categories.map((cat) => ({
+    id: cat.id,
+    label: cat.name,
+    href: `/shop?category=${cat.slug}`,
+    accent: false,
+    hasMenu: false,
+  }));
 
   return (
     <header
@@ -93,28 +105,67 @@ export const Header = ({
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1" aria-label="Navigation principale">
-            {NAV_LINKS.map((link) => (
-              <div
-                key={link.label}
-                className="relative group"
-                onMouseEnter={() => link.hasMenu && setActiveMenu(link.label)}
-                onMouseLeave={() => setActiveMenu(null)}
+            {/* 1. Nouveautés */}
+            <div className="relative group">
+              <a
+                href={newsLink.href}
+                onClick={(e) => handleNavClick(e, newsLink.href)}
+                className="inline-flex items-center gap-1 px-3 py-2 text-body-sm font-medium tracking-wider text-neutral-700 hover:text-burgundy-500 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs"
               >
-                <a
-                  href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className={cn(
-                    'inline-flex items-center gap-1 px-3 py-2 text-body-sm font-medium tracking-wider transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs',
-                    link.accent ? 'text-burgundy-500 font-semibold' : 'text-neutral-700 hover:text-burgundy-500'
-                  )}
+                {newsLink.label}
+              </a>
+            </div>
+
+            {/* 2. Catégories dynamiques depuis l'API */}
+            {isCategoriesLoading ? (
+              <div className="flex items-center gap-2 px-2" aria-hidden="true">
+                <div className="h-4 w-12 bg-neutral-200/60 animate-pulse rounded-xs" />
+                <div className="h-4 w-14 bg-neutral-200/60 animate-pulse rounded-xs" />
+                <div className="h-4 w-16 bg-neutral-200/60 animate-pulse rounded-xs" />
+                <div className="h-4 w-14 bg-neutral-200/60 animate-pulse rounded-xs" />
+              </div>
+            ) : categoryLinks.length > 0 ? (
+              categoryLinks.map((link) => (
+                <div
+                  key={link.id}
+                  className="relative group"
+                  onMouseEnter={() => link.hasMenu && setActiveMenu(link.label)}
+                  onMouseLeave={() => setActiveMenu(null)}
                 >
-                  {link.label}
-                  {link.hasMenu && (
-                    <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', activeMenu === link.label && 'rotate-180')} />
-                  )}
+                  <a
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    className="inline-flex items-center gap-1 px-3 py-2 text-body-sm font-medium tracking-wider text-neutral-700 hover:text-burgundy-500 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs"
+                  >
+                    {link.label}
+                    {link.hasMenu && (
+                      <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200', activeMenu === link.label && 'rotate-180')} />
+                    )}
+                  </a>
+                </div>
+              ))
+            ) : (
+              <div className="relative group">
+                <a
+                  href="/shop"
+                  onClick={(e) => handleNavClick(e, '/shop')}
+                  className="inline-flex items-center gap-1 px-3 py-2 text-body-sm font-medium tracking-wider text-neutral-700 hover:text-burgundy-500 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs"
+                >
+                  Boutique
                 </a>
               </div>
-            ))}
+            )}
+
+            {/* 3. Soldes */}
+            <div className="relative group">
+              <a
+                href={saleLink.href}
+                onClick={(e) => handleNavClick(e, saleLink.href)}
+                className="inline-flex items-center gap-1 px-3 py-2 text-body-sm font-semibold tracking-wider text-burgundy-500 hover:text-burgundy-600 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs"
+              >
+                {saleLink.label}
+              </a>
+            </div>
           </nav>
 
           {/* Action Icons */}
@@ -173,22 +224,64 @@ export const Header = ({
       {mobileOpen && (
         <div className="lg:hidden bg-white border-t border-neutral-200 animate-slide-down">
           <nav className="px-4 py-4 space-y-1" aria-label="Navigation mobile">
-            {NAV_LINKS.map((link) => (
+            {/* Nouveautés */}
+            <a
+              href={newsLink.href}
+              className="block py-3 px-2 text-body-base font-medium border-b border-neutral-100 transition-colors duration-200 text-neutral-800 hover:text-burgundy-500"
+              onClick={(e) => {
+                handleNavClick(e, newsLink.href);
+                setMobileOpen(false);
+              }}
+            >
+              {newsLink.label}
+            </a>
+
+            {/* Catégories dynamiques */}
+            {isCategoriesLoading ? (
+              <div className="py-3 px-2 space-y-3">
+                <div className="h-4 w-28 bg-neutral-200/60 animate-pulse rounded-xs" />
+                <div className="h-4 w-32 bg-neutral-200/60 animate-pulse rounded-xs" />
+                <div className="h-4 w-24 bg-neutral-200/60 animate-pulse rounded-xs" />
+              </div>
+            ) : categoryLinks.length > 0 ? (
+              categoryLinks.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.href}
+                  className="block py-3 px-2 text-body-base font-medium border-b border-neutral-100 transition-colors duration-200 text-neutral-800 hover:text-burgundy-500"
+                  onClick={(e) => {
+                    handleNavClick(e, link.href);
+                    setMobileOpen(false);
+                  }}
+                >
+                  {link.label}
+                </a>
+              ))
+            ) : (
               <a
-                key={link.label}
-                href={link.href}
-                className={cn(
-                  'block py-3 px-2 text-body-base font-medium border-b border-neutral-100 last:border-0 transition-colors duration-200',
-                  link.accent ? 'text-burgundy-500' : 'text-neutral-800 hover:text-burgundy-500'
-                )}
+                href="/shop"
+                className="block py-3 px-2 text-body-base font-medium border-b border-neutral-100 transition-colors duration-200 text-neutral-800 hover:text-burgundy-500"
                 onClick={(e) => {
-                  handleNavClick(e, link.href);
+                  handleNavClick(e, '/shop');
                   setMobileOpen(false);
                 }}
               >
-                {link.label}
+                Boutique
               </a>
-            ))}
+            )}
+
+            {/* Soldes */}
+            <a
+              href={saleLink.href}
+              className="block py-3 px-2 text-body-base font-semibold border-b border-neutral-100 last:border-0 transition-colors duration-200 text-burgundy-500 hover:text-burgundy-600"
+              onClick={(e) => {
+                handleNavClick(e, saleLink.href);
+                setMobileOpen(false);
+              }}
+            >
+              {saleLink.label}
+            </a>
+
             <div className="pt-4 flex items-center gap-4 border-t border-neutral-200 mt-2">
               <a href="/account" className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200">
                 <User className="w-4 h-4" /> Mon Compte
@@ -203,4 +296,3 @@ export const Header = ({
     </header>
   );
 };
-

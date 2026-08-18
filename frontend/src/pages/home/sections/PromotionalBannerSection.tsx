@@ -14,7 +14,7 @@ export const PromotionalBannerSection = () => {
   const badge = promo?.badge ?? "Jusqu'au 20 Août";
   const title = promo?.title ?? "Ventes Privées d'Été";
   const subtitle = promo?.subtitle ?? 'Offre Exclusive Membres';
-  const description = promo?.description ?? "Bénéficiez de jusqu'à -30% sur une sélection exclusive de pièces de haute maroquinerie et robes de soirée.";
+  const description = promo?.description ?? "Bénéficiez de jusqu'à -30% sur une sélection exclusive de pièces de haute maroquinerie, bijoux et accessoires d'exception.";
   const btnText = promo?.btn_text ?? "Profiter de l'Offre Privée";
   const btnUrl = promo?.btn_url ?? '/shop';
 

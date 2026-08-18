@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MESSAGES = [
-  '✨ Nouvelle Collection Été — Découvrez nos dernières créations',
+  '✨ Nouvelle Collection — Découvrez nos dernières créations exclusives',
   '🚚 Livraison Gratuite dès 150 MAD d\'achat — Partout au Maroc',
-  '👑 -20% sur toutes les Robes jusqu\'au 15 Août — Code : HAFROSE20',
+  '👑 -20% sur les collections en promotion — Code : HAFROSE20',
 ];
 
 export const AnnouncementBar = () => {

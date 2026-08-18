@@ -32,7 +32,7 @@ const COLORS = [
 export const ShopPage = () => {
   useSEO({
     title: 'Boutique — Collections HAFROSE | Mode Féminine Luxe',
-    description: 'Explorez toutes les collections HAFROSE — robes, accessoires et tenues premium pour femme. Filtrez par catégorie, taille et couleur.',
+    description: 'Explorez toutes les collections HAFROSE — maroquinerie, bijoux, montres et accessoires de luxe. Filtrez par catégorie, taille et couleur.',
     ogType: 'website',
     canonical: 'https://hafrose.com/shop',
   });
@@ -266,7 +266,7 @@ export const ShopPage = () => {
             Catalogue HAFROSE
           </h1>
           <p className="text-body-base text-neutral-600 max-w-xl leading-relaxed">
-            Découvrez nos créations exclusives façonnées avec passion. Robes d'exception, sacs en cuir noble et bijoux délicats.
+            Découvrez nos créations exclusives façonnées avec passion. Sacs en cuir noble, bijoux délicats, montres et accessoires d'exception.
           </p>
         </Container>
       </div>

@@ -6,30 +6,19 @@ import { Skeleton } from '../../../components/ui/Skeleton';
 import { useCategories } from '../../../hooks/useProductHooks';
 import { getImageUrl } from '../../../utils/formatters';
 
-// Fallback catégories purement textuelles — aucun import d'asset local
-const DEFAULT_CATEGORIES = [
-  { name: 'Robes', slug: 'robes', imageUrl: null, productCount: 48 },
-  { name: 'Sacs', slug: 'sacs', imageUrl: null, productCount: 32 },
-  { name: 'Chaussures', slug: 'chaussures', imageUrl: null, productCount: 27 },
-  { name: 'Bijoux', slug: 'bijoux', imageUrl: null, productCount: 64 },
-  { name: 'Accessoires', slug: 'accessoires', imageUrl: null, productCount: 41 },
-  { name: 'Nouveautés', slug: 'nouveautes', imageUrl: null, productCount: 18 },
-];
-
 export const CategoriesSection = () => {
   const { data, isLoading } = useCategories();
   const navigate = useNavigate();
 
+  // Source unique de vérité : catégories chargées depuis l'API
   const apiCategories = data?.data ?? [];
-  const categoriesToDisplay = apiCategories.length > 0
-    ? apiCategories.map((c, i) => ({
-        name: c.name,
-        slug: c.slug,
-        // image_url est déjà une URL absolue résolue par Laravel Storage::url()
-        imageUrl: c.image_url ? getImageUrl(c.image_url) : null,
-        productCount: 24 + i * 5,
-      }))
-    : DEFAULT_CATEGORIES;
+  const categoriesToDisplay = apiCategories.map((c, i) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    imageUrl: c.image_url ? getImageUrl(c.image_url) : (c.image ? getImageUrl(c.image) : null),
+    productCount: 24 + i * 5,
+  }));
 
   return (
     <Section spacing="lg" bg="cream">
@@ -55,12 +44,12 @@ export const CategoriesSection = () => {
             <Skeleton className="h-44 md:h-52 rounded-md col-span-1" />
             <Skeleton className="h-44 md:h-52 rounded-md col-span-1" />
           </div>
-        ) : (
+        ) : categoriesToDisplay.length > 0 ? (
           /* Grid: 2 large + remaining */
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {/* Two tall featured cards */}
             {categoriesToDisplay.slice(0, 2).map((cat) => (
-              <div key={cat.slug} className="col-span-1 md:row-span-2">
+              <div key={cat.id} className="col-span-1 md:row-span-2">
                 <CategoryCard
                   name={cat.name}
                   slug={cat.slug}
@@ -73,7 +62,7 @@ export const CategoriesSection = () => {
             ))}
             {/* Remaining cards */}
             {categoriesToDisplay.slice(2, 6).map((cat) => (
-              <div key={cat.slug} className="col-span-1">
+              <div key={cat.id} className="col-span-1">
                 <CategoryCard
                   name={cat.name}
                   slug={cat.slug}
@@ -85,7 +74,7 @@ export const CategoriesSection = () => {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </Container>
     </Section>
   );
