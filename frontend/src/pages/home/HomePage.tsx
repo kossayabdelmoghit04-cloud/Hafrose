@@ -11,7 +11,6 @@ import { CategoryProductSection } from './sections/CategoryProductSection';
 import { BestSellersSection } from './sections/BestSellersSection';
 import { NewCollectionSection } from './sections/NewCollectionSection';
 import { PromotionalBannerSection } from './sections/PromotionalBannerSection';
-import { InstagramInspirationSection } from './sections/InstagramInspirationSection';
 import { NewsletterSection } from './sections/NewsletterSection';
 
 /**
@@ -93,10 +92,7 @@ export const HomePage = () => {
       {/* 8. Promotional Banner Section */}
       <PromotionalBannerSection />
 
-      {/* 9. Instagram Inspiration Section */}
-      <InstagramInspirationSection />
-
-      {/* 10. Newsletter Section */}
+      {/* 9. Newsletter Section */}
       <NewsletterSection />
     </>
   );

@@ -12,7 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { Alert } from '../../components/ui/Alert';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, getImageUrl } from '../../utils/formatters';
 import { useCartStore } from '../../stores/useCartStore';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useCreateOrder } from '../../hooks/useAccountHooks';
@@ -35,13 +35,13 @@ export const CheckoutPage = () => {
     lastName: user?.last_name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: '124 Avenue Montaigne',
-    city: 'Paris',
-    postalCode: '75008',
-    country: 'France',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: 'Maroc',
     shippingMethod: 'express',
     paymentMethod: 'card' as 'card' | 'paypal' | 'cod',
-    acceptTerms: true,
+    acceptTerms: false,
   });
 
   const subtotal = items.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
@@ -266,6 +266,9 @@ export const CheckoutPage = () => {
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                   options={[
+                    { value: 'Maroc', label: 'Maroc' },
+                    { value: 'Algérie', label: 'Algérie' },
+                    { value: 'Tunisie', label: 'Tunisie' },
                     { value: 'France', label: 'France' },
                     { value: 'Belgique', label: 'Belgique' },
                     { value: 'Luxembourg', label: 'Luxembourg' },
@@ -332,6 +335,28 @@ export const CheckoutPage = () => {
                 <h3 className="font-serif text-h4 text-neutral-950 border-b border-neutral-200 pb-3">
                   Récapitulatif de Commande
                 </h3>
+
+                {/* Liste des articles */}
+                <div className="space-y-3 mb-3">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <div className="w-12 h-14 flex-shrink-0 rounded-xs bg-cream-100 overflow-hidden border border-neutral-100">
+                        <img
+                          src={getImageUrl(item.product.image ?? item.product.media?.[0]?.url ?? null)}
+                          alt={item.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-body-sm font-medium text-neutral-900 line-clamp-1">{item.product.name}</p>
+                        <p className="text-caption text-neutral-400">Qté : {item.quantity}</p>
+                      </div>
+                      <span className="text-body-sm font-semibold text-neutral-900 flex-shrink-0">
+                        {formatPrice(item.unit_price * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-body-sm">

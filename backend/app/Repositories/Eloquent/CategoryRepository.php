@@ -17,7 +17,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $ttl = config('cache-performance.ttls.categories', 86400);
 
         return PerformanceCacheManager::remember('categories_all', $ttl, function () {
-            return Category::all();
+            return Category::withCount('products')->get();
         }, ['categories']);
     }
 

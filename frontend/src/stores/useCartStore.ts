@@ -33,6 +33,7 @@ export const useCartStore = create<CartState>()(
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
+              isDrawerOpen: true,
             };
           }
           const newItem: CartItem = {
@@ -43,7 +44,7 @@ export const useCartStore = create<CartState>()(
             selected_size: selectedSize,
             selected_color: selectedColor,
           };
-          return { items: [...state.items, newItem] };
+          return { items: [...state.items, newItem], isDrawerOpen: true };
         });
       },
 

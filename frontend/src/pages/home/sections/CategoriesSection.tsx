@@ -10,21 +10,14 @@ export const CategoriesSection = () => {
   const { data, isLoading } = useCategories();
   const navigate = useNavigate();
 
-  // Source unique de vérité : catégories chargées depuis l'API
-  const apiCategories = data?.data ?? [];
-  const categoriesToDisplay = apiCategories.map((c, i) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    imageUrl: c.image_url ? getImageUrl(c.image_url) : (c.image ? getImageUrl(c.image) : null),
-    productCount: 24 + i * 5,
-  }));
+  // Source unique de vérité : catégories chargées depuis l'API backend
+  const categories = data?.data ?? [];
 
   return (
     <Section spacing="lg" bg="cream">
       <Container>
         {/* Section Header */}
-        <div className="text-center mb-10 md:mb-14 space-y-3">
+        <div className="text-center mb-10 md:mb-12 space-y-2.5">
           <p className="text-caption font-sans font-semibold tracking-luxury-wide uppercase text-burgundy-500">
             Nos Univers
           </p>
@@ -38,40 +31,24 @@ export const CategoriesSection = () => {
 
         {/* Loading Skeletons */}
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <Skeleton className="h-72 md:h-[420px] rounded-md col-span-1" />
-            <Skeleton className="h-72 md:h-[420px] rounded-md col-span-1" />
-            <Skeleton className="h-44 md:h-52 rounded-md col-span-1" />
-            <Skeleton className="h-44 md:h-52 rounded-md col-span-1" />
-          </div>
-        ) : categoriesToDisplay.length > 0 ? (
-          /* Grid: 2 large + remaining */
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            {/* Two tall featured cards */}
-            {categoriesToDisplay.slice(0, 2).map((cat) => (
-              <div key={cat.id} className="col-span-1 md:row-span-2">
-                <CategoryCard
-                  name={cat.name}
-                  slug={cat.slug}
-                  imageUrl={cat.imageUrl ?? undefined}
-                  productCount={cat.productCount}
-                  onClick={(slug) => navigate(`/shop?category=${slug}`)}
-                  className="h-72 md:h-full min-h-[320px]"
-                />
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[3/4] rounded-md" />
             ))}
-            {/* Remaining cards */}
-            {categoriesToDisplay.slice(2, 6).map((cat) => (
-              <div key={cat.id} className="col-span-1">
-                <CategoryCard
-                  name={cat.name}
-                  slug={cat.slug}
-                  imageUrl={cat.imageUrl ?? undefined}
-                  productCount={cat.productCount}
-                  onClick={(slug) => navigate(`/shop?category=${slug}`)}
-                  className="h-44 md:h-52"
-                />
-              </div>
+          </div>
+        ) : categories.length > 0 ? (
+          /* Grille équilibrée 3 colonnes desktop / 2 colonnes mobile avec ratio uniforme */
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {categories.map((cat) => (
+              <CategoryCard
+                key={cat.id}
+                name={cat.name}
+                slug={cat.slug}
+                imageUrl={cat.image_url ? getImageUrl(cat.image_url) : (cat.image ? getImageUrl(cat.image) : undefined)}
+                productCount={cat.products_count}
+                onClick={(slug) => navigate(`/shop?category=${slug}`)}
+                className="aspect-[3/4] shadow-hafrose-xs hover:shadow-hafrose-md"
+              />
             ))}
           </div>
         ) : null}
