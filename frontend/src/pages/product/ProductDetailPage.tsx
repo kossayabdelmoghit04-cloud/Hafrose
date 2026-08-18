@@ -192,14 +192,19 @@ export const ProductDetailPage = () => {
                   <h1 className="font-serif text-h2 md:text-h1 text-neutral-950 mb-3 leading-tight">
                     {product.name}
                   </h1>
-                  <div className="flex items-baseline gap-3">
+                  <div className="flex items-baseline gap-3 flex-wrap">
                     <span className="font-sans text-h3 font-semibold text-neutral-950">
                       {formatPrice(product.sale_price ?? product.price)}
                     </span>
                     {product.sale_price && (
-                      <span className="font-sans text-body-base text-neutral-400 line-through">
-                        {formatPrice(product.price)}
-                      </span>
+                      <>
+                        <span className="font-sans text-body-base text-neutral-400 line-through">
+                          {formatPrice(product.price)}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-xs font-semibold uppercase bg-burgundy-50 text-burgundy-700 border border-burgundy-100">
+                          {product.discount_percentage ? `-${product.discount_percentage}%` : `-${Math.round((1 - Number(product.sale_price) / Number(product.price)) * 100)}%`}
+                        </span>
+                      </>
                     )}
                     <span className="text-caption font-medium text-success-600 bg-success-50 px-2 py-0.5 rounded-xs border border-success-100">
                       {(product.stock ?? product.stock_quantity ?? 0) > 0 ? `En Stock (${product.stock ?? product.stock_quantity ?? 0} pièces)` : 'Sur commande'}

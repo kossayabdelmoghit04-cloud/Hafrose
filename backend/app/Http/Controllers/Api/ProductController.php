@@ -72,8 +72,12 @@ class ProductController extends Controller
      *
      * Le produit courant n'apparaît jamais dans les résultats.
      */
-    public function related(Product $product): JsonResponse
+    public function related(string $identifier): JsonResponse
     {
+        $product = is_numeric($identifier)
+            ? $this->productService->getProductById((int) $identifier)
+            : $this->productService->getProductBySlug($identifier);
+
         $limit = config('recommendations.related_limit', 4);
 
         $related = $this->productService->getRelatedProducts($product, $limit);
@@ -86,8 +90,12 @@ class ProductController extends Controller
      *
      * GET /api/products/{product}/similar
      */
-    public function similar(Product $product): JsonResponse
+    public function similar(string $identifier): JsonResponse
     {
+        $product = is_numeric($identifier)
+            ? $this->productService->getProductById((int) $identifier)
+            : $this->productService->getProductBySlug($identifier);
+
         $products = $this->productService->getSimilarProducts($product, 8);
 
         return $this->successResponse(ProductResource::collection($products));

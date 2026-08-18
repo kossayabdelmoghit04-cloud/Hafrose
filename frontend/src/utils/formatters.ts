@@ -9,15 +9,17 @@
  * @param locale   - BCP 47 locale string (default: 'fr-MA')
  */
 export function formatPrice(
-  amount: number,
+  amount: number | string | null | undefined,
   currency = 'MAD',
   locale = 'fr-MA'
 ): string {
+  const num = typeof amount === 'string' ? parseFloat(amount) : (amount ?? 0);
+  const validNum = isNaN(num) ? 0 : num;
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(validNum);
 }
 
 /**
