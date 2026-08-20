@@ -51,10 +51,12 @@ return [
         |----------------------------------------------------------------------
         */
         'sizes' => [
-            'card'   => ['width' => 480,  'height' => 640,  'crop' => false],
-            'thumb'  => ['width' => 120,  'height' => 160,  'crop' => true],
-            'large'  => ['width' => 1200, 'height' => 1200, 'crop' => false],
-            'banner' => ['width' => 1400, 'height' => 700,  'crop' => false],
+            'card'      => ['width' => 480,  'height' => 640,  'crop' => false],
+            'thumb'     => ['width' => 120,  'height' => 160,  'crop' => true],
+            'thumbnail' => ['width' => 120,  'height' => 160,  'crop' => true],
+            'medium'    => ['width' => 480,  'height' => 640,  'crop' => false],
+            'large'     => ['width' => 1200, 'height' => 1200, 'crop' => false],
+            'banner'    => ['width' => 1400, 'height' => 700,  'crop' => false],
         ],
 
         /*

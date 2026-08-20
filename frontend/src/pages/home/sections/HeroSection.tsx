@@ -9,7 +9,7 @@ import { getImageUrl } from '../../../utils/formatters';
 const HERO_FALLBACK_SVG = `data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'><rect width='1920' height='1080' fill='%234a1532'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='serif' font-size='72' fill='%23f5e6d0' opacity='0.3'>HAFROSE</text></svg>`;
 
 export const HeroSection = () => {
-  const { data, isLoading } = useHomeData();
+  const { data } = useHomeData();
   const hero = data?.data?.hero;
 
   // URLs résolues côté serveur — jamais d'import statique d'asset métier

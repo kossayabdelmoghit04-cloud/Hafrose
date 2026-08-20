@@ -146,7 +146,7 @@ class ImageOptimizationService
     }
 
     /**
-     * Supprimer un fichier original et toutes ses variantes (JPEG + WebP).
+     * Supprimer un fichier original et toutes ses variantes (JPEG + WebP + suffixes legacy).
      */
     public function deleteWithVariants(string $originalPath, string $disk = 'public'): bool
     {
@@ -160,14 +160,20 @@ class ImageOptimizationService
             Storage::disk($disk)->delete($originalPath);
         }
 
-        // Supprimer chaque variante JPEG et WebP
-        foreach ($this->sizes as $variantName => $dims) {
-            $variantPath = "{$dirname}/{$filename}_{$variantName}.{$ext}";
+        // Tous les suffixes possibles (nouveaux et legacy)
+        $allSuffixes = array_unique(array_merge(
+            array_keys($this->sizes),
+            ['thumbnail', 'medium', 'large', 'thumb', 'card', 'banner']
+        ));
+
+        // Supprimer chaque variante
+        foreach ($allSuffixes as $suffix) {
+            $variantPath = "{$dirname}/{$filename}_{$suffix}.{$ext}";
             if (Storage::disk($disk)->exists($variantPath)) {
                 Storage::disk($disk)->delete($variantPath);
             }
 
-            $webpPath = "{$dirname}/{$filename}_{$variantName}.webp";
+            $webpPath = "{$dirname}/{$filename}_{$suffix}.webp";
             if (Storage::disk($disk)->exists($webpPath)) {
                 Storage::disk($disk)->delete($webpPath);
             }
@@ -177,8 +183,26 @@ class ImageOptimizationService
     }
 
     /**
-     * Obtenir les chemins de toutes les variantes pour un fichier donné.
-     * Retourne uniquement les variantes qui existent réellement sur le disque.
+     * Obtenir les chemins théoriques de toutes les déclinaisons configurées pour un fichier donné.
+     * Méthode de compatibilité rétroactive.
+     */
+    public function getVariantPaths(string $originalPath): array
+    {
+        $pathInfo = pathinfo($originalPath);
+        $dirname  = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : '';
+        $filename = $pathInfo['filename'];
+        $ext      = strtolower($pathInfo['extension'] ?? 'jpg');
+
+        $variants = [];
+        foreach ($this->sizes as $variantName => $dims) {
+            $variants[$variantName] = ($dirname ? "{$dirname}/" : '') . "{$filename}_{$variantName}.{$ext}";
+        }
+
+        return $variants;
+    }
+
+    /**
+     * Obtenir les chemins de toutes les variantes existant réellement sur le disque pour un fichier donné.
      */
     public function getExistingVariantPaths(string $originalPath, string $disk = 'public'): array
     {
