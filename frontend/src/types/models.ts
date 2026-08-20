@@ -22,6 +22,7 @@ export interface Category {
   is_active: boolean;
   image?: string | null;
   image_url?: string | null;
+  image_card_url?: string | null;
   products_count?: number;
   created_at: string;
   updated_at?: string;
@@ -41,6 +42,8 @@ export interface Gallery {
   id: number;
   product_id?: number;
   image: string;
+  image_url?: string;
+  image_thumb_url?: string | null;
   is_primary?: boolean;
   sort_order?: number;
   created_at?: string;
@@ -64,6 +67,9 @@ export interface Product {
   material?: string | null;
   brand?: string | null;
   image?: string | null;
+  image_url?: string | null;
+  image_card_url?: string | null;
+  image_thumb_url?: string | null;
   is_active?: boolean;
   is_featured: boolean;
   category?: Category;

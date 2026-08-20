@@ -11,11 +11,15 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryService
 {
-    protected CategoryRepositoryInterface $categoryRepository;
+    protected CategoryRepositoryInterface  $categoryRepository;
+    protected ImageOptimizationService     $imageOptimizationService;
 
-    public function __construct(CategoryRepositoryInterface $categoryRepository)
-    {
-        $this->categoryRepository = $categoryRepository;
+    public function __construct(
+        CategoryRepositoryInterface $categoryRepository,
+        ImageOptimizationService    $imageOptimizationService
+    ) {
+        $this->categoryRepository       = $categoryRepository;
+        $this->imageOptimizationService = $imageOptimizationService;
     }
 
     /**
@@ -55,15 +59,18 @@ class CategoryService
     }
 
     /**
-     * Créer une catégorie avec image.
+     * Créer une catégorie avec image optimisée.
+     *
+     * L'image est redimensionnée et compressée via ImageOptimizationService.
+     * Une version WebP est générée en parallèle si GD le supporte.
      */
     public function createCategory(array $data, ?UploadedFile $imageFile = null): Category
     {
         if ($imageFile) {
-            $path = $imageFile->store('categories', 'public');
-            $data['image'] = $path;
+            $result       = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
+            $data['image'] = $result['original'];
         } elseif (! empty($data['image_path'])) {
-            $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+            $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
             $data['image'] = $cleanPath;
         }
 
@@ -76,14 +83,15 @@ class CategoryService
     public function updateCategory(Category $category, array $data, ?UploadedFile $imageFile = null): Category
     {
         if ($imageFile) {
-            // Supprimer l'ancienne image
+            // Supprimer l'ancienne image et ses variantes
             if ($category->image) {
-                $this->deletePhysicalImage($category->image);
+                $this->imageOptimizationService->deleteWithVariants($category->image, 'public');
             }
-            $path = $imageFile->store('categories', 'public');
-            $data['image'] = $path;
+
+            $result        = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
+            $data['image'] = $result['original'];
         } elseif (! empty($data['image_path'])) {
-            $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+            $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
             $data['image'] = $cleanPath;
         } else {
             // Conserver l'image existante si aucune nouvelle image n'est envoyée
@@ -94,12 +102,12 @@ class CategoryService
     }
 
     /**
-     * Supprimer une catégorie.
+     * Supprimer une catégorie et ses images associées (original + variantes + WebP).
      */
     public function deleteCategory(Category $category): bool
     {
         if ($category->image) {
-            $this->deletePhysicalImage($category->image);
+            $this->imageOptimizationService->deleteWithVariants($category->image, 'public');
         }
 
         return $this->categoryRepository->delete($category);
@@ -107,10 +115,11 @@ class CategoryService
 
     /**
      * Supprimer physiquement un fichier image sur le disque public.
+     * Conservé pour la compatibilité avec les images existantes sans variantes.
      */
     private function deletePhysicalImage(string $url): void
     {
-        $path = parse_url($url, PHP_URL_PATH) ?? $url;
+        $path         = parse_url($url, PHP_URL_PATH) ?? $url;
         $relativePath = str_replace('/storage/', '', $path);
         $relativePath = ltrim($relativePath, '/');
 

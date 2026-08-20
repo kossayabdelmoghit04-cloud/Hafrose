@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ImageOptimizationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,7 +51,7 @@ class Product extends Model
      *
      * @var array<int, string>
      */
-    protected $appends = ['image_url', 'is_on_sale', 'discount_percentage'];
+    protected $appends = ['image_url', 'image_card_url', 'image_thumb_url', 'is_on_sale', 'discount_percentage'];
 
     /**
      * Scope pour filtrer les produits en promotion / soldes.
@@ -87,7 +88,7 @@ class Product extends Model
     }
 
     /**
-     * Accesseur pour obtenir l'URL publique de l'image principale.
+     * Accesseur pour obtenir l'URL publique de l'image principale (originale).
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -102,6 +103,45 @@ class Product extends Model
         $cleanPath = ltrim(str_replace('/storage/', '', $this->image), '/');
 
         return Storage::url($cleanPath);
+    }
+
+    /**
+     * Accesseur pour l'URL de la variante optimisée pour les cartes produits (480×640).
+     * Retourne null si la variante n'existe pas encore (images existantes non encore migrées).
+     * Le frontend utilise alors image_url comme fallback.
+     */
+    public function getImageCardUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return null; // Les URLs externes n'ont pas de variantes locales
+        }
+
+        $cleanPath = ltrim(str_replace('/storage/', '', $this->image), '/');
+
+        return app(ImageOptimizationService::class)->getVariantUrl($cleanPath, 'card');
+    }
+
+    /**
+     * Accesseur pour l'URL de la variante miniature (120×160) — thumbnails galerie.
+     * Retourne null si la variante n'existe pas.
+     */
+    public function getImageThumbUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return null;
+        }
+
+        $cleanPath = ltrim(str_replace('/storage/', '', $this->image), '/');
+
+        return app(ImageOptimizationService::class)->getVariantUrl($cleanPath, 'thumb');
     }
 
     /**

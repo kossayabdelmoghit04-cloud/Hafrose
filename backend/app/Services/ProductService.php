@@ -14,10 +14,14 @@ use Illuminate\Support\Facades\Storage;
 class ProductService
 {
     protected ProductRepositoryInterface $productRepository;
+    protected ImageOptimizationService   $imageOptimizationService;
 
-    public function __construct(ProductRepositoryInterface $productRepository)
-    {
-        $this->productRepository = $productRepository;
+    public function __construct(
+        ProductRepositoryInterface $productRepository,
+        ImageOptimizationService   $imageOptimizationService
+    ) {
+        $this->productRepository        = $productRepository;
+        $this->imageOptimizationService = $imageOptimizationService;
     }
 
     /**
@@ -58,16 +62,19 @@ class ProductService
 
     /**
      * Créer un produit avec ses images (principale et galerie).
+     *
+     * L'image principale est optimisée via ImageOptimizationService.
+     * Les images de galerie sont également optimisées.
      */
     public function createProduct(array $data, ?UploadedFile $imageFile = null, array $galleryFiles = []): Product
     {
         return DB::transaction(function () use ($data, $imageFile, $galleryFiles) {
             // Gérer l'image principale
             if ($imageFile) {
-                $path = $imageFile->store('products', 'public');
-                $data['image'] = $path;
+                $result       = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
+                $data['image'] = $result['original'];
             } elseif (! empty($data['image_path'])) {
-                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
                 $data['image'] = $cleanPath;
             }
 
@@ -87,19 +94,24 @@ class ProductService
     /**
      * Mettre à jour un produit et ses images.
      */
-    public function updateProduct(Product $product, array $data, ?UploadedFile $imageFile = null, array $galleryFiles = [], array $deletedGalleryIds = []): Product
-    {
+    public function updateProduct(
+        Product $product,
+        array $data,
+        ?UploadedFile $imageFile = null,
+        array $galleryFiles = [],
+        array $deletedGalleryIds = []
+    ): Product {
         return DB::transaction(function () use ($product, $data, $imageFile, $galleryFiles, $deletedGalleryIds) {
             // Gérer l'image principale
             if ($imageFile) {
-                // Supprimer l'ancienne image si elle existe
+                // Supprimer l'ancienne image et ses variantes
                 if ($product->image) {
-                    $this->deletePhysicalImage($product->image);
+                    $this->imageOptimizationService->deleteWithVariants($product->image, 'public');
                 }
-                $path = $imageFile->store('products', 'public');
-                $data['image'] = $path;
+                $result        = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
+                $data['image'] = $result['original'];
             } elseif (! empty($data['image_path'])) {
-                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
                 $data['image'] = $cleanPath;
             } else {
                 // Conserver l'image existante si aucune nouvelle image n'est envoyée
@@ -125,43 +137,50 @@ class ProductService
     }
 
     /**
-     * Supprimer un produit et tous ses fichiers associés.
+     * Supprimer un produit et tous ses fichiers associés (original + variantes + WebP).
      */
     public function deleteProduct(Product $product): bool
     {
         return DB::transaction(function () use ($product) {
-            // Supprimer l'image principale
+            // Supprimer l'image principale et ses variantes
             if ($product->image) {
-                $this->deletePhysicalImage($product->image);
+                $this->imageOptimizationService->deleteWithVariants($product->image, 'public');
             }
 
-            // Supprimer toutes les images de la galerie
+            // Supprimer toutes les images de la galerie et leurs variantes
             foreach ($product->galleries as $gallery) {
-                $this->deletePhysicalImage($gallery->image);
+                $this->imageOptimizationService->deleteWithVariants($gallery->image, 'public');
                 $gallery->delete();
             }
 
-            // Supprimer le produit
             return $this->productRepository->delete($product);
         });
     }
 
     /**
      * Sauvegarder les images de la galerie (fichiers uploadés ou chemins médias).
+     *
+     * Les fichiers uploadés sont optimisés via ImageOptimizationService.
+     * Les variantes thumb (120×160) sont générées pour les thumbnails de galerie.
      */
     private function saveGalleries(Product $product, array $galleryFiles, array $galleryPaths): void
     {
-        // Enregistrer les fichiers uploadés
+        // Enregistrer les fichiers uploadés (avec optimisation)
         foreach ($galleryFiles as $file) {
             if ($file instanceof UploadedFile) {
-                $path = $file->store('products/gallery', 'public');
+                $result = $this->imageOptimizationService->optimizeAndStore(
+                    $file,
+                    'public',
+                    'products/gallery',
+                    ['thumb', 'large'] // Uniquement thumb + large pour les galeries
+                );
                 $product->galleries()->create([
-                    'image' => $path,
+                    'image' => $result['original'],
                 ]);
             }
         }
 
-        // Enregistrer les chemins d'accès réutilisés
+        // Enregistrer les chemins d'accès réutilisés depuis la médiathèque
         foreach ($galleryPaths as $path) {
             if (! empty($path)) {
                 $cleanPath = ltrim(str_replace('/storage/', '', $path), '/');
@@ -173,24 +192,25 @@ class ProductService
     }
 
     /**
-     * Supprimer des images spécifiques de la galerie.
+     * Supprimer des images spécifiques de la galerie (avec leurs variantes).
      */
     private function deleteGalleryImages(Product $product, array $galleryIds): void
     {
         $galleries = $product->galleries()->whereIn('id', $galleryIds)->get();
 
         foreach ($galleries as $gallery) {
-            $this->deletePhysicalImage($gallery->image);
+            $this->imageOptimizationService->deleteWithVariants($gallery->image, 'public');
             $gallery->delete();
         }
     }
 
     /**
      * Supprimer physiquement un fichier sur le disque public à partir de son URL ou chemin relatif.
+     * Conservé pour la compatibilité avec les images existantes sans variantes.
      */
     private function deletePhysicalImage(string $url): void
     {
-        $path = parse_url($url, PHP_URL_PATH) ?? $url;
+        $path         = parse_url($url, PHP_URL_PATH) ?? $url;
         $relativePath = str_replace('/storage/', '', $path);
         $relativePath = ltrim($relativePath, '/');
 
@@ -209,7 +229,6 @@ class ProductService
 
     /**
      * Obtenir les produits similaires à un produit donné.
-     * Le nombre de résultats est configurable (défaut : 4).
      */
     public function getRelatedProducts(Product $product, int $limit = 4): Collection
     {
@@ -218,7 +237,6 @@ class ProductService
 
     /**
      * Obtenir les produits les plus populaires.
-     * Le nombre de résultats est configurable (défaut : 8).
      */
     public function getPopularProducts(int $limit = 8): Collection
     {

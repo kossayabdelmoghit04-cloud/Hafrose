@@ -3,6 +3,12 @@ export interface LazyImageProps {
   src: string;
   /** Accessible alt text — never omit */
   alt: string;
+  /** Responsive srcset attribute */
+  srcSet?: string;
+  /** Responsive sizes attribute */
+  sizes?: string;
+  /** Optional WebP source URL for <picture> wrapper */
+  webpSrc?: string;
   /** CSS class applied to the <img> element */
   className?: string;
   /** CSS class applied to the wrapper <div> */

@@ -5,6 +5,7 @@ export interface ProductCardProps {
   price: number;
   salePrice?: number | null;
   imageUrl?: string | null;
+  imageCardUrl?: string | null;
   categoryName?: string;
   badgeText?: string;
   isWishlisted?: boolean;

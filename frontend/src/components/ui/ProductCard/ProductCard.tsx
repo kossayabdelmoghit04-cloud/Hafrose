@@ -23,6 +23,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   price,
   salePrice,
   imageUrl,
+  imageCardUrl,
   categoryName,
   badgeText,
   isWishlisted = false,
@@ -33,7 +34,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
 }) => {
   const formattedPrice = formatPrice(price);
   const formattedSalePrice = salePrice ? formatPrice(salePrice) : null;
-  const imageSrc = getImageUrl(imageUrl);
+  const imageSrc = getImageUrl(imageCardUrl || imageUrl);
 
   return (
     <Card
@@ -46,6 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
         <LazyImage
           src={imageSrc}
           alt={name}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="w-full h-full transition-transform duration-500 ease-luxury group-hover:scale-105"
           wrapperClassName="w-full h-full"
           objectFit="cover"

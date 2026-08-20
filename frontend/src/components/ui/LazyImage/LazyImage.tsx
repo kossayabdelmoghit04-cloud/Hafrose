@@ -20,6 +20,9 @@ const DEFAULT_FALLBACK = getImageUrl('assets/images/placeholder.svg');
 export const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
+  srcSet,
+  sizes,
+  webpSrc,
   className,
   wrapperClassName,
   width,
@@ -54,6 +57,34 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   const aspectStyle =
     width && height ? { aspectRatio: `${width} / ${height}` } : undefined;
 
+  const imgElement = (
+    <img
+      src={currentSrc}
+      srcSet={!hasError ? srcSet : undefined}
+      sizes={!hasError ? sizes : undefined}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
+      decoding="async"
+      onLoad={handleLoad}
+      onError={handleError}
+      className={cn(
+        'transition-opacity duration-500 ease-luxury',
+        isLoaded ? 'opacity-100' : 'opacity-0',
+        {
+          'object-cover': objectFit === 'cover',
+          'object-contain': objectFit === 'contain',
+          'object-fill': objectFit === 'fill',
+          'object-none': objectFit === 'none',
+          'object-scale-down': objectFit === 'scale-down',
+        },
+        className
+      )}
+    />
+  );
+
   return (
     <div
       className={cn('overflow-hidden relative', wrapperClassName)}
@@ -69,29 +100,14 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         />
       )}
 
-      <img
-        src={currentSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={priority ? 'eager' : 'lazy'}
-        fetchPriority={priority ? 'high' : 'auto'}
-        decoding="async"
-        onLoad={handleLoad}
-        onError={handleError}
-        className={cn(
-          'transition-opacity duration-500 ease-luxury',
-          isLoaded ? 'opacity-100' : 'opacity-0',
-          {
-            'object-cover': objectFit === 'cover',
-            'object-contain': objectFit === 'contain',
-            'object-fill': objectFit === 'fill',
-            'object-none': objectFit === 'none',
-            'object-scale-down': objectFit === 'scale-down',
-          },
-          className
-        )}
-      />
+      {webpSrc && !hasError ? (
+        <picture className="w-full h-full">
+          <source srcSet={webpSrc} type="image/webp" sizes={sizes} />
+          {imgElement}
+        </picture>
+      ) : (
+        imgElement
+      )}
     </div>
   );
 };
