@@ -98,15 +98,15 @@ export const Header = ({
           </div>
 
           {/* Logo */}
-          <a
-            href="/"
+          <Link
+            to="/"
             aria-label="HAFROSE — Retour à l'accueil"
             className="absolute left-1/2 -translate-x-1/2 lg:relative lg:left-auto lg:translate-x-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 rounded-xs"
           >
             <span className="font-serif text-h3 md:text-h2 tracking-luxury-wide text-neutral-950 select-none">
               HAFROSE
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1" aria-label="Navigation principale">
@@ -185,11 +185,11 @@ export const Header = ({
               className="hidden sm:flex"
             />
 
-            {/* 2. Mon Compte (Navigation SPA conditionnelle : /login si visiteur, /account si connecté) */}
+            {/* 2. Mon Compte (Lien direct vers la page de connexion /login ou compte /account) */}
             <Link
               to={isAuthenticated ? '/account' : '/login'}
               aria-label="Mon compte"
-              className="hidden sm:inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-700 hover:text-burgundy-500 hover:bg-rose-blush transition-all duration-200 ease-luxury focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 select-none"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-700 hover:text-burgundy-500 hover:bg-rose-blush transition-all duration-200 ease-luxury focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 select-none"
             >
               <User className="w-5 h-5" />
             </Link>
