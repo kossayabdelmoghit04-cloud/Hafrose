@@ -32,16 +32,14 @@ export const HeroSection = () => {
     >
       {/* Background Image — priority LCP candidate */}
       <div className="absolute inset-0">
-        {!isLoading && (
-          <LazyImage
-            src={imageSrc}
-            alt="Silhouette élégante HAFROSE — Collection Printemps"
-            className="w-full h-full object-cover object-top"
-            wrapperClassName="w-full h-full"
-            objectFit="cover"
-            priority
-          />
-        )}
+        <LazyImage
+          src={imageSrc}
+          alt="Silhouette élégante HAFROSE — Collection Printemps"
+          className="w-full h-full object-cover object-top"
+          wrapperClassName="w-full h-full"
+          objectFit="cover"
+          priority
+        />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-neutral-950/30 to-neutral-950/10 md:bg-gradient-to-r md:from-neutral-950/70 md:via-neutral-950/30 md:to-transparent" />
       </div>

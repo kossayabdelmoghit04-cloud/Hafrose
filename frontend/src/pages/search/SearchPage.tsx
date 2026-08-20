@@ -111,7 +111,8 @@ export const SearchPage = () => {
                     slug={product.slug}
                     price={product.price}
                     salePrice={product.sale_price}
-                    imageUrl={getImageUrl(product.image ?? product.media?.[0]?.url ?? null)}
+                    imageUrl={getImageUrl(product.image_url ?? product.image ?? product.media?.[0]?.url ?? null)}
+                    imageCardUrl={product.image_card_url ? getImageUrl(product.image_card_url) : undefined}
                     categoryName={product.category?.name}
                     onClick={(slug) => navigate(`/product/${slug}`)}
                   />

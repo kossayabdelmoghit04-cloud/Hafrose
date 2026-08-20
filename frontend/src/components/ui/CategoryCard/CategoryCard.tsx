@@ -9,12 +9,14 @@ export const CategoryCard: React.FC<CategoryCardProps> = memo(({
   name,
   slug,
   imageUrl,
+  imageCardUrl,
   productCount,
   onClick,
   className,
 }) => {
-  const hasImage = Boolean(imageUrl && imageUrl.trim());
-  const imageSrc = hasImage ? getImageUrl(imageUrl) : null;
+  const chosenUrl = imageCardUrl || imageUrl;
+  const hasImage = Boolean(chosenUrl && chosenUrl.trim());
+  const imageSrc = hasImage ? getImageUrl(chosenUrl) : null;
 
   return (
     <div
@@ -33,6 +35,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = memo(({
         <LazyImage
           src={imageSrc}
           alt={name}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-luxury group-hover:scale-105"
           wrapperClassName="absolute inset-0 w-full h-full"
         />

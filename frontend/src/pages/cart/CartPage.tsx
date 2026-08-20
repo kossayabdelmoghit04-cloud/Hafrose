@@ -6,6 +6,7 @@ import { NumberInput } from '../../components/ui/NumberInput';
 import { LinkButton } from '../../components/ui/LinkButton';
 import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
+import { LazyImage } from '../../components/ui/LazyImage';
 import { formatPrice, getImageUrl } from '../../utils/formatters';
 import { useCartStore } from '../../stores/useCartStore';
 import { useSEO } from '../../hooks/useSEO';
@@ -61,10 +62,13 @@ export const CartPage = () => {
                   <Card key={item.id} className="p-4 sm:p-6 bg-white">
                     <div className="flex gap-4 sm:gap-6">
                       <div className="w-20 sm:w-28 aspect-[3/4] rounded-xs bg-cream-200 overflow-hidden flex-shrink-0">
-                        <img
-                          src={getImageUrl(item.product.image ?? item.product.media?.[0]?.url ?? null)}
+                        <LazyImage
+                          src={getImageUrl(item.product.image_thumb_url || item.product.image_card_url || item.product.image_url || item.product.image || item.product.media?.[0]?.url || null)}
                           alt={item.product.name}
+                          width={112}
+                          height={149}
                           className="w-full h-full object-cover"
+                          wrapperClassName="w-full h-full"
                         />
                       </div>
                       <div className="flex-1 flex flex-col justify-between space-y-2">

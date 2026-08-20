@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../../../components/ui/Button';
 import { Container } from '../../../components/ui/Container';
 import { Section } from '../../../components/ui/Section';
+import { LazyImage } from '../../../components/ui/LazyImage';
 import { useHomeData } from '../../../hooks/useHomeHooks';
 import { getImageUrl } from '../../../utils/formatters';
 
@@ -59,19 +60,14 @@ export const NewCollectionSection = () => {
           {/* Asymmetric Image Block */}
           <div className="lg:col-span-7 order-1 lg:order-2 relative">
             <div className="relative aspect-[4/3] w-full rounded-md overflow-hidden shadow-hafrose-lg group">
-              <img
+              <LazyImage
                 src={imageSrc}
                 alt="Maison HAFROSE — Collection Éditoriale"
+                sizes="(max-width: 1024px) 100vw, 60vw"
                 className="w-full h-full object-cover transition-transform duration-700 ease-luxury group-hover:scale-105"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.dataset.fallback) {
-                    target.dataset.fallback = '1';
-                    target.src = `data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><rect width='800' height='600' fill='%234a1532'/></svg>`;
-                  }
-                }}
+                wrapperClassName="w-full h-full"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/40 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/40 via-transparent to-transparent pointer-events-none" />
             </div>
 
             {/* Floating Luxury Detail Box */}

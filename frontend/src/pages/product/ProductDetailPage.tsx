@@ -101,10 +101,14 @@ export const ProductDetailPage = () => {
     setOpenAccordion((prev) => (prev === id ? null : id));
   };
 
-  const rawGalleryList = product?.galleries?.map((g) => g.image) ?? product?.media?.map((m) => m.url) ?? [];
-  const galleryImages = rawGalleryList.length > 0
-    ? rawGalleryList.map((img) => getImageUrl(img))
-    : product?.image ? [getImageUrl(product.image)] : [getImageUrl('assets/images/placeholder.svg')];
+  const rawGalleries = product?.galleries ?? [];
+  const galleryImages = rawGalleries.length > 0
+    ? rawGalleries.map((g) => getImageUrl(g.image_url || g.image))
+    : product?.image ? [getImageUrl(product.image_url || product.image)] : [getImageUrl('assets/images/placeholder.svg')];
+
+  const galleryThumbnails = rawGalleries.length > 0
+    ? rawGalleries.map((g) => getImageUrl(g.image_thumb_url || g.image_url || g.image))
+    : product?.image ? [getImageUrl(product.image_thumb_url || product.image_url || product.image)] : [getImageUrl('assets/images/placeholder.svg')];
 
   return (
     <div className="bg-cream-100 min-h-screen">
@@ -156,6 +160,7 @@ export const ProductDetailPage = () => {
                   <LazyImage
                     src={galleryImages[selectedImg]}
                     alt={product.name}
+                    sizes="(max-width: 1024px) 100vw, 55vw"
                     className="w-full h-full object-cover transition-all duration-350"
                     wrapperClassName="w-full h-full"
                     priority
@@ -165,7 +170,7 @@ export const ProductDetailPage = () => {
                 {/* Thumbnails */}
                 {galleryImages.length > 1 && (
                   <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                    {galleryImages.map((img, idx) => (
+                    {galleryImages.map((_, idx) => (
                       <button
                         key={idx}
                         type="button"
@@ -174,7 +179,14 @@ export const ProductDetailPage = () => {
                           selectedImg === idx ? 'border-burgundy-500 shadow-hafrose-xs' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <LazyImage src={img} alt="" className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
+                        <LazyImage
+                          src={galleryThumbnails[idx]}
+                          alt=""
+                          width={80}
+                          height={107}
+                          className="w-full h-full object-cover"
+                          wrapperClassName="w-full h-full"
+                        />
                       </button>
                     ))}
                   </div>
@@ -362,7 +374,8 @@ export const ProductDetailPage = () => {
                     slug={p.slug}
                     price={p.price}
                     salePrice={p.sale_price}
-                    imageUrl={getImageUrl(p.image ?? p.media?.[0]?.url ?? null)}
+                    imageUrl={getImageUrl(p.image_url ?? p.image ?? p.media?.[0]?.url ?? null)}
+                    imageCardUrl={p.image_card_url ? getImageUrl(p.image_card_url) : undefined}
                     categoryName={p.category?.name}
                     onClick={(s) => navigate(`/product/${s}`)}
                   />

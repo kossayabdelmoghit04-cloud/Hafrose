@@ -45,6 +45,7 @@ export const CategoriesSection = () => {
                 name={cat.name}
                 slug={cat.slug}
                 imageUrl={cat.image_url ? getImageUrl(cat.image_url) : (cat.image ? getImageUrl(cat.image) : undefined)}
+                imageCardUrl={cat.image_card_url ? getImageUrl(cat.image_card_url) : undefined}
                 productCount={cat.products_count}
                 onClick={(slug) => navigate(`/shop?category=${slug}`)}
                 className="aspect-[3/4] shadow-hafrose-xs hover:shadow-hafrose-md"

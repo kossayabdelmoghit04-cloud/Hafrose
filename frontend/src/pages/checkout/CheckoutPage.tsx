@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { Alert } from '../../components/ui/Alert';
+import { LazyImage } from '../../components/ui/LazyImage';
 import { formatPrice, getImageUrl } from '../../utils/formatters';
 import { useCartStore } from '../../stores/useCartStore';
 import { useAuthStore } from '../../stores/useAuthStore';
@@ -341,10 +342,13 @@ export const CheckoutPage = () => {
                   {items.map((item) => (
                     <div key={item.id} className="flex items-center gap-3">
                       <div className="w-12 h-14 flex-shrink-0 rounded-xs bg-cream-100 overflow-hidden border border-neutral-100">
-                        <img
-                          src={getImageUrl(item.product.image ?? item.product.media?.[0]?.url ?? null)}
+                        <LazyImage
+                          src={getImageUrl(item.product.image_thumb_url || item.product.image_card_url || item.product.image_url || item.product.image || item.product.media?.[0]?.url || null)}
                           alt={item.product.name}
+                          width={48}
+                          height={56}
                           className="w-full h-full object-cover"
+                          wrapperClassName="w-full h-full"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
