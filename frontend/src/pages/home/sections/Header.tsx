@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, X, ChevronDown } from 'lucide-react';
 import { IconButton } from '../../../components/ui/IconButton';
 import { useCategories } from '../../../hooks/useProductHooks';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { cn } from '../../../utils/cn';
 
 interface HeaderProps {
@@ -25,9 +26,13 @@ export const Header = ({
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Auth state — determines where 👤 navigates to
+  const { isAuthenticated } = useAuthStore();
+
   // Source unique de vérité : catégories chargées depuis l'API backend
   const { data: categoriesData, isLoading: isCategoriesLoading } = useCategories();
   const categories = categoriesData?.data ?? [];
+
 
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 40);
@@ -170,6 +175,7 @@ export const Header = ({
 
           {/* Action Icons */}
           <div className="flex items-center gap-0.5 md:gap-1">
+            {/* 1. Recherche */}
             <IconButton
               variant="ghost"
               size="sm"
@@ -179,29 +185,32 @@ export const Header = ({
               className="hidden sm:flex"
             />
 
-            <a href="/account" aria-label="Mon compte" className="hidden sm:flex">
-              <IconButton
-                variant="ghost"
-                size="sm"
-                aria-label="Mon compte"
-                icon={<User className="w-5 h-5" />}
-              />
-            </a>
+            {/* 2. Mon Compte (Navigation SPA conditionnelle : /login si visiteur, /account si connecté) */}
+            <Link
+              to={isAuthenticated ? '/account' : '/login'}
+              aria-label="Mon compte"
+              className="hidden sm:inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-700 hover:text-burgundy-500 hover:bg-rose-blush transition-all duration-200 ease-luxury focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 select-none"
+            >
+              <User className="w-5 h-5" />
+            </Link>
 
+            {/* 3. Liste de souhaits */}
             <div className="relative hidden sm:block">
-              <IconButton
-                variant="ghost"
-                size="sm"
+              <Link
+                to="/wishlist"
                 aria-label={`Liste de souhaits${wishlistCount > 0 ? ` (${wishlistCount} articles)` : ''}`}
-                icon={<Heart className="w-5 h-5" />}
-              />
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-700 hover:text-burgundy-500 hover:bg-rose-blush transition-all duration-200 ease-luxury focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 select-none"
+              >
+                <Heart className="w-5 h-5" />
+              </Link>
               {wishlistCount > 0 && (
-                <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-burgundy-500 text-white text-[10px] font-bold">
+                <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-burgundy-500 text-white text-[10px] font-bold pointer-events-none">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
             </div>
 
+            {/* 4. Panier */}
             <div className="relative">
               <IconButton
                 variant="ghost"
@@ -211,7 +220,7 @@ export const Header = ({
                 icon={<ShoppingBag className="w-5 h-5" />}
               />
               {cartCount > 0 && (
-                <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-burgundy-500 text-white text-[10px] font-bold">
+                <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full bg-burgundy-500 text-white text-[10px] font-bold pointer-events-none">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
@@ -283,12 +292,20 @@ export const Header = ({
             </a>
 
             <div className="pt-4 flex items-center gap-4 border-t border-neutral-200 mt-2">
-              <a href="/account" className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200">
+              <Link
+                to={isAuthenticated ? '/account' : '/login'}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200"
+              >
                 <User className="w-4 h-4" /> Mon Compte
-              </a>
-              <a href="/wishlist" className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200">
+              </Link>
+              <Link
+                to="/wishlist"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200"
+              >
                 <Heart className="w-4 h-4" /> Favoris
-              </a>
+              </Link>
             </div>
           </nav>
         </div>
