@@ -4,6 +4,11 @@ $app = require_once __DIR__ . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
+if (! app()->environment('testing', 'local')) {
+    echo "⚠️ ERROR: seed_test_customer.php is forbidden in production environments.\n";
+    exit(1);
+}
+
 $user = App\Models\User::firstOrCreate(
     ['email' => 'client@hafrose.com'],
     [

@@ -39,6 +39,12 @@ class TestCustomerSeeder extends Seeder
 
     public function run(): void
     {
+        // Strict environment guard: TestCustomerSeeder must ONLY run in the testing environment
+        if (! app()->environment('testing')) {
+            $this->command?->warn('⚠️ TestCustomerSeeder is strictly restricted to the testing environment. Skipping execution in current environment: ' . app()->environment());
+            return;
+        }
+
         foreach (self::TEST_CUSTOMERS as $data) {
             User::firstOrCreate(
                 ['email' => $data['email']],
@@ -53,7 +59,7 @@ class TestCustomerSeeder extends Seeder
                 ]
             );
 
-            $this->command->info("✓ E2E customer ready: {$data['email']}");
+            $this->command?->info("✓ E2E customer ready: {$data['email']}");
         }
     }
 }

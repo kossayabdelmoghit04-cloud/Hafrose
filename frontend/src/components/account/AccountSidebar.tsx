@@ -41,7 +41,7 @@ export const AccountSidebar: React.FC = () => {
           <h2 className="font-serif text-h5 text-neutral-900 truncate">
             {fullName}
           </h2>
-          <p className="text-caption text-neutral-500 truncate">{user?.email || 'client@hafrose.com'}</p>
+          <p className="text-caption text-neutral-500 truncate">{user?.email || ''}</p>
         </div>
       </div>
 

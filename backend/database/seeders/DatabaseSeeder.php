@@ -11,10 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Appel des seeders dans l'ordre logique d'intégrité référentielle
+        // 1. Appel des seeders de production / domaine (rôles, catégories, produits, paramètres...)
         $this->call([
             RoleAndPermissionSeeder::class,
-            UserSeeder::class,
             AdminUserSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
@@ -23,5 +22,12 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             SettingSeeder::class,
         ]);
+
+        // 2. Seeders de test STRICTEMENT réservés à l'environnement "testing"
+        if (app()->environment('testing')) {
+            $this->call([
+                TestCustomerSeeder::class,
+            ]);
+        }
     }
 }

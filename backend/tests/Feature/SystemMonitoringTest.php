@@ -310,6 +310,9 @@ class SystemMonitoringTest extends TestCase
 
     public function test_monitoring_middleware_attaches_debug_headers_in_non_prod(): void
     {
+        // Override MONITORING_ENABLED=false from .env.testing for this test
+        Config::set('monitoring.enabled', true);
+
         $token = $this->admin->createToken('admin_test')->plainTextToken;
 
         $response = $this->getJson('/api/categories', [
@@ -325,10 +328,16 @@ class SystemMonitoringTest extends TestCase
 
     public function test_monitoring_middleware_logs_slow_requests(): void
     {
+        // Override MONITORING_ENABLED=false from .env.testing for this test
+        Config::set('monitoring.enabled', true);
         Config::set('monitoring.slow_request_threshold', -1); // Forcer toute requête (> -1 ms) à être considérée lente
 
         $this->mock(ProductionLogService::class, function ($mock) {
             $mock->shouldReceive('warning')->atLeast()->once();
+            // Allow any other calls that ProductionLogService may receive
+            $mock->shouldReceive('info')->zeroOrMoreTimes();
+            $mock->shouldReceive('error')->zeroOrMoreTimes();
+            $mock->shouldReceive('debug')->zeroOrMoreTimes();
         });
 
         $token = $this->admin->createToken('admin_test')->plainTextToken;
