@@ -109,6 +109,7 @@ export const ShopPage = () => {
 
     const currentSale = searchParams.get('on_sale') === 'true' || searchParams.get('sale') === 'true';
     if (currentSale !== onSaleOnly) setOnSaleOnly(currentSale);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- URL-to-state sync: deps intentionally omit state vars to avoid infinite update loop
   }, [searchParams]);
 
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();

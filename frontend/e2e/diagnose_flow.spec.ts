@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('Diagnose user navigation to /account and /login', async ({ page }) => {
   const consoleLogs: string[] = [];

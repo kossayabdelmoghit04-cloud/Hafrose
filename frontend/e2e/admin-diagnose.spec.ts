@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:3000';
-const API_URL = 'http://localhost:8000';
+const _API_URL = 'http://localhost:8000';
 const ADMIN_EMAIL = 'admin@hafrose.com';
 const ADMIN_PASSWORD = 'Admin@Hafrose2024!';
 

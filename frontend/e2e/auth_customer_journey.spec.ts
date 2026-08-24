@@ -103,14 +103,16 @@ test.describe('Customer Authentication and Account Journey', () => {
     const uniqueEmail = `test_${Date.now()}@hafrose.com`;
     await page.goto('http://localhost:3000/register', { waitUntil: 'networkidle' });
     
-    // Fill register form
-    await page.fill('input[name="first_name"], input[placeholder="Prénom"], input[type="text"] >> nth=0', 'Claire');
-    await page.fill('input[name="last_name"], input[placeholder="Nom"], input[type="text"] >> nth=1', 'Dubois');
+    // Fill register form using actual RegisterPage.tsx placeholders
+    await page.fill('input[placeholder="Éléonore"]', 'Claire');
+    await page.fill('input[placeholder="De Saint-Germain"]', 'Dubois');
     await page.fill('input[type="email"]', uniqueEmail);
-    await page.fill('input[type="password"] >> nth=0', 'SecretPass123!');
-    await page.fill('input[type="password"] >> nth=1', 'SecretPass123!');
+    // Fill password fields (both use placeholder="••••••••")
+    const passwordInputs = page.locator('input[type="password"]');
+    await passwordInputs.nth(0).fill('SecretPass123!');
+    await passwordInputs.nth(1).fill('SecretPass123!');
     
-    // Check CGV if present
+    // Check CGV checkbox
     const terms = page.locator('input[type="checkbox"]');
     if (await terms.count() > 0) {
       await terms.first().check();

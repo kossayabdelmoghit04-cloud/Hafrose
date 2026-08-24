@@ -91,7 +91,6 @@ export function useSEO(meta: SEOMeta): void {
     return () => {
       document.title = previousTitle.current;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta.title, meta.description, meta.ogImage, meta.canonical, meta.noIndex, meta.ogType]);
 }
 
