@@ -1,0 +1,154 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: account_icon_navigation.spec.ts >> Icône 👤 Mon Compte — Navigation conditionnelle (React Router Link) >> TEST 3 — Client connecté : clic 👤 → http://localhost:3000/account
+- Location: e2e\account_icon_navigation.spec.ts:38:3
+
+# Error details
+
+```
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/account/
+Received string:  "http://localhost:3000/login"
+Timeout: 15000ms
+
+Call log:
+  - Expect "toHaveURL" with timeout 15000ms
+    29 × locator resolved to <html lang="fr" dir="ltr">…</html>
+       - unexpected value "http://localhost:3000/login"
+
+```
+
+```yaml
+- link "HAFROSE Maison de Haute Couture":
+  - /url: /
+- heading "Connexion Client" [level=1]
+- paragraph: Accédez à votre espace privé et suivez vos commandes.
+- text: Adresse E-mail
+- img
+- textbox "Adresse E-mail":
+  - /placeholder: nom@exemple.com
+  - text: client@hafrose.com
+- text: Mot de Passe
+- img
+- textbox "Mot de Passe":
+  - /placeholder: ••••••••
+  - text: Secret123!
+- button "Afficher le mot de passe":
+  - img
+- checkbox "Se souvenir de moi"
+- img
+- text: Se souvenir de moi
+- link "Mot de passe oublié ?":
+  - /url: /forgot-password
+- button "Chargement en cours... Se Connecter" [disabled]:
+  - status "Chargement en cours..."
+  - text: Se Connecter
+- text: Pas encore de compte ?
+- link "Créer un compte HAFROSE":
+  - /url: /register
+- paragraph: © 2026 HAFROSE. Tous droits réservés.
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | 
+  3  | test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Router Link)', () => {
+  4  | 
+  5  |   test('TEST 1 — Visiteur non connecté : clic 👤 (entre 🔍 et ♡) → http://localhost:3000/login', async ({ page }) => {
+  6  |     // 1. Accéder à l'accueil
+  7  |     await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+  8  | 
+  9  |     // 2. Vérifier la visibilité de la barre d'icônes
+  10 |     const searchBtn = page.locator('button[aria-label="Rechercher"]');
+  11 |     const accountLink = page.locator('a[aria-label="Mon compte"]').first();
+  12 |     const wishlistLink = page.locator('a[aria-label^="Liste de souhaits"]').first();
+  13 | 
+  14 |     await expect(searchBtn).toBeVisible();
+  15 |     await expect(accountLink).toBeVisible();
+  16 |     await expect(wishlistLink).toBeVisible();
+  17 | 
+  18 |     // 3. Vérifier le href du lien avant le clic
+  19 |     const href = await accountLink.getAttribute('href');
+  20 |     console.log('Account Link href (visiteur) :', href);
+  21 |     expect(href).toBe('/login');
+  22 | 
+  23 |     // 4. Cliquer sur l'icône 👤 visible
+  24 |     await accountLink.click();
+  25 | 
+  26 |     // 5. Vérifier la navigation vers /login
+  27 |     await expect(page).toHaveURL('http://localhost:3000/login');
+  28 |     await expect(page.locator('h1')).toHaveText('Connexion Client');
+  29 |   });
+  30 | 
+  31 |   test('TEST 2 — Accès direct /login affiche LoginPage', async ({ page }) => {
+  32 |     await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+  33 |     await expect(page.locator('h1')).toHaveText('Connexion Client');
+  34 |     await expect(page.locator('input[type="email"]')).toBeVisible();
+  35 |     await expect(page.locator('input[type="password"]')).toBeVisible();
+  36 |   });
+  37 | 
+  38 |   test('TEST 3 — Client connecté : clic 👤 → http://localhost:3000/account', async ({ page }) => {
+  39 |     // 1. Se connecter avec le compte client
+  40 |     await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+  41 |     await page.fill('input[type="email"]', 'client@hafrose.com');
+  42 |     await page.fill('input[type="password"]', 'Secret123!');
+  43 |     await page.click('button[type="submit"]');
+  44 | 
+  45 |     // Attendre redirection vers /account
+> 46 |     await expect(page).toHaveURL(/\/account/);
+     |                        ^ Error: expect(page).toHaveURL(expected) failed
+  47 | 
+  48 |     // 2. Retourner sur l'accueil
+  49 |     await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+  50 | 
+  51 |     // 3. Vérifier l'icône 👤 et son href
+  52 |     const accountLink = page.locator('a[aria-label="Mon compte"]').first();
+  53 |     await expect(accountLink).toBeVisible();
+  54 |     const href = await accountLink.getAttribute('href');
+  55 |     console.log('Account Link href (client connecté) :', href);
+  56 |     expect(href).toBe('/account');
+  57 | 
+  58 |     // 4. Cliquer sur 👤
+  59 |     await accountLink.click();
+  60 | 
+  61 |     // 5. Vérifier la navigation vers /account
+  62 |     await expect(page).toHaveURL('http://localhost:3000/account');
+  63 |     await expect(page.locator('h1')).toContainText('Ravi de vous revoir');
+  64 |   });
+  65 | 
+  66 |   test('TEST 4 — Menu Mobile : visiteur non connecté clic Mon Compte → /login', async ({ page }) => {
+  67 |     // Viewport mobile
+  68 |     await page.setViewportSize({ width: 390, height: 844 });
+  69 |     await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+  70 | 
+  71 |     // Ouvrir le menu mobile
+  72 |     const menuToggle = page.locator('button[aria-label="Ouvrir le menu"]');
+  73 |     await menuToggle.click();
+  74 | 
+  75 |     // Vérifier le lien "Mon Compte" dans le tiroir mobile
+  76 |     const mobileAccountLink = page.locator('nav[aria-label="Navigation mobile"] a:has-text("Mon Compte")');
+  77 |     await expect(mobileAccountLink).toBeVisible();
+  78 |     const href = await mobileAccountLink.getAttribute('href');
+  79 |     console.log('Mobile Account Link href (visiteur) :', href);
+  80 |     expect(href).toBe('/login');
+  81 | 
+  82 |     // Cliquer
+  83 |     await mobileAccountLink.click();
+  84 | 
+  85 |     // URL obligatoire : /login
+  86 |     await expect(page).toHaveURL('http://localhost:3000/login');
+  87 |     await expect(page.locator('h1')).toHaveText('Connexion Client');
+  88 |   });
+  89 | 
+  90 | });
+  91 | 
+```
