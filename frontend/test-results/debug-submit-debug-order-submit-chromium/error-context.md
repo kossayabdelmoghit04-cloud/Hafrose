@@ -1,0 +1,221 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: debug-submit.spec.ts >> debug order submit
+- Location: e2e\debug-submit.spec.ts:11:1
+
+# Error details
+
+```
+Test timeout of 45000ms exceeded.
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f2e3]:
+  - link "Passer au contenu principal" [ref=f2e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e6]:
+    - button "Message précédent" [ref=f2e7] [cursor=pointer]
+    - paragraph [ref=f2e10]: "👑 -20% sur les collections en promotion — Code : HAFROSE20"
+    - button "Message suivant" [ref=f2e11] [cursor=pointer]
+  - banner [ref=f2e14]:
+    - generic [ref=f2e16]:
+      - link "HAFROSE — Retour à l'accueil" [ref=f2e17] [cursor=pointer]:
+        - /url: /
+        - text: HAFROSE
+      - navigation "Navigation principale" [ref=f2e18]:
+        - link "Nouveautés" [ref=f2e20] [cursor=pointer]:
+          - /url: /#nouveautes
+        - link "Soldes" [ref=f2e27] [cursor=pointer]:
+          - /url: /shop?on_sale=true
+      - generic [ref=f2e28]:
+        - button "Rechercher" [ref=f2e29] [cursor=pointer]
+        - link "Mon compte" [ref=f2e33] [cursor=pointer]:
+          - /url: /account
+        - link "Liste de souhaits" [ref=f2e38] [cursor=pointer]:
+          - /url: /wishlist
+        - generic [ref=f2e41]:
+          - button "Panier (1 articles)" [ref=f2e42] [cursor=pointer]
+          - generic: "1"
+  - main "Contenu principal" [ref=f2e46]:
+    - generic [ref=f2e47]:
+      - generic [ref=f2e49]:
+        - navigation "Fil d'Ariane" [ref=f2e50]:
+          - list [ref=f2e51]:
+            - listitem [ref=f2e52]:
+              - button "Accueil" [ref=f2e56] [cursor=pointer]
+            - listitem [ref=f2e59]:
+              - button "Panier" [ref=f2e60] [cursor=pointer]
+            - listitem [ref=f2e63]:
+              - generic [ref=f2e64]: Paiement Sécurisé
+        - heading "Commande Sécurisée HAFROSE" [level=1] [ref=f2e65]
+      - generic [ref=f2e71]:
+        - generic [ref=f2e72]:
+          - generic [ref=f2e73]:
+            - heading "1. Informations & Adresse de Livraison" [level=3] [ref=f2e74]
+            - generic [ref=f2e75]:
+              - generic [ref=f2e76]:
+                - generic [ref=f2e77]: Prénom*
+                - textbox "Prénom" [ref=f2e79]: Client
+              - generic [ref=f2e80]:
+                - generic [ref=f2e81]: Nom*
+                - textbox "Nom" [ref=f2e83]: Test
+            - generic [ref=f2e84]:
+              - generic [ref=f2e85]:
+                - generic [ref=f2e86]: E-mail*
+                - textbox "E-mail" [ref=f2e88]: client.test@hafrose.com
+              - generic [ref=f2e89]:
+                - generic [ref=f2e90]: Téléphone*
+                - textbox "Téléphone" [ref=f2e92]: "0600000001"
+            - generic [ref=f2e93]:
+              - generic [ref=f2e94]: Adresse de rue*
+              - textbox "Adresse de rue" [active] [ref=f2e96]
+            - generic [ref=f2e97]:
+              - generic [ref=f2e98]:
+                - generic [ref=f2e99]: Code Postal*
+                - textbox "Code Postal" [ref=f2e101]
+              - generic [ref=f2e103]:
+                - generic [ref=f2e104]: Ville*
+                - textbox "Ville" [ref=f2e106]
+            - generic [ref=f2e107]:
+              - generic [ref=f2e108]: Pays / Région
+              - combobox "Pays / Région" [ref=f2e110]:
+                - option "Maroc" [selected]
+                - option "Algérie"
+                - option "Tunisie"
+                - option "France"
+                - option "Belgique"
+                - option "Luxembourg"
+                - option "Suisse"
+          - generic [ref=f2e111]:
+            - heading "2. Mode de Livraison" [level=3] [ref=f2e112]
+            - generic [ref=f2e113]:
+              - generic [ref=f2e114] [cursor=pointer]:
+                - radio "Livraison Express HAFROSE (24h-48h) — Offerte Remise en main propre contre signature" [checked] [ref=f2e116]
+                - generic [ref=f2e118]:
+                  - generic [ref=f2e119]: Livraison Express HAFROSE (24h-48h) — Offerte
+                  - generic [ref=f2e120]: Remise en main propre contre signature
+              - generic [ref=f2e121] [cursor=pointer]:
+                - radio "Chronopost Coursier VIP (Le jour même) 15,00 MAD supplémentaires" [ref=f2e123]
+                - generic [ref=f2e125]:
+                  - generic [ref=f2e126]: Chronopost Coursier VIP (Le jour même)
+                  - generic [ref=f2e127]: 15,00 MAD supplémentaires
+          - generic [ref=f2e128]:
+            - heading "3. Mode de Paiement" [level=3] [ref=f2e129]
+            - generic [ref=f2e133]:
+              - generic [ref=f2e134] [cursor=pointer]:
+                - radio "Carte Bancaire (Visa, Mastercard, Amex)" [checked] [ref=f2e136]
+                - generic [ref=f2e138]: Carte Bancaire (Visa, Mastercard, Amex)
+              - generic [ref=f2e140] [cursor=pointer]:
+                - radio "PayPal" [ref=f2e142]
+                - generic [ref=f2e144]: PayPal
+              - generic [ref=f2e146] [cursor=pointer]:
+                - radio "Paiement à la Livraison" [ref=f2e148]
+                - generic [ref=f2e150]: Paiement à la Livraison
+        - generic [ref=f2e153]:
+          - heading "Récapitulatif de Commande" [level=3] [ref=f2e154]
+          - generic [ref=f2e156]:
+            - img "Collier Chaîne Serpent Pendentif Cœur Doré" [ref=f2e159]
+            - generic [ref=f2e160]:
+              - paragraph [ref=f2e161]: Collier Chaîne Serpent Pendentif Cœur Doré
+              - paragraph [ref=f2e162]: "Qté : 1"
+            - generic [ref=f2e163]: 159,00 MAD
+          - generic [ref=f2e164]:
+            - generic [ref=f2e165]:
+              - generic [ref=f2e166]: Sous-total (1 article(s))
+              - generic [ref=f2e167]: 159,00 MAD
+            - generic [ref=f2e168]:
+              - generic [ref=f2e169]: Frais de livraison
+              - generic [ref=f2e170]: Offerts
+          - separator [ref=f2e171]
+          - generic [ref=f2e172]:
+            - generic [ref=f2e173]: Total TTC
+            - generic [ref=f2e174]: 159,00 MAD
+          - generic [ref=f2e176] [cursor=pointer]:
+            - checkbox "J'accepte les Conditions Générales de Vente" [checked] [ref=f2e178]
+            - generic [ref=f2e179]: J'accepte les Conditions Générales de Vente
+          - button "Confirmer et Payer 159,00 MAD" [ref=f2e180] [cursor=pointer]
+          - paragraph [ref=f2e186]: Paiement chiffré SSL 256 bits
+  - contentinfo "Pied de page" [ref=f2e190]:
+    - generic [ref=f2e191]:
+      - generic [ref=f2e192]:
+        - generic [ref=f2e193]:
+          - link "HAFROSE" [ref=f2e194] [cursor=pointer]:
+            - /url: /
+          - paragraph [ref=f2e195]: Maison de haute couture féminine incarnant l'élégance parisienne, le raffinement des matières et la modernité des silhouettes.
+          - generic [ref=f2e196]:
+            - link "Suivez HAFROSE sur Instagram" [ref=f2e197] [cursor=pointer]:
+              - /url: https://instagram.com
+            - link "Suivez HAFROSE sur Facebook" [ref=f2e201] [cursor=pointer]:
+              - /url: https://facebook.com
+            - link "Suivez HAFROSE sur Twitter" [ref=f2e204] [cursor=pointer]:
+              - /url: https://twitter.com
+        - generic [ref=f2e207]:
+          - heading "Boutique" [level=4] [ref=f2e208]
+          - list [ref=f2e209]:
+            - listitem [ref=f2e210]:
+              - link "Nouveautés" [ref=f2e211] [cursor=pointer]:
+                - /url: /#nouveautes
+            - listitem [ref=f2e212]:
+              - link "Boutique" [ref=f2e213] [cursor=pointer]:
+                - /url: /shop
+            - listitem [ref=f2e214]:
+              - link "Soldes & Promotions" [ref=f2e215] [cursor=pointer]:
+                - /url: /shop?on_sale=true
+        - generic [ref=f2e216]:
+          - heading "La Maison" [level=4] [ref=f2e217]
+          - list [ref=f2e218]:
+            - listitem [ref=f2e219]:
+              - link "L'Histoire HAFROSE" [ref=f2e220] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e221]:
+              - link "Savoir-Faire Artisanal" [ref=f2e222] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e223]:
+              - link "Engagements Éco-responsables" [ref=f2e224] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e225]:
+              - link "Nos Boutiques" [ref=f2e226] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e227]:
+              - link "Presse & Médias" [ref=f2e228] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=f2e229]:
+          - heading "Service Client" [level=4] [ref=f2e230]
+          - list [ref=f2e231]:
+            - listitem [ref=f2e232]:
+              - link "Contactez-nous" [ref=f2e233] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f2e234]:
+              - link "Livraisons & Retours" [ref=f2e235] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e236]:
+              - link "Guide des Tailles" [ref=f2e237] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=f2e238]:
+              - link "Suivre ma Commande" [ref=f2e239] [cursor=pointer]:
+                - /url: /orders
+            - listitem [ref=f2e240]:
+              - link "FAQ" [ref=f2e241] [cursor=pointer]:
+                - /url: "#"
+      - separator [ref=f2e242]
+      - generic [ref=f2e243]:
+        - paragraph [ref=f2e244]: © 2026 HAFROSE Paris. Tous droits réservés.
+        - generic [ref=f2e245]:
+          - link "Mentions Légales" [ref=f2e246] [cursor=pointer]:
+            - /url: /legal
+          - link "Confidentialité" [ref=f2e247] [cursor=pointer]:
+            - /url: /privacy
+          - link "CGV" [ref=f2e248] [cursor=pointer]:
+            - /url: /cgv
+        - generic [ref=f2e249]:
+          - generic [ref=f2e250]: Fait avec
+          - generic [ref=f2e253]: à Paris
+```

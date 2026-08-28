@@ -1,8 +1,18 @@
 import { test, expect } from '@playwright/test';
 
 test('Test direct access to /account without auth and with auth', async ({ page }) => {
+  // Clear any stale auth state from previous tests
+  await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    localStorage.removeItem('hafrose_auth_token');
+    localStorage.removeItem('hafrose_user_data');
+    localStorage.removeItem('hafrose_admin_token');
+    sessionStorage.clear();
+  });
+
   console.log('--- Step 1: Navigating directly to http://localhost:3000/account (visiteur non connecté) ---');
-  await page.goto('http://localhost:3000/account', { waitUntil: 'networkidle' });
+  await page.goto('http://localhost:3000/account', { waitUntil: 'domcontentloaded' });
+  await page.waitForURL(/\/login/, { timeout: 10000 });
   
   const currentUrl1 = page.url();
   console.log('URL actuelle après accès à /account (visiteur) :', currentUrl1);

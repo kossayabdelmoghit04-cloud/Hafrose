@@ -27,7 +27,7 @@ test('Diagnose user navigation to /account and /login', async ({ page }) => {
   });
 
   console.log('--- Step 1: Navigating to http://localhost:3000/ ---');
-  await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+  await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
   console.log('Home title:', await page.title());
 
   console.log('--- Step 2: Clicking on Mon Compte (User icon) ---');
@@ -40,7 +40,7 @@ test('Diagnose user navigation to /account and /login', async ({ page }) => {
   console.log('Body after /account click:\n', bodyText1.slice(0, 500));
 
   console.log('--- Step 3: Navigating directly to /login ---');
-  await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+  await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1000);
 
   console.log('URL at /login:', page.url());

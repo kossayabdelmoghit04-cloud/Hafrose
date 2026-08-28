@@ -4,7 +4,7 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
 
   test('TEST 1 — Visiteur non connecté : clic 👤 (entre 🔍 et ♡) → http://localhost:3000/login', async ({ page }) => {
     // 1. Accéder à l'accueil
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
 
     // 2. Vérifier la visibilité de la barre d'icônes
     const searchBtn = page.locator('button[aria-label="Rechercher"]');
@@ -29,7 +29,7 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
   });
 
   test('TEST 2 — Accès direct /login affiche LoginPage', async ({ page }) => {
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('h1')).toHaveText('Connexion Client');
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
@@ -37,16 +37,17 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
 
   test('TEST 3 — Client connecté : clic 👤 → http://localhost:3000/account', async ({ page }) => {
     // 1. Se connecter avec le compte client
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     await page.fill('input[type="email"]', 'client@hafrose.com');
     await page.fill('input[type="password"]', 'Secret123!');
     await page.click('button[type="submit"]');
 
     // Attendre redirection vers /account
+    await page.waitForURL(/\/account/, { timeout: 20000 });
     await expect(page).toHaveURL(/\/account/);
 
     // 2. Retourner sur l'accueil
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
 
     // 3. Vérifier l'icône 👤 et son href
     const accountLink = page.locator('a[aria-label="Mon compte"]').first();
@@ -66,7 +67,7 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
   test('TEST 4 — Menu Mobile : visiteur non connecté clic Mon Compte → /login', async ({ page }) => {
     // Viewport mobile
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
 
     // Ouvrir le menu mobile
     const menuToggle = page.locator('button[aria-label="Ouvrir le menu"]');

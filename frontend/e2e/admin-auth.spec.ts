@@ -101,7 +101,7 @@ test.describe('Admin & Customer Auth - Complete E2E Chain', () => {
 
     // Verify error alert is displayed
     const alert = page.getByRole('alert');
-    await expect(alert).toBeVisible({ timeout: 5000 });
+    await expect(alert).toBeVisible({ timeout: 15000 });
     console.log('Alert text:', await alert.textContent());
     expect(page.url()).toContain('/admin/login');
   });

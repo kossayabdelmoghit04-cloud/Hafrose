@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Customer Authentication and Account Journey', () => {
 
   test('TEST 1: Direct access to /login when online displays LoginPage without offline error', async ({ page }) => {
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     
     // Check heading
     const heading = page.locator('h1');
@@ -23,7 +23,7 @@ test.describe('Customer Authentication and Account Journey', () => {
   });
 
   test('TEST 2: Visitor clicks Mon Compte icon in Header -> redirects to /login', async ({ page }) => {
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
     
     // Click on User icon
     const userLink = page.locator('a[aria-label="Mon compte"], a[href="/account"]').first();
@@ -35,7 +35,7 @@ test.describe('Customer Authentication and Account Journey', () => {
   });
 
   test('TEST 5: Invalid login credentials show auth error alert (NOT offline screen)', async ({ page }) => {
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     
     await page.fill('input[type="email"]', 'wronguser@example.com');
     await page.fill('input[type="password"]', 'WrongPassword999!');
@@ -53,7 +53,7 @@ test.describe('Customer Authentication and Account Journey', () => {
   });
 
   test('TEST 3: Valid customer login redirects to /account', async ({ page }) => {
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     
     await page.fill('input[type="email"]', 'client@hafrose.com');
     await page.fill('input[type="password"]', 'Secret123!');
@@ -74,14 +74,15 @@ test.describe('Customer Authentication and Account Journey', () => {
 
   test('TEST 4 & 6: Logged-in user can access /account, /account/orders, and click Mon compte', async ({ page }) => {
     // 1. Log in
-    await page.goto('http://localhost:3000/login', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     await page.fill('input[type="email"]', 'client@hafrose.com');
     await page.fill('input[type="password"]', 'Secret123!');
     await page.click('button[type="submit"]');
+    await page.waitForURL(/.*\/account/, { timeout: 20000 });
     await expect(page).toHaveURL(/.*\/account/);
 
     // 2. Navigate to orders page
-    await page.goto('http://localhost:3000/account/orders', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/account/orders', { waitUntil: 'domcontentloaded' });
     const ordersHeading = page.locator('h1');
     await expect(ordersHeading).toHaveText('Mes Commandes');
 
@@ -90,18 +91,21 @@ test.describe('Customer Authentication and Account Journey', () => {
     await expect(offlineIcon).toHaveCount(0);
 
     // 4. Return to home and click Mon Compte
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle' });
-    const userLink = page.locator('a[aria-label="Mon compte"], a[href="/account"]').first();
+    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+    // Wait for the authenticated link to appear (href=/account not /login)
+    const userLink = page.locator('a[aria-label="Mon compte"][href="/account"], a[href="/account"]').first();
+    await expect(userLink).toBeVisible({ timeout: 10000 });
     await userLink.click();
     
     // Since user is logged in, it should go directly to /account, NOT /login
+    await page.waitForURL(/.*\/account/, { timeout: 15000 });
     await expect(page).toHaveURL(/.*\/account/);
     await expect(page.locator('h1')).toContainText('Ravi de vous revoir');
   });
 
   test('TEST 7: Register a new customer account', async ({ page }) => {
     const uniqueEmail = `test_${Date.now()}@hafrose.com`;
-    await page.goto('http://localhost:3000/register', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/register', { waitUntil: 'domcontentloaded' });
     
     // Fill register form using actual RegisterPage.tsx placeholders
     await page.fill('input[placeholder="Éléonore"]', 'Claire');
