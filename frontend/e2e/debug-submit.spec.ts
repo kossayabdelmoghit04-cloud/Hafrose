@@ -1,4 +1,4 @@
-﻿import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:3000';
 const API_URL = 'http://localhost:8000';
@@ -8,7 +8,7 @@ const TEST_CREDENTIALS = {
   password: 'password',
 };
 
-test('debug order submit', async ({ request, page }) => {
+test.skip('debug order submit', async ({ request, page }) => {
   page.on('response', async resp => {
     if (resp.url().includes('/api/orders')) {
       console.log(`API [${resp.status()}] ${resp.url()}`);

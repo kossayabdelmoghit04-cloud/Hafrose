@@ -16,9 +16,13 @@ test('Test direct access to /account without auth and with auth', async ({ page 
   
   const currentUrl1 = page.url();
   console.log('URL actuelle après accès à /account (visiteur) :', currentUrl1);
-  const h1Text1 = await page.locator('h1').allInnerTexts();
+
+  // Wait for React to render the h1, then assert
+  const h1Locator = page.locator('h1');
+  await expect(h1Locator).toHaveText('Connexion Client', { timeout: 8000 });
+  const h1Text1 = await h1Locator.allInnerTexts();
   console.log('H1 visible :', h1Text1);
-  
+
   // Screenshot du résultat visiteur
   await page.screenshot({ path: 'test-results/account_visitor_test.png', fullPage: true });
 
@@ -31,6 +35,7 @@ test('Test direct access to /account without auth and with auth', async ({ page 
   await page.fill('input[type="password"]', 'Secret123!');
   await page.click('button[type="submit"]');
 
+  await page.waitForURL(/\/account/, { timeout: 20000 });
   await expect(page).toHaveURL(/\/account/);
   const welcomeHeading = page.locator('h1');
   await expect(welcomeHeading).toContainText('Ravi de vous revoir');

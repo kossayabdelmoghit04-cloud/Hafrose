@@ -41,10 +41,19 @@ apiClient.interceptors.response.use(
   (response) => response.data,
   (error: AxiosError<ApiErrorResponse>) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-      // Trigger global session expiration event if needed
-      window.dispatchEvent(new CustomEvent('hafrose:unauthorized'));
+      const requestUrl = error.config?.url ?? '';
+      const isLoginEndpoint =
+        requestUrl.includes('/admin/login') ||
+        requestUrl.includes('/customer/login') ||
+        requestUrl.endsWith('/login');
+
+      // Only trigger global session expiry for authenticated requests,
+      // NOT for login endpoints where 401 = wrong credentials.
+      if (!isLoginEndpoint) {
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        window.dispatchEvent(new CustomEvent('hafrose:unauthorized'));
+      }
     }
     return Promise.reject(error.response?.data || error.message);
   }
