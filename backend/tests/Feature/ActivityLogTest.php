@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class ActivityLogTest extends TestCase
@@ -352,6 +353,9 @@ class ActivityLogTest extends TestCase
 
     public function test_honeypot_trigger_generates_security_activity_log(): void
     {
+        // Override HONEYPOT_ENABLED=false from .env.testing for this test
+        Config::set('honeypot.enabled', true);
+
         // Simuler un bot remplissant le champ honeypot "website"
         $response = $this->postJson('/api/contact', [
             'name' => 'Bot Sender',

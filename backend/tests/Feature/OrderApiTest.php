@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class OrderApiTest extends TestCase
@@ -177,6 +178,9 @@ class OrderApiTest extends TestCase
      */
     public function test_order_honeypot_blocks_submission(): void
     {
+        // Override HONEYPOT_ENABLED=false from .env.testing for this test
+        Config::set('honeypot.enabled', true);
+
         $product = Product::factory()->create(['stock' => 10, 'price' => 100.00]);
 
         $payload = [

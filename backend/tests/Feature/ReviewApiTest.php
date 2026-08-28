@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class ReviewApiTest extends TestCase
@@ -100,6 +101,9 @@ class ReviewApiTest extends TestCase
      */
     public function test_review_honeypot_blocks_submission(): void
     {
+        // Override HONEYPOT_ENABLED=false from .env.testing for this test
+        Config::set('honeypot.enabled', true);
+
         $product = Product::factory()->create();
 
         $payload = [

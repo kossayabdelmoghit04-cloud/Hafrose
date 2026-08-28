@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class ContactApiTest extends TestCase
@@ -50,6 +51,9 @@ class ContactApiTest extends TestCase
      */
     public function test_contact_honeypot_blocks_submission(): void
     {
+        // Override HONEYPOT_ENABLED=false from .env.testing for this test
+        Config::set('honeypot.enabled', true);
+
         $payload = [
             'name' => 'Spammer Bot',
             'email' => 'bot@spam.com',
