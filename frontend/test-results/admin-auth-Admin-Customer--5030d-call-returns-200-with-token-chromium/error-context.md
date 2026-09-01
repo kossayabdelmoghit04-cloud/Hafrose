@@ -1,0 +1,143 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: admin-auth.spec.ts >> Admin & Customer Auth - Complete E2E Chain >> Step 1: Direct API call returns 200 with token
+- Location: e2e\admin-auth.spec.ts:12:3
+
+# Error details
+
+```
+Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:8000
+Call log:
+  - → POST http://127.0.0.1:8000/api/admin/login
+    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.34 Safari/537.36
+    - accept: application/json
+    - accept-encoding: gzip,deflate,br
+    - Content-Type: application/json
+    - content-length: 61
+
+```
+
+# Test source
+
+```ts
+  1   | import { test, expect } from '@playwright/test';
+  2   | 
+  3   | const BASE_URL = 'http://localhost:3000';
+  4   | const API_URL = 'http://127.0.0.1:8000';
+  5   | const ADMIN_EMAIL = 'admin@hafrose.com';
+  6   | const ADMIN_PASSWORD = 'Admin@Hafrose2024!';
+  7   | const CUSTOMER_EMAIL = 'client.test@hafrose.com';
+  8   | const CUSTOMER_PASSWORD = 'password';
+  9   | 
+  10  | test.describe('Admin & Customer Auth - Complete E2E Chain', () => {
+  11  | 
+  12  |   test('Step 1: Direct API call returns 200 with token', async ({ request }) => {
+> 13  |     const resp = await request.post(`${API_URL}/api/admin/login`, {
+      |                                ^ Error: apiRequestContext.post: connect ECONNREFUSED 127.0.0.1:8000
+  14  |       data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  15  |       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+  16  |     });
+  17  |     expect(resp.status()).toBe(200);
+  18  |     const body = await resp.json();
+  19  |     console.log('DIRECT API RESPONSE:', JSON.stringify(body, null, 2));
+  20  |     expect(body.success).toBe(true);
+  21  |     expect(body.data.token).toBeTruthy();
+  22  |     expect(body.data.user.role).toBe('admin');
+  23  |   });
+  24  | 
+  25  |   test('Step 2: Login form submits correctly and reaches dashboard', async ({ page }) => {
+  26  |     // Navigate to login page
+  27  |     await page.goto(`${BASE_URL}/admin/login`);
+  28  |     await expect(page.locator('h1')).toContainText('Administration HAFROSE');
+  29  | 
+  30  |     // Fill credentials
+  31  |     await page.locator('#admin-email').fill(ADMIN_EMAIL);
+  32  |     await page.locator('#admin-password').fill(ADMIN_PASSWORD);
+  33  | 
+  34  |     console.log('Submitting login form...');
+  35  |     await page.locator('button[type="submit"]').click();
+  36  | 
+  37  |     // Wait for navigation to /admin dashboard
+  38  |     await expect(page).toHaveURL(/.*\/admin(\/dashboard)?$/, { timeout: 10000 });
+  39  | 
+  40  |     // Check localStorage
+  41  |     const localStorageData = await page.evaluate(() => ({
+  42  |       token: localStorage.getItem('hafrose_auth_token'),
+  43  |       user: localStorage.getItem('hafrose_user_data'),
+  44  |     }));
+  45  |     console.log('LOCALSTORAGE TOKEN:', localStorageData.token ? 'EXISTS (length=' + localStorageData.token.length + ')' : 'NULL');
+  46  |     console.log('LOCALSTORAGE USER:', localStorageData.user);
+  47  | 
+  48  |     expect(localStorageData.token).toBeTruthy();
+  49  |     expect(localStorageData.user).toBeTruthy();
+  50  |   });
+  51  | 
+  52  |   test('Step 3: Session persists after reload', async ({ page }) => {
+  53  |     // First login
+  54  |     await page.goto(`${BASE_URL}/admin/login`);
+  55  |     await page.locator('#admin-email').fill(ADMIN_EMAIL);
+  56  |     await page.locator('#admin-password').fill(ADMIN_PASSWORD);
+  57  |     await page.locator('button[type="submit"]').click();
+  58  |     await expect(page).toHaveURL(/.*\/admin(\/dashboard)?$/, { timeout: 10000 });
+  59  | 
+  60  |     // Reload (F5)
+  61  |     await page.reload();
+  62  |     await page.waitForTimeout(1000);
+  63  | 
+  64  |     const currentURL = page.url();
+  65  |     console.log('URL after reload:', currentURL);
+  66  |     expect(currentURL).not.toContain('/admin/login');
+  67  | 
+  68  |     const token = await page.evaluate(() => localStorage.getItem('hafrose_auth_token'));
+  69  |     expect(token).toBeTruthy();
+  70  |   });
+  71  | 
+  72  |   test('Step 4: Unauthenticated access to /admin is blocked by ProtectedRoute', async ({ page }) => {
+  73  |     // Clear localStorage first
+  74  |     await page.goto(BASE_URL);
+  75  |     await page.evaluate(() => {
+  76  |       localStorage.removeItem('hafrose_auth_token');
+  77  |       localStorage.removeItem('hafrose_user_data');
+  78  |     });
+  79  | 
+  80  |     // Try accessing admin dashboard directly
+  81  |     await page.goto(`${BASE_URL}/admin`);
+  82  |     await page.waitForTimeout(1000);
+  83  | 
+  84  |     const currentURL = page.url();
+  85  |     console.log('URL after unauthenticated /admin access:', currentURL);
+  86  |     expect(currentURL).toContain('/admin/login');
+  87  |   });
+  88  | 
+  89  |   test('Step 5: Error handling on wrong credentials', async ({ page }) => {
+  90  |     // Clear localStorage first
+  91  |     await page.goto(BASE_URL);
+  92  |     await page.evaluate(() => {
+  93  |       localStorage.removeItem('hafrose_auth_token');
+  94  |       localStorage.removeItem('hafrose_user_data');
+  95  |     });
+  96  | 
+  97  |     await page.goto(`${BASE_URL}/admin/login`);
+  98  |     await page.locator('#admin-email').fill(ADMIN_EMAIL);
+  99  |     await page.locator('#admin-password').fill('WrongPassword123!');
+  100 |     await page.locator('button[type="submit"]').click();
+  101 | 
+  102 |     // Verify error alert is displayed
+  103 |     const alert = page.getByRole('alert');
+  104 |     await expect(alert).toBeVisible({ timeout: 15000 });
+  105 |     console.log('Alert text:', await alert.textContent());
+  106 |     expect(page.url()).toContain('/admin/login');
+  107 |   });
+  108 | 
+  109 |   test('Step 6: Customer login non-regression check', async ({ page }) => {
+  110 |     // Clear localStorage
+  111 |     await page.goto(BASE_URL);
+  112 |     await page.evaluate(() => {
+  113 |       localStorage.removeItem('hafrose_auth_token');
+```
