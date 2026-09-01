@@ -33,7 +33,10 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   className,
 }) => {
   const formattedPrice = formatPrice(price);
-  const formattedSalePrice = salePrice ? formatPrice(salePrice) : null;
+  const formattedSalePrice =
+    salePrice && Number(salePrice) > 0 && Number(salePrice) < Number(price)
+      ? formatPrice(salePrice)
+      : null;
   const imageSrc = getImageUrl(imageCardUrl || imageUrl);
 
   return (

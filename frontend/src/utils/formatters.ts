@@ -23,6 +23,34 @@ export function formatPrice(
 }
 
 /**
+ * getEffectivePrice
+ * Returns the effective price of a product considering promotion / sale price.
+ *
+ * Business Rule:
+ * - If sale_price exists, is numeric, and > 0, return Number(sale_price).
+ * - Otherwise, fallback to Number(price).
+ *
+ * Examples:
+ * - price = 100, sale_price = 80        => 80
+ * - price = 100, sale_price = 0         => 100
+ * - price = 100, sale_price = null      => 100
+ * - price = 100, sale_price = undefined => 100
+ */
+export function getEffectivePrice(
+  price: number | string | null | undefined,
+  salePrice?: number | string | null | undefined
+): number {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : (price ?? 0);
+  const numSalePrice = typeof salePrice === 'string' ? parseFloat(salePrice) : (salePrice ?? 0);
+
+  if (salePrice !== null && salePrice !== undefined && !isNaN(numSalePrice) && numSalePrice > 0) {
+    return numSalePrice;
+  }
+
+  return isNaN(numPrice) ? 0 : numPrice;
+}
+
+/**
  * formatDate
  * Formats an ISO date string to a human-readable localized format.
  */

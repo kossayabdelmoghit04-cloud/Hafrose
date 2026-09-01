@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem } from '../types/cart';
 import { Product } from '../types/models';
+import { getEffectivePrice } from '../utils/formatters';
 
 export interface CartState {
   items: CartItem[];
@@ -40,7 +41,7 @@ export const useCartStore = create<CartState>()(
             id: cartItemId,
             product,
             quantity,
-            unit_price: Number(product.sale_price ?? product.price),
+            unit_price: getEffectivePrice(product.price, product.sale_price),
             selected_size: selectedSize,
             selected_color: selectedColor,
           };

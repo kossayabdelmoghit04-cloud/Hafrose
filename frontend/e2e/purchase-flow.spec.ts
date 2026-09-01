@@ -34,9 +34,10 @@ test('1. Backend API is reachable and returning real data', async ({ request }) 
   const prodResponse = await request.get(`${API_URL}/api/products`);
   expect(prodResponse.status()).toBe(200);
   const prodBody = await prodResponse.json();
-  const products = prodBody.data?.data ?? [];
+  const products = Array.isArray(prodBody.data) ? prodBody.data : (prodBody.data?.data ?? []);
   expect(products.length).toBeGreaterThan(0);
-  console.log(`✅ Products count: ${products.length} (total: ${prodBody.data?.meta?.total})`);
+  const total = prodBody.meta?.total ?? prodBody.data?.meta?.total;
+  console.log(`✅ Products count: ${products.length} (total: ${total})`);
 
   const firstSlug = products[0]?.slug;
   expect(firstSlug).toBeTruthy();

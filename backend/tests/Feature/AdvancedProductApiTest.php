@@ -157,15 +157,13 @@ class AdvancedProductApiTest extends TestCase
                 'message',
                 'errors',
                 'data' => [
-                    'data' => [
-                        '*' => ['id', 'name', 'slug', 'price'],
-                    ],
-                    'links',
-                    'meta',
+                    '*' => ['id', 'name', 'slug', 'price'],
                 ],
+                'links',
+                'meta',
             ]);
 
-        $this->assertCount(5, $response['data']['data']);
+        $this->assertCount(5, $response['data']);
     }
 
     public function test_search_by_text_query(): void
@@ -187,21 +185,21 @@ class AdvancedProductApiTest extends TestCase
         // Search for 'Sac' -> matches only product1 (name)
         $response = $this->getJson('/api/products/search?q=Sac');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertContains($product1->id, $returnedIds);
         $this->assertNotContains($product2->id, $returnedIds);
 
         // Search for 'cuir' -> matches only product2 (description)
         $response = $this->getJson('/api/products/search?q=cuir');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertContains($product2->id, $returnedIds);
         $this->assertNotContains($product1->id, $returnedIds);
 
         // Search for category name 'Maroquinerie' -> matches both products via category
         $response = $this->getJson('/api/products/search?q=Maroquinerie');
         $response->assertStatus(200);
-        $this->assertCount(2, $response['data']['data']);
+        $this->assertCount(2, $response['data']);
     }
 
     public function test_search_combines_filters(): void
@@ -236,7 +234,7 @@ class AdvancedProductApiTest extends TestCase
         // Filter: Category=bijoux & price_min=1000 & price_max=2000 & brand=Hafrose -> matches only product1
         $response = $this->getJson('/api/products/search?category=bijoux&price_min=1000&price_max=2000&brand=Hafrose');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
 
         $this->assertCount(1, $returnedIds);
         $this->assertEquals($product1->id, $returnedIds[0]);
@@ -267,25 +265,25 @@ class AdvancedProductApiTest extends TestCase
         // Sort: price_asc -> 1, 3, 2
         $response = $this->getJson('/api/products/search?sort=price_asc');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertEquals([$product1->id, $product3->id, $product2->id], $returnedIds);
 
         // Sort: price_desc -> 2, 3, 1
         $response = $this->getJson('/api/products/search?sort=price_desc');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertEquals([$product2->id, $product3->id, $product1->id], $returnedIds);
 
         // Sort: newest -> 3, 2, 1
         $response = $this->getJson('/api/products/search?sort=newest');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertEquals([$product3->id, $product2->id, $product1->id], $returnedIds);
 
         // Sort: oldest -> 1, 2, 3
         $response = $this->getJson('/api/products/search?sort=oldest');
         $response->assertStatus(200);
-        $returnedIds = collect($response['data']['data'])->pluck('id')->all();
+        $returnedIds = collect($response['data'])->pluck('id')->all();
         $this->assertEquals([$product1->id, $product2->id, $product3->id], $returnedIds);
     }
 

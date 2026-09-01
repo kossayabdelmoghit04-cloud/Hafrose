@@ -35,10 +35,7 @@ class ProductController extends Controller
 
         $products = $this->productService->getPaginatedProducts($filters, $perPage);
 
-        // Retourne la pagination complète enveloppée sous la clé 'data' pour la cohérence
-        $paginatedData = ProductResource::collection($products)->response()->getData(true);
-
-        return $this->successResponse($paginatedData);
+        return $this->paginatedResponse(ProductResource::collection($products));
     }
 
     /**
@@ -131,8 +128,6 @@ class ProductController extends Controller
 
         $products = $this->productService->searchProducts($params, $perPage);
 
-        $paginatedData = ProductResource::collection($products)->response()->getData(true);
-
-        return $this->successResponse($paginatedData);
+        return $this->paginatedResponse(ProductResource::collection($products));
     }
 }

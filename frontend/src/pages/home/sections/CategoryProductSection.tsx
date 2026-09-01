@@ -50,9 +50,7 @@ export const CategoryProductSection: React.FC<CategoryProductSectionProps> = ({
   const { addItem: addToCart } = useCartStore();
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
 
-  const products: Product[] = Array.isArray(data?.data)
-    ? data.data
-    : (data?.data as any)?.data ?? [];
+  const products: Product[] = data?.data ?? [];
 
   const handleWishlistToggle = (product: Product) => {
     if (isWishlisted(product.id)) {

@@ -130,10 +130,8 @@ export const ShopPage = () => {
     per_page: 12,
   });
 
-  const products: Product[] = Array.isArray(productsData?.data)
-    ? productsData.data
-    : (productsData?.data as any)?.data ?? [];
-  const meta = productsData?.meta ?? (productsData?.data as any)?.meta;
+  const products: Product[] = productsData?.data ?? [];
+  const meta = productsData?.meta;
   const totalCount = meta?.total ?? products.length;
 
   // ── Actions de filtrage ──────────────────────────────────────────────────

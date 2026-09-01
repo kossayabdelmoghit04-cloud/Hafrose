@@ -10,8 +10,18 @@ export interface ApiResponse<T> {
 
 export interface ApiPaginatedResponse<T> {
   success: boolean;
+  message?: string | null;
+  errors?: unknown;
   data: T[];
   meta: ApiPaginationMeta;
+  links?: ApiPaginationLinks;
+}
+
+export interface ApiPaginationLinks {
+  first?: string | null;
+  last?: string | null;
+  prev?: string | null;
+  next?: string | null;
 }
 
 export interface ApiMeta {

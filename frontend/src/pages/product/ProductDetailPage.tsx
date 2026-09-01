@@ -10,7 +10,7 @@ import { NumberInput } from '../../components/ui/NumberInput';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { formatPrice, getImageUrl } from '../../utils/formatters';
+import { formatPrice, getEffectivePrice, getImageUrl } from '../../utils/formatters';
 import { useProduct, useRelatedProducts } from '../../hooks/useProductHooks';
 import { useCartStore } from '../../stores/useCartStore';
 import { useWishlistStore } from '../../stores/useWishlistStore';
@@ -206,9 +206,9 @@ export const ProductDetailPage = () => {
                   </h1>
                   <div className="flex items-baseline gap-3 flex-wrap">
                     <span className="font-sans text-h3 font-semibold text-neutral-950">
-                      {formatPrice(product.sale_price ?? product.price)}
+                      {formatPrice(getEffectivePrice(product.price, product.sale_price))}
                     </span>
-                    {product.sale_price && (
+                    {product.sale_price && Number(product.sale_price) > 0 && Number(product.sale_price) < Number(product.price) && (
                       <>
                         <span className="font-sans text-body-base text-neutral-400 line-through">
                           {formatPrice(product.price)}

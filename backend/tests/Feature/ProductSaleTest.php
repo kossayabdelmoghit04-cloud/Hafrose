@@ -131,14 +131,14 @@ class ProductSaleTest extends TestCase
         // 1. Without filter: both returned
         $resAll = $this->getJson('/api/products');
         $resAll->assertOk();
-        $idsAll = collect($resAll['data']['data'])->pluck('id')->all();
+        $idsAll = collect($resAll['data'])->pluck('id')->all();
         $this->assertContains($saleProduct->id, $idsAll);
         $this->assertContains($regularProduct->id, $idsAll);
 
         // 2. With on_sale=true: only saleProduct returned
         $resSale = $this->getJson('/api/products?on_sale=true');
         $resSale->assertOk();
-        $idsSale = collect($resSale['data']['data'])->pluck('id')->all();
+        $idsSale = collect($resSale['data'])->pluck('id')->all();
         $this->assertContains($saleProduct->id, $idsSale);
         $this->assertNotContains($regularProduct->id, $idsSale);
     }
