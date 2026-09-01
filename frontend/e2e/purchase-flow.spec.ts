@@ -81,7 +81,8 @@ test('3. Shop page loads real products from API', async ({ page }) => {
 test('4. Product detail page displays real product data', async ({ request, page }) => {
   const prodResponse = await request.get(`${API_URL}/api/products`);
   const prodBody = await prodResponse.json();
-  const firstSlug = prodBody.data?.data?.[0]?.slug;
+  // API-01: data is a direct array at root level (no double nesting)
+  const firstSlug = prodBody.data?.[0]?.slug;
   expect(firstSlug).toBeTruthy();
 
   await page.goto(`${BASE_URL}/product/${firstSlug}`);
@@ -98,8 +99,9 @@ test('4. Product detail page displays real product data', async ({ request, page
 test('5. Full purchase flow: Login → Shop → Product → Cart → Checkout → Order', async ({ request, page }) => {
   const prodResponse = await request.get(`${API_URL}/api/products`);
   const prodBody = await prodResponse.json();
-  const firstSlug = prodBody.data?.data?.[0]?.slug;
-  const firstName = prodBody.data?.data?.[0]?.name;
+  // API-01: data is a direct array at root level (no double nesting)
+  const firstSlug = prodBody.data?.[0]?.slug;
+  const firstName = prodBody.data?.[0]?.name;
   expect(firstSlug).toBeTruthy();
 
   // --- STEP 1: Login ---
