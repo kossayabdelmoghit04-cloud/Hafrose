@@ -1,13 +1,10 @@
 /**
  * ADMIN FEATURE — Barrel Export
  *
- * Responsibility: Back-office management for admin and super_admin roles.
- * Consumes: Admin API endpoints, TanStack Query
- *
- * Internal structure:
- *   components/  — DataTable, AdminProductForm, AdminOrderCard, StatCard
- *   hooks/       — useAdminProducts, useAdminOrders, useAdminUsers
- *   pages/       — AdminDashboardPage, AdminProductsPage, AdminOrdersPage
+ * Source de vérité : src/features/admin/hooks/
+ * Responsabilité : Administration back-office (produits, catégories, commandes, paramètres, logs).
  */
 
-// Hooks are created during the Admin feature phase
+export * from './hooks/useAdminAuth';
+export * from './hooks/useAdminData';
+

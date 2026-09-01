@@ -46,6 +46,8 @@ class OrderController extends Controller
      */
     public function myOrders(\Illuminate\Http\Request $request): JsonResponse
     {
+        $this->authorize('viewAny', \App\Models\Order::class);
+
         $orders = \App\Models\Order::with('orderItems.product')
             ->where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
@@ -57,12 +59,14 @@ class OrderController extends Controller
     /**
      * GET /api/auth/orders/{id}
      * Obtenir les détails d'une commande du client connecté.
+     * La Policy OrderPolicy::view() vérifie que l'utilisateur est bien le
+     * propriétaire : prévient l'IDOR (User A ne peut pas accéder commande User B).
      */
     public function myOrderDetails(\Illuminate\Http\Request $request, int $id): JsonResponse
     {
-        $order = \App\Models\Order::with('orderItems.product')
-            ->where('user_id', $request->user()->id)
-            ->findOrFail($id);
+        $order = \App\Models\Order::with('orderItems.product')->findOrFail($id);
+
+        $this->authorize('view', $order);
 
         return $this->successResponse(new OrderResource($order));
     }

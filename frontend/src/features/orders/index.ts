@@ -1,13 +1,14 @@
 /**
  * ORDERS FEATURE — Barrel Export
  *
- * Responsibility: Customer order creation, tracking, and history.
- * Consumes: ordersService, TanStack Query
- *
- * Internal structure:
- *   components/  — OrderCard, OrderStatusBadge, OrderTimeline
- *   hooks/       — useOrders, useOrderDetail, useCreateOrder
- *   pages/       — OrdersPage, OrderDetailPage (under account)
+ * Source de vérité : src/hooks/useAccountHooks.ts & src/services/orders.service.ts
+ * Responsabilité : Consultation et suivi des commandes client.
  */
 
-// Hooks are created during the Orders feature phase
+export {
+  useOrders,
+  useOrderDetail,
+  useCreateOrder,
+} from '../../hooks/useAccountHooks';
+export { ordersService } from '../../services/orders.service';
+

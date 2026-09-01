@@ -1,19 +1,11 @@
 /**
  * AUTH FEATURE — Barrel Export
  *
- * Responsibility: Handles customer authentication lifecycle.
- * Contains: Login, Register, Forgot Password flows.
- * Consumes: authService, useAuthStore
- * Exposes: hooks, services re-exports for feature-internal use
- *
- * Internal structure:
- *   components/  — AuthForm, LoginForm, RegisterForm, PasswordResetForm
- *   hooks/       — useLogin, useRegister, useLogout
- *   pages/       — LoginPage, RegisterPage, ForgotPasswordPage
- *   types/       — feature-specific form state types
+ * Source de vérité : src/hooks/useAuthHooks.ts & src/stores/useAuthStore.ts
+ * Responsabilité : Cycle de vie de l'authentification client (Login, Register, Logout, Profil).
  */
 
-// Hooks
-export * from './hooks/useLogin';
-export * from './hooks/useLogout';
-export * from './hooks/useRegister';
+// Centralized Auth Hooks
+export * from '../../hooks/useAuthHooks';
+export * from '../../stores/useAuthStore';
+

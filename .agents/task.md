@@ -1,0 +1,30 @@
+# Task: Phase 2 P1 — Architecture, Typage, Robustesse & Sécurité
+
+- [x] TS-01 — Typage strict de la couche Admin
+  - [x] Créer `frontend/src/types/admin.types.ts` avec tous les DTOs
+  - [x] Mettre à jour `frontend/src/services/admin.service.ts` pour éliminer les types `any`
+  - [x] Mettre à jour `frontend/src/features/admin/hooks/useAdminData.ts`
+  - [x] Mettre à jour les pages admin (`AdminProductsPage`, `AdminCategoriesPage`, `AdminOrdersPage`, `AdminReviewsPage`, `AdminContactsPage`, `AdminLogsPage`, `AdminSettingsPage`, `AdminMediaPage`, `AdminLoginPage`)
+  - [x] Validation TS & ESLint & Build
+- [x] ARC-01 — Découplage de OrderService de la couche HTTP
+  - [x] Créer `backend/app/Exceptions/InsufficientStockException.php`
+  - [x] Créer `backend/app/Exceptions/ProductNotFoundException.php`
+  - [x] Modifier `OrderService.php` pour utiliser les Domain Exceptions
+  - [x] Modifier `bootstrap/app.php` pour mapper les Domain Exceptions vers 409 et 404
+  - [x] Créer test unitaire `backend/tests/Unit/OrderServiceTest.php`
+  - [x] Validation PHPUnit
+- [x] ARC-02 — Traitement asynchrone des sauvegardes
+  - [x] Créer `backend/app/Jobs/RunBackupJob.php`
+  - [x] Modifier `SystemBackupController::create()` pour dispatcher le Job en asynchrone par défaut
+  - [x] Ajouter tests de file d'attente dans `ProductionBackupTest.php`
+  - [x] Validation PHPUnit
+- [x] SEC-01 — Unification de la vérification des rôles
+  - [x] Utiliser `$user->isAdmin()` dans `EnsureUserIsAdmin` et `AuthService`
+  - [x] Créer test unitaire `backend/tests/Unit/UserTest.php`
+  - [x] Validation PHPUnit
+- [x] Validation globale de fin de phase
+  - [x] `php artisan test` (397 tests passed / 1631 assertions)
+  - [x] `npm run typecheck` (0 erreurs)
+  - [x] `npm run lint` (0 warnings / 0 erreurs)
+  - [x] `npm run build` (1874 modules / PASS)
+  - [x] `npx playwright test` (28 passed / 0 failed / 1 skipped)

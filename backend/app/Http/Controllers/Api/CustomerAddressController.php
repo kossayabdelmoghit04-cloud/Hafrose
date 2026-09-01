@@ -23,6 +23,8 @@ class CustomerAddressController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', UserAddress::class);
+
         $addresses = UserAddress::where('user_id', $request->user()->id)
             ->orderByDesc('is_default')
             ->orderByDesc('created_at')
@@ -73,10 +75,12 @@ class CustomerAddressController extends Controller
     /**
      * PUT /api/auth/addresses/{id}
      * Modifier une adresse existante.
+     * UserAddressPolicy::update() vérifie la propriété — prévient l'IDOR.
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $address = UserAddress::where('user_id', $request->user()->id)->findOrFail($id);
+        $address = UserAddress::findOrFail($id);
+        $this->authorize('update', $address);
 
         $data = $request->validate([
             'title'       => 'sometimes|string|max:100',
@@ -106,10 +110,12 @@ class CustomerAddressController extends Controller
     /**
      * DELETE /api/auth/addresses/{id}
      * Supprimer une adresse.
+     * UserAddressPolicy::delete() vérifie la propriété — prévient l'IDOR.
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $address = UserAddress::where('user_id', $request->user()->id)->findOrFail($id);
+        $address = UserAddress::findOrFail($id);
+        $this->authorize('delete', $address);
         $wasDefault = $address->is_default;
         $address->delete();
 
@@ -127,16 +133,20 @@ class CustomerAddressController extends Controller
     /**
      * PATCH /api/auth/addresses/{id}/default
      * Définir une adresse comme adresse par défaut.
+     * UserAddressPolicy::setDefault() vérifie la propriété — prévient l'IDOR.
      */
     public function setDefault(Request $request, int $id): JsonResponse
     {
         $userId = $request->user()->id;
 
+        // Charger l'adresse et vérifier l'autorisation avant toute modification
+        $address = UserAddress::findOrFail($id);
+        $this->authorize('setDefault', $address);
+
         // Retirer le flag default de toutes les adresses de l'utilisateur
         UserAddress::where('user_id', $userId)->update(['is_default' => false]);
 
         // Activer le flag sur l'adresse choisie
-        $address = UserAddress::where('user_id', $userId)->findOrFail($id);
         $address->update(['is_default' => true]);
 
         return $this->successResponse(

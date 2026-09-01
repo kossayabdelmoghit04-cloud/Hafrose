@@ -1,14 +1,11 @@
 /**
  * CHECKOUT FEATURE — Barrel Export
  *
- * Responsibility: Multi-step checkout flow.
- * Steps: Address Selection → Order Summary → Payment → Confirmation
- * Consumes: ordersService, useCartStore, useAuthStore
- *
- * Internal structure:
- *   components/  — CheckoutSteps, AddressSelector, OrderSummaryPanel, PaymentForm
- *   hooks/       — useCheckout, useCreateOrder
- *   pages/       — CheckoutPage, OrderConfirmationPage
+ * Source de vérité : src/hooks/useAccountHooks.ts (useCreateOrder), src/stores/useCartStore.ts, src/services/orders.service.ts
+ * Responsabilité : Processus de commande et paiement.
  */
 
-// Hooks are created during the Checkout feature phase
+export { useCreateOrder } from '../../hooks/useAccountHooks';
+export { useCartStore } from '../../stores/useCartStore';
+export { ordersService } from '../../services/orders.service';
+

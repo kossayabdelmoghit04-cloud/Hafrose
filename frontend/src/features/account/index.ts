@@ -1,14 +1,15 @@
 /**
  * ACCOUNT FEATURE — Barrel Export
  *
- * Responsibility: Customer account management portal.
- * Contains: Profile editing, address management.
- * Consumes: authService, useAuthStore
- *
- * Internal structure:
- *   components/  — ProfileForm, AddressCard, AddressForm, AccountNav
- *   hooks/       — useProfile, useAddresses
- *   pages/       — ProfilePage, AddressesPage
+ * Source de vérité : src/hooks/useAccountHooks.ts
+ * Responsabilité : Gestion du compte client (profil, adresses de livraison).
  */
 
-// Hooks are created during the Account feature phase
+export {
+  useAddresses,
+  useAddAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  useSetDefaultAddress,
+} from '../../hooks/useAccountHooks';
+

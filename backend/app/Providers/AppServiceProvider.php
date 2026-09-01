@@ -7,13 +7,18 @@ use App\Models\Contact;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\UserAddress;
 use App\Observers\CategoryObserver;
 use App\Observers\ContactObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ReviewObserver;
+use App\Policies\OrderPolicy;
+use App\Policies\ReviewPolicy;
+use App\Policies\UserAddressPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -52,6 +57,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Policies d'autorisation centralisées (ARC-03) ──────────────────────
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(UserAddress::class, UserAddressPolicy::class);
+        Gate::policy(Review::class, ReviewPolicy::class);
+
         // ── Observers pour invalidation automatique du cache ───────────────────
         Product::observe(ProductObserver::class);
         Category::observe(CategoryObserver::class);
