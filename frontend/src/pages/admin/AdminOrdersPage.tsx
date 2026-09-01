@@ -6,6 +6,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { Pagination } from '../../components/ui/Pagination';
 import { useSEO } from '../../hooks/useSEO';
 import { formatPrice } from '../../utils/formatters';
+import { Order, OrderStatus } from '../../types/models';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
@@ -21,7 +22,7 @@ export const AdminOrdersPage: React.FC = () => {
 
   const [page, setPage] = useState(1);
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const { data: ordersData, isLoading, isError, refetch } = useAdminOrders({
     page,
@@ -30,17 +31,18 @@ export const AdminOrdersPage: React.FC = () => {
 
   const updateStatusMutation = useUpdateOrderStatus();
 
-  const ordersList = ordersData?.data || (Array.isArray(ordersData) ? ordersData : []);
+  const ordersList: Order[] = ordersData?.data || (Array.isArray(ordersData) ? (ordersData as Order[]) : []);
   const meta = ordersData?.meta;
 
   const handleStatusChange = async (orderId: number, newStatus: string) => {
     try {
       await updateStatusMutation.mutateAsync({ id: orderId, status: newStatus });
       if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: newStatus });
+        setSelectedOrder({ ...selectedOrder, status: newStatus as OrderStatus });
       }
-    } catch (err: any) {
-      alert(err?.message || 'Erreur lors du changement de statut.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors du changement de statut.';
+      alert(errorMsg);
     }
   };
 
@@ -146,7 +148,7 @@ export const AdminOrdersPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                ordersList.map((o: any) => (
+                ordersList.map((o: Order) => (
                   <tr key={o.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3.5 px-4">
                       <p className="font-semibold text-white">#{o.id}</p>
@@ -160,7 +162,7 @@ export const AdminOrdersPage: React.FC = () => {
                     </td>
                     <td className="py-3.5 px-4 text-neutral-300">{o.phone || '—'}</td>
                     <td className="py-3.5 px-4 font-bold text-white">
-                      {formatPrice(Number(o.total_price))}
+                      {formatPrice(Number(o.total_price ?? o.total_amount ?? 0))}
                     </td>
                     <td className="py-3.5 px-4">{getStatusBadge(o.status)}</td>
                     <td className="py-3.5 px-4">
@@ -250,7 +252,7 @@ export const AdminOrdersPage: React.FC = () => {
               <div className="flex justify-between items-center p-4 bg-neutral-900/60 rounded-xl border border-neutral-800">
                 <span className="text-neutral-400 font-medium">Montant Total</span>
                 <span className="font-serif text-xl text-amber-400 font-bold">
-                  {formatPrice(Number(selectedOrder.total_price))}
+                  {formatPrice(Number(selectedOrder.total_price ?? selectedOrder.total_amount ?? 0))}
                 </span>
               </div>
             </div>

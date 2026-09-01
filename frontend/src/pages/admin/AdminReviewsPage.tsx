@@ -9,6 +9,7 @@ import {
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
+import { Review } from '../../types/models';
 
 export const AdminReviewsPage: React.FC = () => {
   useSEO({ title: 'Modération des Avis | HAFROSE Admin', noIndex: true });
@@ -18,21 +19,23 @@ export const AdminReviewsPage: React.FC = () => {
   const rejectMutation = useRejectReview();
   const deleteMutation = useDeleteReview();
 
-  const reviewsList = reviewsData?.data || (Array.isArray(reviewsData) ? reviewsData : []);
+  const reviewsList: Review[] = reviewsData?.data || (Array.isArray(reviewsData) ? (reviewsData as Review[]) : []);
 
   const handleApprove = async (id: number) => {
     try {
       await approveMutation.mutateAsync(id);
-    } catch (err: any) {
-      alert(err?.message || 'Erreur lors de l approbation.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors de l approbation.';
+      alert(errorMsg);
     }
   };
 
   const handleReject = async (id: number) => {
     try {
       await rejectMutation.mutateAsync(id);
-    } catch (err: any) {
-      alert(err?.message || 'Erreur lors du rejet.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors du rejet.';
+      alert(errorMsg);
     }
   };
 
@@ -40,8 +43,9 @@ export const AdminReviewsPage: React.FC = () => {
     if (window.confirm('Voulez-vous vraiment supprimer cet avis client ?')) {
       try {
         await deleteMutation.mutateAsync(id);
-      } catch (err: any) {
-        alert(err?.message || 'Erreur lors de la suppression.');
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la suppression.';
+        alert(errorMsg);
       }
     }
   };
@@ -92,11 +96,11 @@ export const AdminReviewsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                reviewsList.map((r: any) => (
+                reviewsList.map((r: Review) => (
                   <tr key={r.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3.5 px-4">
-                      <p className="font-semibold text-white">{r.user_name || r.name || 'Client HAFROSE'}</p>
-                      <p className="text-[10px] text-neutral-500">{r.email || '—'}</p>
+                      <p className="font-semibold text-white">{r.user_name || r.name || r.user?.first_name || 'Client HAFROSE'}</p>
+                      <p className="text-[10px] text-neutral-500">{r.email || r.user?.email || '—'}</p>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-1 text-amber-400">

@@ -10,12 +10,13 @@ import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
 import { getImageUrl } from '../../utils/formatters';
+import { Category } from '../../types/models';
 
 export const AdminCategoriesPage: React.FC = () => {
   useSEO({ title: 'Gestion des Catégories | HAFROSE Admin', noIndex: true });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [name, setName] = useState('');
@@ -31,12 +32,11 @@ export const AdminCategoriesPage: React.FC = () => {
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
 
-  const categoriesList = Array.isArray(categoriesData)
-    ? categoriesData
+  const categoriesList: Category[] = Array.isArray(categoriesData)
+    ? (categoriesData as Category[])
     : (categoriesData?.data && Array.isArray(categoriesData.data)
-      ? categoriesData.data
+      ? (categoriesData.data as Category[])
       : []);
-
 
   const openCreateModal = () => {
     setEditingCategory(null);
@@ -50,7 +50,7 @@ export const AdminCategoriesPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (cat: any) => {
+  const openEditModal = (cat: Category) => {
     setEditingCategory(cat);
     setName(cat.name || '');
     setSlug(cat.slug || '');
@@ -100,8 +100,9 @@ export const AdminCategoriesPage: React.FC = () => {
         await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-    } catch (err: any) {
-      setFormError(err?.message || 'Une erreur est survenue lors de l\'enregistrement.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'enregistrement.';
+      setFormError(errorMsg);
     }
   };
 
@@ -109,8 +110,9 @@ export const AdminCategoriesPage: React.FC = () => {
     try {
       await deleteMutation.mutateAsync(id);
       setDeletingId(null);
-    } catch (err: any) {
-      alert(err?.message || 'Impossible de supprimer cette catégorie.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Impossible de supprimer cette catégorie.';
+      alert(errorMsg);
     }
   };
 
@@ -167,13 +169,13 @@ export const AdminCategoriesPage: React.FC = () => {
             <tbody className="divide-y divide-neutral-900 text-xs">
               {categoriesList.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-neutral-400">
+                  <td colSpan={6} className="py-12 text-center text-neutral-400">
                     <FolderTree className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
                     <span>Aucune catégorie trouvée.</span>
                   </td>
                 </tr>
               ) : (
-                categoriesList.map((c: any) => (
+                categoriesList.map((c: Category) => (
                   <tr key={c.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3.5 px-4 font-mono text-neutral-400">#{c.id}</td>
                     <td className="py-3.5 px-4">

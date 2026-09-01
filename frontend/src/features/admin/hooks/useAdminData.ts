@@ -1,19 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../../services/admin.service';
+import {
+  AdminProductFilters,
+  AdminOrderFilters,
+  AdminReviewFilters,
+  AdminContactFilters,
+  AdminLogFilters,
+} from '../../../types/admin.types';
 
 export const ADMIN_KEYS = {
   dashboard: ['admin', 'dashboard'],
   analytics: ['admin', 'analytics'],
-  products: (params?: any) => ['admin', 'products', params],
-  categories: (params?: any) => ['admin', 'categories', params],
-  orders: (params?: any) => ['admin', 'orders', params],
+  products: (params?: AdminProductFilters) => ['admin', 'products', params],
+  categories: (params?: AdminProductFilters) => ['admin', 'categories', params],
+  orders: (params?: AdminOrderFilters) => ['admin', 'orders', params],
   orderDetails: (id: number) => ['admin', 'orders', id],
-  reviews: (params?: any) => ['admin', 'reviews', params],
-  contacts: (params?: any) => ['admin', 'contacts', params],
+  reviews: (params?: AdminReviewFilters) => ['admin', 'reviews', params],
+  contacts: (params?: AdminContactFilters) => ['admin', 'contacts', params],
   media: ['admin', 'media'],
   settings: ['admin', 'settings'],
-  adminLogs: (params?: any) => ['admin', 'logs', params],
-  activityLogs: (params?: any) => ['admin', 'activityLogs', params],
+  adminLogs: (params?: AdminLogFilters) => ['admin', 'logs', params],
+  activityLogs: (params?: AdminLogFilters) => ['admin', 'activityLogs', params],
   systemHealth: ['admin', 'systemHealth'],
 };
 
@@ -41,7 +48,7 @@ export function useAdminAnalytics() {
 }
 
 // Products Hooks
-export function useAdminProducts(params?: Record<string, any>) {
+export function useAdminProducts(params?: AdminProductFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.products(params),
     queryFn: async () => {
@@ -85,7 +92,7 @@ export function useDeleteProduct() {
 }
 
 // Categories Hooks
-export function useAdminCategories(params?: Record<string, any>) {
+export function useAdminCategories(params?: AdminProductFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.categories(params),
     queryFn: async () => {
@@ -138,7 +145,7 @@ export function useDeleteCategory() {
 }
 
 // Orders Hooks
-export function useAdminOrders(params?: Record<string, any>) {
+export function useAdminOrders(params?: AdminOrderFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.orders(params),
     queryFn: async () => {
@@ -161,7 +168,7 @@ export function useUpdateOrderStatus() {
 }
 
 // Reviews Hooks
-export function useAdminReviews(params?: Record<string, any>) {
+export function useAdminReviews(params?: AdminReviewFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.reviews(params),
     queryFn: async () => {
@@ -204,7 +211,7 @@ export function useDeleteReview() {
 }
 
 // Contacts Hooks
-export function useAdminContacts(params?: Record<string, any>) {
+export function useAdminContacts(params?: AdminContactFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.contacts(params),
     queryFn: async () => {
@@ -284,7 +291,6 @@ export function useUpdateSettings() {
     mutationFn: (formData: FormData) => adminService.updateSettings(formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.settings });
-      // Invalider aussi le cache public pour que les sections home reflètent les changements
       queryClient.invalidateQueries({ queryKey: ['home'] });
       queryClient.invalidateQueries({ queryKey: ['site-settings'] });
     },
@@ -292,7 +298,7 @@ export function useUpdateSettings() {
 }
 
 // Logs Hooks
-export function useAdminLogs(params?: Record<string, any>) {
+export function useAdminLogs(params?: AdminLogFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.adminLogs(params),
     queryFn: async () => {
@@ -302,7 +308,7 @@ export function useAdminLogs(params?: Record<string, any>) {
   });
 }
 
-export function useActivityLogs(params?: Record<string, any>) {
+export function useActivityLogs(params?: AdminLogFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.activityLogs(params),
     queryFn: async () => {

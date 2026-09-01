@@ -23,6 +23,7 @@ import { Pagination } from '../../components/ui/Pagination';
 import { LazyImage } from '../../components/ui/LazyImage/LazyImage';
 import { useSEO } from '../../hooks/useSEO';
 import { formatPrice, getImageUrl, slugify } from '../../utils/formatters';
+import { Product, Category } from '../../types/models';
 
 export const AdminProductsPage: React.FC = () => {
   useSEO({ title: 'Gestion des Produits | HAFROSE Admin', noIndex: true });
@@ -33,7 +34,7 @@ export const AdminProductsPage: React.FC = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Delete Confirmation State
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -56,7 +57,7 @@ export const AdminProductsPage: React.FC = () => {
   const { data: productsData, isLoading, isError, refetch } = useAdminProducts({
     page,
     search: search || undefined,
-    category_id: selectedCategory || undefined,
+    category_id: selectedCategory ? Number(selectedCategory) : undefined,
   });
 
   const {
@@ -68,12 +69,12 @@ export const AdminProductsPage: React.FC = () => {
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
 
-  const productsList = productsData?.data || (Array.isArray(productsData) ? productsData : []);
+  const productsList: Product[] = productsData?.data || (Array.isArray(productsData) ? (productsData as Product[]) : []);
   const meta = productsData?.meta;
-  const categoriesList = Array.isArray(categoriesData)
-    ? categoriesData
+  const categoriesList: Category[] = Array.isArray(categoriesData)
+    ? (categoriesData as Category[])
     : (categoriesData?.data && Array.isArray(categoriesData.data)
-      ? categoriesData.data
+      ? (categoriesData.data as Category[])
       : []);
 
   const openCreateModal = () => {
@@ -93,7 +94,7 @@ export const AdminProductsPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (product: any) => {
+  const openEditModal = (product: Product) => {
     setEditingProduct(product);
     setName(product.name || '');
     const catId = product.category_id ?? product.category?.id;
@@ -148,19 +149,16 @@ export const AdminProductsPage: React.FC = () => {
     formData.append('name', name.trim());
     formData.append('slug', slugify(name));
     formData.append('category_id', String(categoryId));
-    formData.append('price', price);
+    formData.append('price', String(price));
     if (salePrice.trim() !== '') {
-      formData.append('sale_price', salePrice.trim());
-    } else if (editingProduct) {
-      formData.append('sale_price', '');
+      formData.append('sale_price', String(salePrice));
     }
-    formData.append('stock', stock);
-    if (color) formData.append('color', color);
-    if (material) formData.append('material', material);
+    formData.append('stock', String(stock || '0'));
+    if (color.trim()) formData.append('color', color.trim());
+    if (material.trim()) formData.append('material', material.trim());
     formData.append('description', description.trim());
     formData.append('is_featured', isFeatured ? '1' : '0');
 
-    // Only append image if a file was actually selected
     if (imageFile) {
       formData.append('image', imageFile);
     }
@@ -172,12 +170,13 @@ export const AdminProductsPage: React.FC = () => {
         await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
-    } catch (err: any) {
-      if (err?.errors && typeof err.errors === 'object') {
-        setFieldErrors(err.errors);
-        setFormError(err.message || 'Veuillez corriger les erreurs de validation.');
+    } catch (err: unknown) {
+      const apiErr = err as { errors?: Record<string, string[]>; message?: string };
+      if (apiErr?.errors && typeof apiErr.errors === 'object') {
+        setFieldErrors(apiErr.errors);
+        setFormError(apiErr.message || 'Veuillez corriger les erreurs de validation.');
       } else {
-        setFormError(err?.message || 'Une erreur est survenue lors de l enregistrement.');
+        setFormError(apiErr?.message || 'Une erreur est survenue lors de l enregistrement.');
       }
     }
   };
@@ -186,8 +185,9 @@ export const AdminProductsPage: React.FC = () => {
     try {
       await deleteMutation.mutateAsync(id);
       setDeletingId(null);
-    } catch (err: any) {
-      alert(err?.message || 'Impossible de supprimer ce produit.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Impossible de supprimer ce produit.';
+      alert(errorMsg);
     }
   };
 
@@ -233,7 +233,7 @@ export const AdminProductsPage: React.FC = () => {
             className="px-4 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-neutral-300 focus:outline-none focus:border-amber-500/50"
           >
             <option value="">Toutes les catégories</option>
-            {categoriesList.map((c: any) => (
+            {categoriesList.map((c: Category) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -275,12 +275,12 @@ export const AdminProductsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                productsList.map((p: any) => (
+                productsList.map((p: Product) => (
                   <tr key={p.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3 px-4">
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 flex-shrink-0">
                         <LazyImage
-                          src={getImageUrl(p.image)}
+                          src={getImageUrl(p.image || p.image_url || '')}
                           alt={p.name}
                           className="w-full h-full object-cover"
                         />
@@ -299,50 +299,47 @@ export const AdminProductsPage: React.FC = () => {
                           <span className="font-bold text-burgundy-400 text-sm">
                             {formatPrice(Number(p.sale_price))}
                           </span>
-                          <span className="text-[11px] text-neutral-400 line-through">
+                          <span className="text-neutral-500 line-through text-[10px]">
                             {formatPrice(Number(p.price))}
-                          </span>
-                          <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-burgundy-950/60 text-burgundy-300 border border-burgundy-800/50 w-max">
-                            {p.discount_percentage ? `-${p.discount_percentage}%` : 'Soldé'}
                           </span>
                         </div>
                       ) : (
-                        <span className="font-bold text-white">
+                        <span className="font-bold text-white text-sm">
                           {formatPrice(Number(p.price))}
                         </span>
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        (p.stock ?? 10) > 0
-                          ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
-                          : 'bg-rose-950/60 text-rose-400 border border-rose-800/40'
-                      }`}>
-                        {p.stock ?? 10} en stock
-                      </span>
+                      {(p.stock ?? 0) > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/50">
+                          {p.stock} en stock
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-950/80 text-rose-400 border border-rose-800/50">
+                          Épuisé
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       {p.is_featured ? (
-                        <span className="inline-flex items-center gap-1 text-amber-400 font-medium">
-                          <CheckCircle className="w-3.5 h-3.5" /> Vedette
-                        </span>
+                        <CheckCircle className="w-4 h-4 text-amber-400" />
                       ) : (
-                        <span className="text-neutral-500">—</span>
+                        <XCircle className="w-4 h-4 text-neutral-600" />
                       )}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="inline-flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(p)}
-                          title="Modifier"
                           className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-lg transition-colors"
+                          title="Modifier"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingId(p.id)}
-                          title="Supprimer"
                           className="p-2 text-neutral-400 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors"
+                          title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -372,9 +369,12 @@ export const AdminProductsPage: React.FC = () => {
           <div className="bg-neutral-950 border border-neutral-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
               <h3 className="font-serif text-xl text-white">
-                {editingProduct ? `Modifier #${editingProduct.id}` : 'Nouveau Produit HAFROSE'}
+                {editingProduct ? `Modifier Produit #${editingProduct.id}` : 'Nouveau Produit'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-neutral-400 hover:text-white">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-neutral-400 hover:text-white"
+              >
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -387,41 +387,30 @@ export const AdminProductsPage: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1">Nom du Produit *</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
-                      fieldErrors.name ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
-                    }`}
-                  />
-                  {fieldErrors.name && (
-                    <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.name[0]}</p>
-                  )}
-                  {fieldErrors.slug && (
-                    <p className="mt-1 text-[11px] text-rose-400 font-medium">Slug : {fieldErrors.slug[0]}</p>
-                  )}
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">Nom du Produit *</label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
+                    fieldErrors.name ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
+                  }`}
+                />
+                {fieldErrors.name && (
+                  <p className="mt-1 text-[11px] text-rose-400 font-medium">{fieldErrors.name[0]}</p>
+                )}
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-300 mb-1">Catégorie *</label>
                   <select
                     required
                     value={categoryId}
-                    onChange={(e) => {
-                      setCategoryId(e.target.value);
-                      if (fieldErrors.category_id) {
-                        setFieldErrors((prev) => {
-                          const next = { ...prev };
-                          delete next.category_id;
-                          return next;
-                        });
-                      }
-                    }}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    disabled={isCategoriesLoading}
                     className={`w-full px-3.5 py-2 bg-neutral-900 border rounded-xl text-sm text-white focus:outline-none transition-colors ${
                       fieldErrors.category_id ? 'border-rose-700 focus:border-rose-500' : 'border-neutral-800 focus:border-amber-500/50'
                     }`}
@@ -435,7 +424,7 @@ export const AdminProductsPage: React.FC = () => {
                     ) : (
                       <>
                         <option value="" disabled>-- Sélectionner une catégorie --</option>
-                        {categoriesList.map((c: any) => (
+                        {categoriesList.map((c: Category) => (
                           <option key={c.id} value={String(c.id)}>
                             {c.name}
                           </option>

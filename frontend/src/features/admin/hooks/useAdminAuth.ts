@@ -17,7 +17,7 @@ export function useAdminLogin() {
   return useMutation({
     mutationFn: async (payload: AdminLoginPayload): Promise<AdminAuthResponse> => {
       const response = await adminAuthService.login(payload);
-      const raw = response as unknown as { data?: AdminAuthResponse; token?: string; user?: any };
+      const raw = response as unknown as { data?: AdminAuthResponse; token?: string; user?: User };
       const authData: AdminAuthResponse = (raw.data?.token ? raw.data : raw) as AdminAuthResponse;
       if (!authData || !authData.token || !authData.user) {
         throw new Error('Réponse de connexion invalide du serveur.');

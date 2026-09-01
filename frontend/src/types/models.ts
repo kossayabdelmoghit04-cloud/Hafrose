@@ -30,10 +30,13 @@ export interface Category {
 
 export interface Media {
   id: number;
-  file_name: string;
-  file_path: string;
-  mime_type: string;
-  file_size: number;
+  file_name?: string;
+  file_path?: string;
+  name?: string;
+  path?: string;
+  mime_type?: string;
+  file_size?: number;
+  size?: string | number;
   url: string;
   created_at: string;
 }
@@ -163,8 +166,12 @@ export interface Review {
   product_id: number;
   rating: number;
   comment?: string | null;
+  body?: string | null;
+  title?: string | null;
+  user_name?: string | null;
+  name?: string | null;
+  email?: string | null;
   is_approved: boolean;
   user?: User;
   created_at: string;
 }
-

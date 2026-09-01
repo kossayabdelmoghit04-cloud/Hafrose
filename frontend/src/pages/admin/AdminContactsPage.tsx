@@ -8,23 +8,25 @@ import {
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
+import { AdminContact } from '../../types/admin.types';
 
 export const AdminContactsPage: React.FC = () => {
   useSEO({ title: 'Messagerie Contact | HAFROSE Admin', noIndex: true });
 
-  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<AdminContact | null>(null);
 
   const { data: contactsData, isLoading, isError, refetch } = useAdminContacts();
   const markReadMutation = useMarkContactAsRead();
   const deleteMutation = useDeleteContact();
 
-  const contactsList = contactsData?.data || (Array.isArray(contactsData) ? contactsData : []);
+  const contactsList: AdminContact[] = contactsData?.data || (Array.isArray(contactsData) ? (contactsData as AdminContact[]) : []);
 
   const handleMarkAsRead = async (id: number) => {
     try {
       await markReadMutation.mutateAsync(id);
-    } catch (err: any) {
-      alert(err?.message || 'Erreur lors du marquage comme lu.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors du marquage comme lu.';
+      alert(errorMsg);
     }
   };
 
@@ -35,13 +37,14 @@ export const AdminContactsPage: React.FC = () => {
         if (selectedMessage && selectedMessage.id === id) {
           setSelectedMessage(null);
         }
-      } catch (err: any) {
-        alert(err?.message || 'Erreur lors de la suppression.');
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la suppression.';
+        alert(errorMsg);
       }
     }
   };
 
-  const openMessage = (m: any) => {
+  const openMessage = (m: AdminContact) => {
     setSelectedMessage(m);
     if (!m.is_read) {
       handleMarkAsRead(m.id);
@@ -94,7 +97,7 @@ export const AdminContactsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                contactsList.map((m: any) => (
+                contactsList.map((m: AdminContact) => (
                   <tr key={m.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3.5 px-4">
                       <p className="font-semibold text-white">{m.name}</p>

@@ -6,6 +6,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { LazyImage } from '../../components/ui/LazyImage/LazyImage';
 import { useSEO } from '../../hooks/useSEO';
 import { getImageUrl } from '../../utils/formatters';
+import { Media } from '../../types/models';
 
 export const AdminMediaPage: React.FC = () => {
   useSEO({ title: 'Médiathèque | HAFROSE Admin', noIndex: true });
@@ -17,7 +18,7 @@ export const AdminMediaPage: React.FC = () => {
   const uploadMutation = useUploadMedia();
   const deleteMutation = useDeleteMedia();
 
-  const mediaList = mediaData?.data || (Array.isArray(mediaData) ? mediaData : []);
+  const mediaList: Media[] = mediaData?.data || (Array.isArray(mediaData) ? (mediaData as Media[]) : []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -29,8 +30,9 @@ export const AdminMediaPage: React.FC = () => {
 
     try {
       await uploadMutation.mutateAsync(formData);
-    } catch (err: any) {
-      setUploadError(err?.message || 'Erreur lors du téléversement de l image.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors du téléversement de l image.';
+      setUploadError(errorMsg);
     }
   };
 
@@ -38,8 +40,9 @@ export const AdminMediaPage: React.FC = () => {
     if (window.confirm('Voulez-vous supprimer ce média ?')) {
       try {
         await deleteMutation.mutateAsync(id);
-      } catch (err: any) {
-        alert(err?.message || 'Erreur lors de la suppression.');
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la suppression.';
+        alert(errorMsg);
       }
     }
   };
@@ -99,8 +102,8 @@ export const AdminMediaPage: React.FC = () => {
             <p className="text-sm font-medium">Aucun fichier média trouvé.</p>
           </div>
         ) : (
-          mediaList.map((m: any) => {
-            const url = m.url || m.path;
+          mediaList.map((m: Media) => {
+            const url = m.url || m.path || '';
             const fullUrl = getImageUrl(url);
 
             return (
@@ -109,7 +112,7 @@ export const AdminMediaPage: React.FC = () => {
                 className="group relative bg-neutral-950 border border-neutral-800/80 rounded-2xl overflow-hidden shadow-lg hover:border-amber-500/40 transition-all flex flex-col"
               >
                 <div className="aspect-square bg-neutral-900 relative overflow-hidden">
-                  <LazyImage src={fullUrl} alt={m.name || 'Media asset'} className="w-full h-full object-cover" />
+                  <LazyImage src={fullUrl} alt={m.name || m.file_name || 'Media asset'} className="w-full h-full object-cover" />
 
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button
@@ -130,8 +133,8 @@ export const AdminMediaPage: React.FC = () => {
                 </div>
 
                 <div className="p-3 bg-neutral-950/90 border-t border-neutral-900">
-                  <p className="text-xs font-semibold text-white truncate">{m.name || `Asset #${m.id}`}</p>
-                  <p className="text-[10px] text-neutral-500 truncate mt-0.5">{m.size || 'Image'}</p>
+                  <p className="text-xs font-semibold text-white truncate">{m.name || m.file_name || `Asset #${m.id}`}</p>
+                  <p className="text-[10px] text-neutral-500 truncate mt-0.5">{String(m.size || m.file_size || 'Image')}</p>
                 </div>
               </div>
             );

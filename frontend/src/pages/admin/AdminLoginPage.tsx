@@ -56,7 +56,19 @@ export const AdminLoginPage: React.FC = () => {
     if (validationError) return validationError;
     if (!adminLoginMutation.isError) return '';
 
-    const err = adminLoginMutation.error as any;
+    const err = adminLoginMutation.error as {
+      status?: number;
+      status_code?: number;
+      message?: string;
+      errors?: Record<string, string[]>;
+      response?: {
+        status?: number;
+        data?: {
+          message?: string;
+          errors?: Record<string, string[]>;
+        };
+      };
+    } | null;
 
     if (typeof err === 'string') {
       const lower = err.toLowerCase();

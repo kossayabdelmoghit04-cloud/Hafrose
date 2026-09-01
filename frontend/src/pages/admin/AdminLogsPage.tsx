@@ -4,19 +4,20 @@ import { useAdminLogs, useActivityLogs } from '../../features/admin/hooks/useAdm
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
+import { AdminLog } from '../../types/admin.types';
 
 export const AdminLogsPage: React.FC = () => {
   useSEO({ title: 'Journaux d Audit | HAFROSE Admin', noIndex: true });
 
   const [tab, setTab] = useState<'admin' | 'activity'>('admin');
-  const [selectedLog, setSelectedLog] = useState<any | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AdminLog | null>(null);
 
   const { data: adminLogsData, isLoading: isAdminLoading, isError: isAdminError, refetch: refetchAdmin } = useAdminLogs();
   const { data: activityLogsData, isLoading: isActLoading, isError: isActError, refetch: refetchAct } = useActivityLogs();
 
-  const logsList = tab === 'admin'
-    ? (adminLogsData?.data || (Array.isArray(adminLogsData) ? adminLogsData : []))
-    : (activityLogsData?.data || (Array.isArray(activityLogsData) ? activityLogsData : []));
+  const logsList: AdminLog[] = tab === 'admin'
+    ? (adminLogsData?.data || (Array.isArray(adminLogsData) ? (adminLogsData as AdminLog[]) : []))
+    : (activityLogsData?.data || (Array.isArray(activityLogsData) ? (activityLogsData as AdminLog[]) : []));
 
   const isLoading = tab === 'admin' ? isAdminLoading : isActLoading;
   const isError = tab === 'admin' ? isAdminError : isActError;
@@ -96,13 +97,13 @@ export const AdminLogsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                logsList.map((log: any) => (
+                logsList.map((log: AdminLog) => (
                   <tr key={log.id} className="hover:bg-neutral-900/50 transition-colors">
                     <td className="py-3 px-4 font-mono text-neutral-400 text-[11px]">
                       {new Date(log.created_at).toLocaleString('fr-FR')}
                     </td>
                     <td className="py-3 px-4 font-semibold text-white">
-                      {log.user_email || log.user?.email || log.user_id || 'Système'}
+                      {log.user_email || log.user?.email || (log.user_id ? `User #${log.user_id}` : 'Système')}
                     </td>
                     <td className="py-3 px-4 font-medium text-amber-400">
                       {log.action || log.event_type || 'Action'}

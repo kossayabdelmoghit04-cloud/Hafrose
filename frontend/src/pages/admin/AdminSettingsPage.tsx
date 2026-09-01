@@ -6,6 +6,7 @@ import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
 import { getImageUrl } from '../../utils/formatters';
+import { AdminSettings } from '../../types/admin.types';
 
 // ── Composant réutilisable: champ image avec prévisualisation ────────────────
 interface ImageFieldProps {
@@ -122,39 +123,39 @@ export const AdminSettingsPage: React.FC = () => {
 
   useEffect(() => {
     if (settingsData) {
-      const s: Record<string, any> = settingsData.data || settingsData;
+      const s: AdminSettings = ((settingsData as unknown as { data?: AdminSettings })?.data || settingsData) as AdminSettings;
       // Généraux
-      if (s.site_name) setSiteName(s.site_name);
-      if (s.contact_email) setContactEmail(s.contact_email);
-      if (s.phone) setPhone(s.phone);
-      if (s.currency) setCurrency(s.currency);
-      if (s.shipping_fee) setShippingFee(String(s.shipping_fee));
-      if (s.free_shipping_threshold) setFreeShippingThreshold(String(s.free_shipping_threshold));
+      if (s.site_name) setSiteName(String(s.site_name));
+      if (s.contact_email) setContactEmail(String(s.contact_email));
+      if (s.phone) setPhone(String(s.phone));
+      if (s.currency) setCurrency(String(s.currency));
+      if (s.shipping_fee !== undefined && s.shipping_fee !== null) setShippingFee(String(s.shipping_fee));
+      if (s.free_shipping_threshold !== undefined && s.free_shipping_threshold !== null) setFreeShippingThreshold(String(s.free_shipping_threshold));
       // Hero
-      if (s.hero_eyebrow) setHeroEyebrow(s.hero_eyebrow);
-      if (s.hero_title) setHeroTitle(s.hero_title);
-      if (s.hero_description) setHeroDescription(s.hero_description);
-      if (s.hero_primary_btn_text) setHeroPrimaryBtnText(s.hero_primary_btn_text);
-      if (s.hero_primary_btn_url) setHeroPrimaryBtnUrl(s.hero_primary_btn_url);
-      if (s.hero_secondary_btn_text) setHeroSecondaryBtnText(s.hero_secondary_btn_text);
-      if (s.hero_secondary_btn_url) setHeroSecondaryBtnUrl(s.hero_secondary_btn_url);
-      setHeroCurrentImageUrl(s.hero_image_url ?? s.hero_image ?? null);
+      if (s.hero_eyebrow) setHeroEyebrow(String(s.hero_eyebrow));
+      if (s.hero_title) setHeroTitle(String(s.hero_title));
+      if (s.hero_description) setHeroDescription(String(s.hero_description));
+      if (s.hero_primary_btn_text) setHeroPrimaryBtnText(String(s.hero_primary_btn_text));
+      if (s.hero_primary_btn_url) setHeroPrimaryBtnUrl(String(s.hero_primary_btn_url));
+      if (s.hero_secondary_btn_text) setHeroSecondaryBtnText(String(s.hero_secondary_btn_text));
+      if (s.hero_secondary_btn_url) setHeroSecondaryBtnUrl(String(s.hero_secondary_btn_url));
+      setHeroCurrentImageUrl((s.hero_image_url as string) ?? (s.hero_image as string) ?? null);
       // Éditorial
-      if (s.editorial_badge) setEditorialBadge(s.editorial_badge);
-      if (s.editorial_title) setEditorialTitle(s.editorial_title);
-      if (s.editorial_description) setEditorialDescription(s.editorial_description);
-      if (s.editorial_quote) setEditorialQuote(s.editorial_quote);
-      if (s.editorial_btn_text) setEditorialBtnText(s.editorial_btn_text);
-      if (s.editorial_btn_url) setEditorialBtnUrl(s.editorial_btn_url);
-      setEditorialCurrentImageUrl(s.editorial_image_url ?? s.editorial_image ?? null);
+      if (s.editorial_badge) setEditorialBadge(String(s.editorial_badge));
+      if (s.editorial_title) setEditorialTitle(String(s.editorial_title));
+      if (s.editorial_description) setEditorialDescription(String(s.editorial_description));
+      if (s.editorial_quote) setEditorialQuote(String(s.editorial_quote));
+      if (s.editorial_btn_text) setEditorialBtnText(String(s.editorial_btn_text));
+      if (s.editorial_btn_url) setEditorialBtnUrl(String(s.editorial_btn_url));
+      setEditorialCurrentImageUrl((s.editorial_image_url as string) ?? (s.editorial_image as string) ?? null);
       // Promo
-      if (s.promo_badge) setPromoBadge(s.promo_badge);
-      if (s.promo_title) setPromoTitle(s.promo_title);
-      if (s.promo_subtitle) setPromoSubtitle(s.promo_subtitle);
-      if (s.promo_description) setPromoDescription(s.promo_description);
-      if (s.promo_btn_text) setPromoBtnText(s.promo_btn_text);
-      if (s.promo_btn_url) setPromoBtnUrl(s.promo_btn_url);
-      setPromoCurrentImageUrl(s.promo_image_url ?? s.promo_image ?? null);
+      if (s.promo_badge) setPromoBadge(String(s.promo_badge));
+      if (s.promo_title) setPromoTitle(String(s.promo_title));
+      if (s.promo_subtitle) setPromoSubtitle(String(s.promo_subtitle));
+      if (s.promo_description) setPromoDescription(String(s.promo_description));
+      if (s.promo_btn_text) setPromoBtnText(String(s.promo_btn_text));
+      if (s.promo_btn_url) setPromoBtnUrl(String(s.promo_btn_url));
+      setPromoCurrentImageUrl((s.promo_image_url as string) ?? (s.promo_image as string) ?? null);
     }
   }, [settingsData]);
 
@@ -217,8 +218,9 @@ export const AdminSettingsPage: React.FC = () => {
       setEditorialPreview(null);
       setPromoPreview(null);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err: any) {
-      setSaveError(err?.message || 'Erreur lors de la sauvegarde des paramètres.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde des paramètres.';
+      setSaveError(errorMsg);
     }
   };
 
@@ -226,8 +228,9 @@ export const AdminSettingsPage: React.FC = () => {
     try {
       await clearCacheMutation.mutateAsync();
       alert('Cache système purgé avec succès !');
-    } catch (err: any) {
-      alert(err?.message || 'Erreur lors de la purge du cache.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la purge du cache.';
+      alert(errorMsg);
     }
   };
 
