@@ -8,7 +8,6 @@ use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Services\PerformanceCacheManager;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Schema;
 
 class ProductRepository implements ProductRepositoryInterface
 {
@@ -55,20 +54,10 @@ class ProductRepository implements ProductRepositoryInterface
         // Filtre par recherche textuelle
         $search = $filters['q'] ?? $filters['search'] ?? null;
         if (! empty($search)) {
-            $hasShortDescription = Schema::hasColumn('products', 'short_description');
-            $hasSku = Schema::hasColumn('products', 'sku');
-
-            $query->where(function ($q) use ($search, $hasShortDescription, $hasSku) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-
-                if ($hasShortDescription) {
-                    $q->orWhere('short_description', 'like', "%{$search}%");
-                }
-
-                if ($hasSku) {
-                    $q->orWhere('sku', 'like', "%{$search}%");
-                }
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('short_description', 'like', "%{$search}%");
             });
         }
 
@@ -187,31 +176,15 @@ class ProductRepository implements ProductRepositoryInterface
         $ttl = config('cache-performance.ttls.filters', 3600);
 
         return PerformanceCacheManager::remember('products_filters_data', $ttl, function () {
-            $hasActiveCheck = Schema::hasColumn('products', 'is_active');
-
-            $categories = Category::whereHas('products', function ($query) use ($hasActiveCheck) {
-                if ($hasActiveCheck) {
-                    $query->where('is_active', true);
-                }
-            })
-                ->withCount(['products' => function ($query) use ($hasActiveCheck) {
-                    if ($hasActiveCheck) {
-                        $query->where('is_active', true);
-                    }
-                }])
+            $categories = Category::whereHas('products')
+                ->withCount('products')
                 ->get();
 
             $stats = Product::query()
-                ->when($hasActiveCheck, function ($query) {
-                    $query->where('is_active', true);
-                })
                 ->selectRaw('MIN(price) as min_price, MAX(price) as max_price, COUNT(*) as total_count, AVG(price) as avg_price, SUM(stock) as total_stock')
                 ->first();
 
             $brands = Product::query()
-                ->when($hasActiveCheck, function ($query) {
-                    $query->where('is_active', true);
-                })
                 ->whereNotNull('brand')
                 ->where('brand', '!=', '')
                 ->distinct()
@@ -220,16 +193,10 @@ class ProductRepository implements ProductRepositoryInterface
                 ->toArray();
 
             $featuredCount = Product::query()
-                ->when($hasActiveCheck, function ($query) {
-                    $query->where('is_active', true);
-                })
                 ->where('is_featured', true)
                 ->count();
 
             $onSaleCount = Product::query()
-                ->when($hasActiveCheck, function ($query) {
-                    $query->where('is_active', true);
-                })
                 ->whereNotNull('sale_price')
                 ->where('sale_price', '>', 0)
                 ->whereColumn('sale_price', '<', 'price')
@@ -320,14 +287,9 @@ class ProductRepository implements ProductRepositoryInterface
      */
     public function getSimilarProducts(Product $product, int $limit = 8): Collection
     {
-        $hasActiveCheck = Schema::hasColumn('products', 'is_active');
-
         return Product::query()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->when($hasActiveCheck, function ($q) {
-                $q->where('is_active', true);
-            })
             ->with(['category', 'galleries'])
             ->inRandomOrder()
             ->limit($limit)
@@ -343,16 +305,11 @@ class ProductRepository implements ProductRepositoryInterface
         $key = "popular_products_list_{$limit}";
 
         $productIds = PerformanceCacheManager::remember($key, $ttl, function () use ($limit, $weights) {
-            $hasActiveCheck = Schema::hasColumn('products', 'is_active');
-
             $wOrders = $weights['orders'] ?? config('recommendations.popularity_weights.orders', 3.0);
             $wRating = $weights['rating'] ?? config('recommendations.popularity_weights.rating', 5.0);
             $wReviews = $weights['reviews'] ?? config('recommendations.popularity_weights.reviews', 2.0);
 
             return Product::query()
-                ->when($hasActiveCheck, function ($query) {
-                    $query->where('is_active', true);
-                })
                 ->withCount('orderItems')
                 ->withCount(['reviews as approved_reviews_count' => function ($q) {
                     $q->where('is_approved', true);
@@ -387,11 +344,6 @@ class ProductRepository implements ProductRepositoryInterface
         $perPage = min(max(1, $perPage), $maxPerPage);
 
         $query = Product::query()->with(['category', 'galleries']);
-        $hasActiveCheck = Schema::hasColumn('products', 'is_active');
-
-        $query->when($hasActiveCheck, function ($q) {
-            $q->where('is_active', true);
-        });
 
         if (! empty($params['q'])) {
             $search = $params['q'];
