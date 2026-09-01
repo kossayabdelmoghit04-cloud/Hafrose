@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Exceptions\InsufficientStockException;
+use App\Exceptions\ProductNotFoundException;
 use App\Models\ActivityLog;
 use App\Models\Order;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
@@ -61,21 +62,11 @@ class OrderService
                 $product = $this->productRepository->findForUpdate($item['product_id']);
 
                 if (! $product) {
-                    throw new HttpResponseException(response()->json([
-                        'success' => false,
-                        'message' => 'Product not found',
-                        'errors' => ['product_id' => ["Le produit avec l'ID {$item['product_id']} n'existe pas."]],
-                        'data' => null,
-                    ], 404));
+                    throw new ProductNotFoundException($item['product_id']);
                 }
 
                 if ($product->stock < $item['quantity']) {
-                    throw new HttpResponseException(response()->json([
-                        'success' => false,
-                        'message' => "Le stock est insuffisant pour le produit : {$product->name}",
-                        'errors' => ['stock' => ["Le stock disponible est de {$product->stock} unité(s)."]],
-                        'data' => null,
-                    ], 409));
+                    throw new InsufficientStockException($product->name, $product->stock);
                 }
 
                 // Décrémenter le stock
@@ -169,12 +160,11 @@ class OrderService
                     $product = $this->productRepository->findForUpdate($item->product_id);
                     if ($product) {
                         if ($product->stock < $item->quantity) {
-                            throw new HttpResponseException(response()->json([
-                                'success' => false,
-                                'message' => "Le stock est insuffisant pour réactiver la commande (produit : {$product->name})",
-                                'errors' => ['stock' => ["Le stock actuel est de {$product->stock}."]],
-                                'data' => null,
-                            ], 409));
+                            throw new InsufficientStockException(
+                                $product->name,
+                                $product->stock,
+                                "Le stock est insuffisant pour réactiver la commande (produit : {$product->name})"
+                            );
                         }
                         $product->decrement('stock', $item->quantity);
                     }

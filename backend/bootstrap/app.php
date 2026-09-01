@@ -73,6 +73,14 @@ return Application::configure(basePath: dirname(__DIR__))
                     $status = 422;
                     $message = 'Validation failed';
                     $errors = $e->errors();
+                } elseif ($e instanceof \App\Exceptions\InsufficientStockException) {
+                    $status = 409;
+                    $message = $e->getMessage();
+                    $errors = ['stock' => ["Le stock disponible est de {$e->availableStock} unité(s)."]];
+                } elseif ($e instanceof \App\Exceptions\ProductNotFoundException) {
+                    $status = 404;
+                    $message = 'Product not found';
+                    $errors = ['product_id' => [$e->getMessage()]];
                 } elseif ($e instanceof NotFoundHttpException ||
                            $e instanceof ModelNotFoundException) {
                     $status = 404;

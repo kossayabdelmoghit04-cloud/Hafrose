@@ -31,7 +31,7 @@ export const AdminOrdersPage: React.FC = () => {
 
   const updateStatusMutation = useUpdateOrderStatus();
 
-  const ordersList: Order[] = ordersData?.data || (Array.isArray(ordersData) ? (ordersData as Order[]) : []);
+  const ordersList: Order[] = ordersData?.data ?? [];
   const meta = ordersData?.meta;
 
   const handleStatusChange = async (orderId: number, newStatus: string) => {

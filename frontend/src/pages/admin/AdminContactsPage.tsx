@@ -19,7 +19,7 @@ export const AdminContactsPage: React.FC = () => {
   const markReadMutation = useMarkContactAsRead();
   const deleteMutation = useDeleteContact();
 
-  const contactsList: AdminContact[] = contactsData?.data || (Array.isArray(contactsData) ? (contactsData as AdminContact[]) : []);
+  const contactsList: AdminContact[] = contactsData?.data ?? [];
 
   const handleMarkAsRead = async (id: number) => {
     try {

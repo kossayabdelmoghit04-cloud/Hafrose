@@ -52,8 +52,7 @@ export function useAdminProducts(params?: AdminProductFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.products(params),
     queryFn: async () => {
-      const res = await adminService.getProducts(params);
-      return res.data;
+      return adminService.getProducts(params);
     },
   });
 }
@@ -96,8 +95,7 @@ export function useAdminCategories(params?: AdminProductFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.categories(params),
     queryFn: async () => {
-      const res = await adminService.getCategories(params);
-      return res.data;
+      return adminService.getCategories(params);
     },
   });
 }
@@ -149,8 +147,7 @@ export function useAdminOrders(params?: AdminOrderFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.orders(params),
     queryFn: async () => {
-      const res = await adminService.getOrders(params);
-      return res.data;
+      return adminService.getOrders(params);
     },
   });
 }
@@ -172,8 +169,7 @@ export function useAdminReviews(params?: AdminReviewFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.reviews(params),
     queryFn: async () => {
-      const res = await adminService.getReviews(params);
-      return res.data;
+      return adminService.getReviews(params);
     },
   });
 }
@@ -215,8 +211,7 @@ export function useAdminContacts(params?: AdminContactFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.contacts(params),
     queryFn: async () => {
-      const res = await adminService.getContacts(params);
-      return res.data;
+      return adminService.getContacts(params);
     },
   });
 }
@@ -248,8 +243,7 @@ export function useAdminMedia() {
   return useQuery({
     queryKey: ADMIN_KEYS.media,
     queryFn: async () => {
-      const res = await adminService.getMedia();
-      return res.data;
+      return adminService.getMedia();
     },
   });
 }
@@ -279,8 +273,7 @@ export function useAdminSettings() {
   return useQuery({
     queryKey: ADMIN_KEYS.settings,
     queryFn: async () => {
-      const res = await adminService.getSettings();
-      return res.data;
+      return adminService.getSettings();
     },
   });
 }
@@ -302,8 +295,7 @@ export function useAdminLogs(params?: AdminLogFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.adminLogs(params),
     queryFn: async () => {
-      const res = await adminService.getAdminLogs(params);
-      return res.data;
+      return adminService.getAdminLogs(params);
     },
   });
 }
@@ -312,8 +304,7 @@ export function useActivityLogs(params?: AdminLogFilters) {
   return useQuery({
     queryKey: ADMIN_KEYS.activityLogs(params),
     queryFn: async () => {
-      const res = await adminService.getActivityLogs(params);
-      return res.data;
+      return adminService.getActivityLogs(params);
     },
   });
 }

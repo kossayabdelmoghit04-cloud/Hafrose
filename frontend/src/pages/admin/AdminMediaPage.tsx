@@ -18,7 +18,7 @@ export const AdminMediaPage: React.FC = () => {
   const uploadMutation = useUploadMedia();
   const deleteMutation = useDeleteMedia();
 
-  const mediaList: Media[] = mediaData?.data || (Array.isArray(mediaData) ? (mediaData as Media[]) : []);
+  const mediaList: Media[] = mediaData?.data ?? [];
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\RunBackupJob;
 use App\Models\ActivityLog;
 use App\Models\AdminLog;
 use App\Services\ActivityLogService;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  * Contrôleur de gestion des sauvegardes système — Administration HAFROSE.
  *
  * Routes :
- *   POST   /api/admin/system/backup          → lancer une sauvegarde
+ *   POST   /api/admin/system/backup          → lancer une sauvegarde (asynchrone par défaut, ou synchrone si sync=true/dry_run=true)
  *   GET    /api/admin/system/backups         → lister les sauvegardes
  *   DELETE /api/admin/system/backups/{id}   → supprimer une sauvegarde
  *
@@ -37,35 +38,84 @@ class SystemBackupController extends Controller
     // ─── POST /api/admin/system/backup ───────────────────────────────────────
 
     /**
-     * Lancer une sauvegarde complète immédiate.
+     * Lancer une sauvegarde (asynchrone via Queue par défaut, ou synchrone si sync/dry_run).
      *
      * @bodyParam dry_run  bool  Simuler sans écrire. Default: false.
      * @bodyParam verbose  bool  Inclure les détails dans la réponse. Default: false.
+     * @bodyParam sync     bool  Forcer l'exécution synchrone. Default: false (ou true si dry_run).
      *
+     * @response 202 { "success": true, "message": "Sauvegarde mise en file d'attente.", "data": { ... } }
      * @response 200 { "success": true, "message": "Sauvegarde créée.", "data": { ... } }
-     * @response 422 { "success": false, "message": "Les sauvegardes sont désactivées." }
-     * @response 500 { "success": false, "message": "Erreur interne." }
      */
     public function create(Request $request): JsonResponse
     {
         $dryRun = (bool) $request->input('dry_run', false);
         $verbose = (bool) $request->input('verbose', false);
+        // Si async=true est explicite, on force l'asynchrone. Sinon dry_run s'exécute synchrone pour inspection immédiate.
+        $forceAsync = $request->boolean('async', false);
+        $sync = ! $forceAsync && ($request->boolean('sync', false) || $dryRun);
 
         try {
-            $report = $this->backupService->run(dryRun: $dryRun, verbose: $verbose);
+            if ($sync) {
+                $report = $this->backupService->run(dryRun: $dryRun, verbose: $verbose);
+
+                // ── Journalisation AdminLog ──────────────────────────────────────
+                $this->adminLogService->log(
+                    request: $request,
+                    action: AdminLog::ACTION_BACKUP_CREATE,
+                    resource: AdminLog::RESOURCE_SYSTEM,
+                    description: $dryRun
+                        ? 'Simulation de sauvegarde système (dry-run)'
+                        : 'Sauvegarde système lancée manuellement (synchrone)',
+                    newValues: [
+                        'dry_run' => $dryRun,
+                        'success' => $report['success'],
+                        'archive' => $report['archive'] ?? null,
+                    ],
+                );
+
+                // ── Journalisation ActivityLog ───────────────────────────────────
+                $this->activityLogService->log(
+                    eventType: 'backup.create',
+                    category: ActivityLog::CATEGORY_ADMIN,
+                    resource: AdminLog::RESOURCE_SYSTEM,
+                    metadata: [
+                        'dry_run' => $dryRun,
+                        'success' => $report['success'],
+                        'archive' => $report['archive'] ?? null,
+                        'errors' => $report['errors'],
+                    ],
+                );
+
+                if (! $report['success']) {
+                    $errorMessages = implode('; ', $report['errors']);
+
+                    return $this->errorResponse(
+                        "La sauvegarde a échoué : {$errorMessages}",
+                        500,
+                        $report['errors'],
+                        $report
+                    );
+                }
+
+                return $this->successResponse(
+                    $report,
+                    $dryRun ? 'Simulation de sauvegarde terminée.' : 'Sauvegarde créée avec succès.'
+                );
+            }
+
+            // Mode asynchrone par défaut pour les vraies sauvegardes : dispatch dans la queue
+            RunBackupJob::dispatch($dryRun, $verbose);
 
             // ── Journalisation AdminLog ──────────────────────────────────────
             $this->adminLogService->log(
                 request: $request,
                 action: AdminLog::ACTION_BACKUP_CREATE,
                 resource: AdminLog::RESOURCE_SYSTEM,
-                description: $dryRun
-                    ? 'Simulation de sauvegarde système (dry-run)'
-                    : 'Sauvegarde système lancée manuellement',
+                description: 'Sauvegarde système mise en file d\'attente (asynchrone)',
                 newValues: [
                     'dry_run' => $dryRun,
-                    'success' => $report['success'],
-                    'archive' => $report['archive'] ?? null,
+                    'queued' => true,
                 ],
             );
 
@@ -76,27 +126,20 @@ class SystemBackupController extends Controller
                 resource: AdminLog::RESOURCE_SYSTEM,
                 metadata: [
                     'dry_run' => $dryRun,
-                    'success' => $report['success'],
-                    'archive' => $report['archive'] ?? null,
-                    'errors' => $report['errors'],
+                    'queued' => true,
                 ],
             );
 
-            if (! $report['success']) {
-                $errorMessages = implode('; ', $report['errors']);
-
-                return $this->errorResponse(
-                    "La sauvegarde a échoué : {$errorMessages}",
-                    500,
-                    $report['errors'],
-                    $report
-                );
-            }
-
-            return $this->successResponse(
-                $report,
-                $dryRun ? 'Simulation de sauvegarde terminée.' : 'Sauvegarde créée avec succès.'
-            );
+            return response()->json([
+                'success' => true,
+                'message' => 'La tâche de sauvegarde a été mise en file d\'attente avec succès.',
+                'errors' => null,
+                'data' => [
+                    'status' => 'queued',
+                    'dry_run' => $dryRun,
+                    'queued_at' => now()->toIso8601String(),
+                ],
+            ], 202);
 
         } catch (\Throwable $e) {
             Log::error('SystemBackupController: erreur inattendue lors du backup.', [

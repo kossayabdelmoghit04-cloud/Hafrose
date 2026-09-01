@@ -29,8 +29,8 @@ class AuthService
             throw new AuthenticationException('Identifiants incorrects.');
         }
 
-        // Vérifier si l'utilisateur est administrateur
-        if ($user->role !== User::ROLE_ADMIN && ! $user->hasRole('admin')) {
+        // Vérifier si l'utilisateur est administrateur via la méthode unifiée du modèle User
+        if (! $user->isAdmin()) {
             throw new AuthenticationException('Accès interdit. Réservé aux administrateurs.');
         }
 

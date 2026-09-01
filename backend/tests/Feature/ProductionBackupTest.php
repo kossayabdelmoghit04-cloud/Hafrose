@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\RunBackupJob;
 use App\Models\ActivityLog;
 use App\Models\AdminLog;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -482,6 +484,41 @@ class ProductionBackupTest extends TestCase
             'category' => ActivityLog::CATEGORY_ADMIN,
             'resource' => AdminLog::RESOURCE_SYSTEM,
         ]);
+    }
+
+    #[Test]
+    public function admin_can_trigger_async_backup_job_queued(): void
+    {
+        Queue::fake();
+        Config::set('production.backup.enabled', true);
+
+        $admin = $this->adminUser();
+        $token = $admin->createToken('test')->plainTextToken;
+
+        $response = $this->postJson(
+            '/api/admin/system/backup',
+            ['async' => true],
+            ['Authorization' => "Bearer {$token}"]
+        );
+
+        $response->assertStatus(202)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'queued');
+
+        Queue::assertPushed(RunBackupJob::class, function ($job) {
+            return $job->dryRun === false;
+        });
+    }
+
+    #[Test]
+    public function run_backup_job_executes_successfully(): void
+    {
+        Config::set('production.backup.enabled', true);
+
+        $job = new RunBackupJob(dryRun: true, verbose: false);
+        $job->handle(app(ProductionBackupService::class));
+
+        $this->assertTrue(true);
     }
 
     // =========================================================================

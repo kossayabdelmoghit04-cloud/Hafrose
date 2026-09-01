@@ -30,11 +30,8 @@ class EnsureUserIsAdmin
             ], 401);
         }
 
-        // Cas 2 : utilisateur authentifié mais sans le rôle admin
-        // On accepte le rôle via la colonne DB (role = 'admin') OU via Spatie Permission
-        $isAdmin = ($user->role === User::ROLE_ADMIN) || $user->hasRole('admin');
-
-        if (! $isAdmin) {
+        // Cas 2 : utilisateur authentifié mais sans le rôle admin (centralisé dans User::isAdmin())
+        if (! $user->isAdmin()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Accès interdit. Réservé aux administrateurs.',

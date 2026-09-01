@@ -56,7 +56,17 @@ export const AdminLoginPage: React.FC = () => {
     if (validationError) return validationError;
     if (!adminLoginMutation.isError) return '';
 
-    const err = adminLoginMutation.error as {
+    const rawErr = adminLoginMutation.error as unknown;
+
+    if (typeof rawErr === 'string') {
+      const lower = rawErr.toLowerCase();
+      if (lower.includes('network') || lower.includes('failed to fetch') || lower.includes('econnrefused')) {
+        return 'Impossible de contacter le serveur. Veuillez vérifier que le serveur backend est démarré.';
+      }
+      return rawErr;
+    }
+
+    const err = rawErr as {
       status?: number;
       status_code?: number;
       message?: string;
@@ -69,14 +79,6 @@ export const AdminLoginPage: React.FC = () => {
         };
       };
     } | null;
-
-    if (typeof err === 'string') {
-      const lower = err.toLowerCase();
-      if (lower.includes('network') || lower.includes('failed to fetch') || lower.includes('econnrefused')) {
-        return 'Impossible de contacter le serveur. Veuillez vérifier que le serveur backend est démarré.';
-      }
-      return err;
-    }
 
     // Extract validation errors object if present (e.g. HTTP 422)
     const errorsObj = err?.errors || err?.response?.data?.errors;

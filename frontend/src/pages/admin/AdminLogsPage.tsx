@@ -15,9 +15,7 @@ export const AdminLogsPage: React.FC = () => {
   const { data: adminLogsData, isLoading: isAdminLoading, isError: isAdminError, refetch: refetchAdmin } = useAdminLogs();
   const { data: activityLogsData, isLoading: isActLoading, isError: isActError, refetch: refetchAct } = useActivityLogs();
 
-  const logsList: AdminLog[] = tab === 'admin'
-    ? (adminLogsData?.data || (Array.isArray(adminLogsData) ? (adminLogsData as AdminLog[]) : []))
-    : (activityLogsData?.data || (Array.isArray(activityLogsData) ? (activityLogsData as AdminLog[]) : []));
+  const logsList: AdminLog[] = (tab === 'admin' ? adminLogsData?.data : activityLogsData?.data) ?? [];
 
   const isLoading = tab === 'admin' ? isAdminLoading : isActLoading;
   const isError = tab === 'admin' ? isAdminError : isActError;

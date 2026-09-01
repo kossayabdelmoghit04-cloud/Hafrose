@@ -19,7 +19,7 @@ export const AdminReviewsPage: React.FC = () => {
   const rejectMutation = useRejectReview();
   const deleteMutation = useDeleteReview();
 
-  const reviewsList: Review[] = reviewsData?.data || (Array.isArray(reviewsData) ? (reviewsData as Review[]) : []);
+  const reviewsList: Review[] = reviewsData?.data ?? [];
 
   const handleApprove = async (id: number) => {
     try {

@@ -69,13 +69,9 @@ export const AdminProductsPage: React.FC = () => {
   const updateMutation = useUpdateProduct();
   const deleteMutation = useDeleteProduct();
 
-  const productsList: Product[] = productsData?.data || (Array.isArray(productsData) ? (productsData as Product[]) : []);
+  const productsList: Product[] = productsData?.data ?? [];
   const meta = productsData?.meta;
-  const categoriesList: Category[] = Array.isArray(categoriesData)
-    ? (categoriesData as Category[])
-    : (categoriesData?.data && Array.isArray(categoriesData.data)
-      ? (categoriesData.data as Category[])
-      : []);
+  const categoriesList: Category[] = categoriesData?.data ?? [];
 
   const openCreateModal = () => {
     setEditingProduct(null);
