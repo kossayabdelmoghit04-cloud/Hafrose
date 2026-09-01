@@ -1,73 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, CheckCircle, XCircle, RefreshCw, Image, Upload, X } from 'lucide-react';
+import { Save, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 import { useAdminSettings, useUpdateSettings, useClearCache } from '../../features/admin/hooks/useAdminData';
 import { Spinner } from '../../components/ui/Spinner';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useSEO } from '../../hooks/useSEO';
-import { getImageUrl } from '../../utils/formatters';
 import { AdminSettings } from '../../types/admin.types';
+import {
+  GeneralSettingsSection,
+  HeroSettingsSection,
+  EditorialSettingsSection,
+  PromoSettingsSection,
+} from '../../components/admin/settings';
 
-// ── Composant réutilisable: champ image avec prévisualisation ────────────────
-interface ImageFieldProps {
-  label: string;
-  currentUrl?: string | null;
-  fileRef: React.RefObject<HTMLInputElement | null>;
-  previewUrl: string | null;
-  onPreview: (url: string | null) => void;
-  hint?: string;
-}
+const TABS = [
+  { id: 'general', label: 'Général' },
+  { id: 'hero', label: 'Section Hero' },
+  { id: 'editorial', label: 'Collection Éditoriale' },
+  { id: 'promo', label: 'Bannière Promo' },
+] as const;
 
-const ImageField: React.FC<ImageFieldProps> = ({ label, currentUrl, fileRef, previewUrl, onPreview, hint }) => {
-  const displayUrl = previewUrl ?? (currentUrl ? getImageUrl(currentUrl) : null);
+type TabId = typeof TABS[number]['id'];
 
-  return (
-    <div className="space-y-2">
-      <label className="block text-xs font-semibold text-neutral-300">{label}</label>
-      {hint && <p className="text-[10px] text-neutral-500">{hint}</p>}
-
-      {displayUrl && (
-        <div className="relative w-full h-32 rounded-xl overflow-hidden border border-neutral-700 bg-neutral-900">
-          <img
-            src={displayUrl}
-            alt={label}
-            className="w-full h-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-          {previewUrl && (
-            <button
-              type="button"
-              onClick={() => { onPreview(null); if (fileRef.current) fileRef.current.value = ''; }}
-              className="absolute top-1.5 right-1.5 bg-neutral-950/80 rounded-full p-1 hover:bg-rose-900 transition"
-              title="Annuler la sélection"
-            >
-              <X className="w-3 h-3 text-white" />
-            </button>
-          )}
-        </div>
-      )}
-
-      <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-xs text-neutral-300 hover:text-white transition-all">
-        <Upload className="w-3.5 h-3.5" />
-        <span>Choisir une image</span>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/svg+xml"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              onPreview(URL.createObjectURL(file));
-            }
-          }}
-        />
-      </label>
-    </div>
-  );
-};
-
-// ── Page principale ──────────────────────────────────────────────────────────
 export const AdminSettingsPage: React.FC = () => {
   useSEO({ title: 'Paramètres du Site | HAFROSE Admin', noIndex: true });
 
@@ -119,7 +73,7 @@ export const AdminSettingsPage: React.FC = () => {
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [activeTab, setActiveTab] = useState<'general' | 'hero' | 'editorial' | 'promo'>('general');
+  const [activeTab, setActiveTab] = useState<TabId>('general');
 
   useEffect(() => {
     if (settingsData) {
@@ -167,7 +121,6 @@ export const AdminSettingsPage: React.FC = () => {
     try {
       const formData = new FormData();
 
-      // Paramètres textuels — envoyés dans settings[key]
       const textSettings: Record<string, string> = {
         site_name: siteName,
         contact_email: contactEmail,
@@ -200,7 +153,6 @@ export const AdminSettingsPage: React.FC = () => {
         formData.append(`settings[${key}]`, val);
       });
 
-      // Fichiers images
       if (heroFileRef.current?.files?.[0]) {
         formData.append('hero_image', heroFileRef.current.files[0]);
       }
@@ -213,7 +165,6 @@ export const AdminSettingsPage: React.FC = () => {
 
       await updateSettingsMutation.mutateAsync(formData);
       setSaveSuccess(true);
-      // Réinitialiser les previews
       setHeroPreview(null);
       setEditorialPreview(null);
       setPromoPreview(null);
@@ -252,16 +203,6 @@ export const AdminSettingsPage: React.FC = () => {
     );
   }
 
-  const tabs = [
-    { id: 'general', label: 'Général' },
-    { id: 'hero', label: 'Section Hero' },
-    { id: 'editorial', label: 'Collection Éditoriale' },
-    { id: 'promo', label: 'Bannière Promo' },
-  ] as const;
-
-  const inputCls = 'w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500/50';
-  const textareaCls = inputCls + ' resize-none';
-
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="bg-neutral-950/80 p-6 rounded-2xl border border-neutral-800/80 shadow-lg">
@@ -285,7 +226,7 @@ export const AdminSettingsPage: React.FC = () => {
 
       {/* Onglets */}
       <div className="flex gap-1 bg-neutral-900/80 p-1 rounded-xl border border-neutral-800">
-        {tabs.map((tab) => (
+        {TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -302,175 +243,86 @@ export const AdminSettingsPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-neutral-950/80 border border-neutral-800/80 rounded-2xl p-6 shadow-lg space-y-6">
-
-        {/* ── ONGLET GÉNÉRAL ── */}
         {activeTab === 'general' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Nom de la Marque</label>
-              <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Email de Contact Support</label>
-              <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Téléphone Conciergerie</label>
-              <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Devise Principale</label>
-              <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputCls}>
-                <option value="MAD">MAD (Dirham Marocain)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="USD">USD ($)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Frais de Livraison De Base</label>
-              <input type="number" value={shippingFee} onChange={(e) => setShippingFee(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">Seuil Livraison Gratuite</label>
-              <input type="number" value={freeShippingThreshold} onChange={(e) => setFreeShippingThreshold(e.target.value)} className={inputCls} />
-            </div>
-          </div>
+          <GeneralSettingsSection
+            siteName={siteName}
+            onSiteNameChange={setSiteName}
+            contactEmail={contactEmail}
+            onContactEmailChange={setContactEmail}
+            phone={phone}
+            onPhoneChange={setPhone}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            shippingFee={shippingFee}
+            onShippingFeeChange={setShippingFee}
+            freeShippingThreshold={freeShippingThreshold}
+            onFreeShippingThresholdChange={setFreeShippingThreshold}
+          />
         )}
 
-        {/* ── ONGLET HERO ── */}
         {activeTab === 'hero' && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
-              <Image className="w-3.5 h-3.5" />
-              <span>Section Hero — Première image visible (LCP)</span>
-            </div>
-            <ImageField
-              label="Image de fond Hero"
-              currentUrl={heroCurrentImageUrl}
-              fileRef={heroFileRef}
-              previewUrl={heroPreview}
-              onPreview={setHeroPreview}
-              hint="Format: JPEG, PNG, WEBP · Max: 10 Mo · Recommandé: 1920×1080px"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Texte Eyebrow (label au-dessus)</label>
-                <input type="text" value={heroEyebrow} onChange={(e) => setHeroEyebrow(e.target.value)} className={inputCls} placeholder="ex: Collection Printemps — Été 2025" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Titre Principal (h1)</label>
-                <input type="text" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} className={inputCls} placeholder="ex: L'Art de la Féminité" />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Description</label>
-                <textarea rows={3} value={heroDescription} onChange={(e) => setHeroDescription(e.target.value)} className={textareaCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton Principal — Texte</label>
-                <input type="text" value={heroPrimaryBtnText} onChange={(e) => setHeroPrimaryBtnText(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton Principal — URL</label>
-                <input type="text" value={heroPrimaryBtnUrl} onChange={(e) => setHeroPrimaryBtnUrl(e.target.value)} className={inputCls} placeholder="/shop" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton Secondaire — Texte</label>
-                <input type="text" value={heroSecondaryBtnText} onChange={(e) => setHeroSecondaryBtnText(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton Secondaire — URL</label>
-                <input type="text" value={heroSecondaryBtnUrl} onChange={(e) => setHeroSecondaryBtnUrl(e.target.value)} className={inputCls} placeholder="/shop" />
-              </div>
-            </div>
-          </div>
+          <HeroSettingsSection
+            heroEyebrow={heroEyebrow}
+            onHeroEyebrowChange={setHeroEyebrow}
+            heroTitle={heroTitle}
+            onHeroTitleChange={setHeroTitle}
+            heroDescription={heroDescription}
+            onHeroDescriptionChange={setHeroDescription}
+            heroPrimaryBtnText={heroPrimaryBtnText}
+            onHeroPrimaryBtnTextChange={setHeroPrimaryBtnText}
+            heroPrimaryBtnUrl={heroPrimaryBtnUrl}
+            onHeroPrimaryBtnUrlChange={setHeroPrimaryBtnUrl}
+            heroSecondaryBtnText={heroSecondaryBtnText}
+            onHeroSecondaryBtnTextChange={setHeroSecondaryBtnText}
+            heroSecondaryBtnUrl={heroSecondaryBtnUrl}
+            onHeroSecondaryBtnUrlChange={setHeroSecondaryBtnUrl}
+            heroCurrentImageUrl={heroCurrentImageUrl}
+            heroPreview={heroPreview}
+            onHeroPreviewChange={setHeroPreview}
+            heroFileRef={heroFileRef}
+          />
         )}
 
-        {/* ── ONGLET ÉDITORIAL ── */}
         {activeTab === 'editorial' && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
-              <Image className="w-3.5 h-3.5" />
-              <span>Collection Éditoriale — Section Symphonie Rose</span>
-            </div>
-            <ImageField
-              label="Image Éditoriale"
-              currentUrl={editorialCurrentImageUrl}
-              fileRef={editorialFileRef}
-              previewUrl={editorialPreview}
-              onPreview={setEditorialPreview}
-              hint="Format: JPEG, PNG, WEBP · Max: 10 Mo · Recommandé: 800×600px (4:3)"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Badge</label>
-                <input type="text" value={editorialBadge} onChange={(e) => setEditorialBadge(e.target.value)} className={inputCls} placeholder="ex: Édition Limitée" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Titre</label>
-                <input type="text" value={editorialTitle} onChange={(e) => setEditorialTitle(e.target.value)} className={inputCls} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Description</label>
-                <textarea rows={3} value={editorialDescription} onChange={(e) => setEditorialDescription(e.target.value)} className={textareaCls} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Citation (italique)</label>
-                <textarea rows={2} value={editorialQuote} onChange={(e) => setEditorialQuote(e.target.value)} className={textareaCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton — Texte</label>
-                <input type="text" value={editorialBtnText} onChange={(e) => setEditorialBtnText(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton — URL</label>
-                <input type="text" value={editorialBtnUrl} onChange={(e) => setEditorialBtnUrl(e.target.value)} className={inputCls} placeholder="/shop" />
-              </div>
-            </div>
-          </div>
+          <EditorialSettingsSection
+            editorialBadge={editorialBadge}
+            onEditorialBadgeChange={setEditorialBadge}
+            editorialTitle={editorialTitle}
+            onEditorialTitleChange={setEditorialTitle}
+            editorialDescription={editorialDescription}
+            onEditorialDescriptionChange={setEditorialDescription}
+            editorialQuote={editorialQuote}
+            onEditorialQuoteChange={setEditorialQuote}
+            editorialBtnText={editorialBtnText}
+            onEditorialBtnTextChange={setEditorialBtnText}
+            editorialBtnUrl={editorialBtnUrl}
+            onEditorialBtnUrlChange={setEditorialBtnUrl}
+            editorialCurrentImageUrl={editorialCurrentImageUrl}
+            editorialPreview={editorialPreview}
+            onEditorialPreviewChange={setEditorialPreview}
+            editorialFileRef={editorialFileRef}
+          />
         )}
 
-        {/* ── ONGLET PROMO ── */}
         {activeTab === 'promo' && (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
-              <Image className="w-3.5 h-3.5" />
-              <span>Bannière Promotionnelle — Ventes Privées</span>
-            </div>
-            <ImageField
-              label="Image Bannière Promo"
-              currentUrl={promoCurrentImageUrl}
-              fileRef={promoFileRef}
-              previewUrl={promoPreview}
-              onPreview={setPromoPreview}
-              hint="Format: JPEG, PNG, WEBP · Max: 10 Mo · Recommandé: 1200×500px"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Badge</label>
-                <input type="text" value={promoBadge} onChange={(e) => setPromoBadge(e.target.value)} className={inputCls} placeholder="ex: Jusqu'au 20 Août" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Titre</label>
-                <input type="text" value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Sous-titre</label>
-                <input type="text" value={promoSubtitle} onChange={(e) => setPromoSubtitle(e.target.value)} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton — Texte</label>
-                <input type="text" value={promoBtnText} onChange={(e) => setPromoBtnText(e.target.value)} className={inputCls} />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Description</label>
-                <textarea rows={3} value={promoDescription} onChange={(e) => setPromoDescription(e.target.value)} className={textareaCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1">Bouton — URL</label>
-                <input type="text" value={promoBtnUrl} onChange={(e) => setPromoBtnUrl(e.target.value)} className={inputCls} placeholder="/shop" />
-              </div>
-            </div>
-          </div>
+          <PromoSettingsSection
+            promoBadge={promoBadge}
+            onPromoBadgeChange={setPromoBadge}
+            promoTitle={promoTitle}
+            onPromoTitleChange={setPromoTitle}
+            promoSubtitle={promoSubtitle}
+            onPromoSubtitleChange={setPromoSubtitle}
+            promoDescription={promoDescription}
+            onPromoDescriptionChange={setPromoDescription}
+            promoBtnText={promoBtnText}
+            onPromoBtnTextChange={setPromoBtnText}
+            promoBtnUrl={promoBtnUrl}
+            onPromoBtnUrlChange={setPromoBtnUrl}
+            promoCurrentImageUrl={promoCurrentImageUrl}
+            promoPreview={promoPreview}
+            onPromoPreviewChange={setPromoPreview}
+            promoFileRef={promoFileRef}
+          />
         )}
 
         {/* Footer du formulaire */}
@@ -490,10 +342,7 @@ export const AdminSettingsPage: React.FC = () => {
             disabled={updateSettingsMutation.isPending}
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-burgundy-800 hover:bg-burgundy-700 text-white text-xs font-semibold rounded-xl transition-all shadow-md disabled:opacity-60"
           >
-            {updateSettingsMutation.isPending
-              ? <Spinner size="sm" />
-              : <Save className="w-4 h-4" />
-            }
+            {updateSettingsMutation.isPending ? <Spinner size="sm" /> : <Save className="w-4 h-4" />}
             <span>Enregistrer les modifications</span>
           </button>
         </div>
