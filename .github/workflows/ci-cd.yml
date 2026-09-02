@@ -61,17 +61,23 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: mbstring, pdo, pdo_mysql, pdo_sqlite, zip, gd, bcmath, ctype, json, xml, redis
           coverage: none
+
+      - name: Prepare CI environment
+        working-directory: ./backend
+        run: |
+          cp .env.ci .env
+          touch database/database.sqlite
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: backend/vendor
-          key: composer-8.3-${{ hashFiles('backend/composer.lock') }}
+          key: composer-8.4-${{ hashFiles('backend/composer.lock') }}
           restore-keys: |
-            composer-8.3-
+            composer-8.4-
             composer-
 
       - name: Install Backend Dependencies
@@ -81,12 +87,6 @@ jobs:
       - name: Run Pint Code Style Check
         working-directory: ./backend
         run: composer lint:test
-
-      - name: Prepare CI environment
-        working-directory: ./backend
-        run: |
-          cp .env.ci .env
-          touch database/database.sqlite
 
       - name: Generate APP_KEY
         working-directory: ./backend
@@ -165,7 +165,7 @@ jobs:
       - name: Setup PHP for Composer Security Audit
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: mbstring, json
           coverage: none
 
@@ -175,7 +175,7 @@ jobs:
 
       - name: Run Backend Composer Audit
         working-directory: ./backend
-        run: composer audit --no-dev
+        run: composer audit --locked --no-dev
 
   # ── 4. Production Deployment Trigger (main branch only) ───────────────────
   deploy-production:

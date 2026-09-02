@@ -18,20 +18,11 @@ import { useSEO, useJsonLD } from '../../hooks/useSEO';
 import { buildProductLD, buildBreadcrumbLD, SITE_URL } from '../../utils/seo';
 import { LazyImage } from '../../components/ui/LazyImage';
 
-const SIZES = ['34', '36', '38', '40', '42'];
-const COLORS = [
-  { name: 'Bordeaux Signature', hex: '#8A1538' },
-  { name: 'Rose Poudré', hex: '#F8D7DA' },
-  { name: 'Crème', hex: '#FAF6F0' },
-];
-
 export const ProductDetailPage = () => {
   const { slug = '' } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
   const [selectedImg, setSelectedImg] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('38');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0].name);
   const [quantity, setQuantity] = useState(1);
   const [openAccordion, setOpenAccordion] = useState<string | null>('desc');
 
@@ -228,57 +219,8 @@ export const ProductDetailPage = () => {
                   {product.description}
                 </p>
 
-                {/* Color Selector */}
-                <div className="space-y-2">
-                  <label className="block text-body-sm font-medium text-neutral-900 tracking-wider">
-                    Couleur : <span className="text-neutral-500 font-normal">{selectedColor}</span>
-                  </label>
-                  <div className="flex items-center gap-3">
-                    {COLORS.map((c) => (
-                      <button
-                        key={c.name}
-                        type="button"
-                        onClick={() => setSelectedColor(c.name)}
-                        aria-label={`Couleur ${c.name}`}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          selectedColor === c.name ? 'border-burgundy-500 ring-2 ring-burgundy-500/30' : 'border-neutral-300'
-                        }`}
-                        style={{ backgroundColor: c.hex }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Size Selector */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-body-sm font-medium text-neutral-900 tracking-wider">
-                      Taille EU
-                    </label>
-                    <button type="button" className="text-caption text-burgundy-500 underline font-medium">
-                      Guide des Tailles
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {SIZES.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setSelectedSize(s)}
-                        className={`w-11 h-11 rounded-xs text-body-sm font-semibold border transition-all ${
-                          selectedSize === s
-                            ? 'bg-burgundy-500 text-white border-burgundy-500 shadow-hafrose-xs'
-                            : 'bg-white text-neutral-800 border-neutral-300 hover:border-burgundy-500'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Quantity & Actions */}
-                <div className="space-y-4 pt-2">
+                <div className="space-y-4">
                   <div className="flex items-center gap-4">
                     <NumberInput
                       value={quantity}
@@ -292,7 +234,7 @@ export const ProductDetailPage = () => {
                         size="lg"
                         fullWidth
                         leftIcon={<ShoppingBag className="w-5 h-5" />}
-                        onClick={() => addToCart(product, quantity, selectedSize, selectedColor)}
+                        onClick={() => addToCart(product, quantity)}
                       >
                         Ajouter au Panier
                       </Button>
