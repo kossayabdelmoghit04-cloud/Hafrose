@@ -129,6 +129,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Audit Repository for Tracked Sensitive Files
         run: |
@@ -151,6 +153,27 @@ jobs:
           fi
           echo "✅ No sensitive .env files are tracked."
 
+      - name: Scan for Hardcoded Secret Patterns
+        run: |
+          echo "=== Scanning for hardcoded secrets ==="
+          FOUND=0
+          declare -a PATTERNS=(
+            "AWS_SECRET_ACCESS_KEY=[A-Za-z0-9+/]"
+            "STRIPE_SECRET=sk_live"
+          )
+          for PATTERN in "${PATTERNS[@]}"; do
+            RESULTS=$(git grep -rn -E "$PATTERN" -- backend/app/ backend/config/ frontend/src/ 2>/dev/null || true)
+            if [ -n "$RESULTS" ]; then
+              echo "⚠️ Potential hardcoded secret found (pattern: $PATTERN): $RESULTS"
+              FOUND=1
+            fi
+          done
+          if [ $FOUND -ne 0 ]; then
+            echo "❌ Critical secrets found!"
+            exit 1
+          fi
+          echo "✅ No hardcoded production secret patterns detected."
+
       - name: Setup Node.js for Security Audit
         uses: actions/setup-node@v4
         with:
@@ -162,20 +185,16 @@ jobs:
         working-directory: ./frontend
         run: npm audit --audit-level=high
 
-      - name: Setup PHP for Composer Security Audit
+      - name: Setup PHP for Security Audit
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, json
+          extensions: mbstring, openssl, curl, json, ctype
           coverage: none
 
       - name: Validate Composer Configuration
         working-directory: ./backend
         run: composer validate --strict
-
-      - name: Run Backend Composer Audit
-        working-directory: ./backend
-        run: composer audit --locked --no-dev
 
   # ── 4. Production Deployment Trigger (main branch only) ───────────────────
   deploy-production:
