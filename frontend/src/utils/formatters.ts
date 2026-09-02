@@ -94,9 +94,11 @@ export function getImageUrl(
   filePath: string | null | undefined,
   fallback = 'assets/images/placeholder.svg'
 ): string {
+  const defaultStorageUrl = import.meta.env.DEV ? 'http://localhost:8000/storage' : '/storage';
+
   if (!filePath || typeof filePath !== 'string' || !filePath.trim()) {
     if (filePath === fallback) {
-      const storageUrl = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+      const storageUrl = import.meta.env.VITE_STORAGE_URL || defaultStorageUrl;
       const serverUrl = storageUrl.replace(/\/storage\/?$/, '');
       return `${serverUrl}/assets/images/placeholder.svg`;
     }
@@ -115,8 +117,8 @@ export function getImageUrl(
     return trimmed;
   }
 
-  // Base server URL (e.g. http://localhost:8000)
-  const storageUrl = import.meta.env.VITE_STORAGE_URL || 'http://localhost:8000/storage';
+  // Base server URL (e.g. http://localhost:8000 in dev, '' in prod)
+  const storageUrl = import.meta.env.VITE_STORAGE_URL || defaultStorageUrl;
   const serverUrl = storageUrl.replace(/\/storage\/?$/, '');
 
   // Strip leading slashes

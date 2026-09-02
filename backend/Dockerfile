@@ -18,7 +18,7 @@ COPY . .
 RUN composer dump-autoload --optimize --no-dev
 
 # ── Stage 2: PHP-FPM Production ───────────────────────────────────────────────
-FROM php:8.2-fpm-alpine AS production
+FROM php:8.4-fpm-alpine AS production
 
 # Install system dependencies and PHP extensions
 RUN apk add --no-cache \
@@ -33,6 +33,7 @@ RUN apk add --no-cache \
         mbstring \
         zip \
         gd \
+        bcmath \
         opcache
 
 # OPcache configuration for production performance

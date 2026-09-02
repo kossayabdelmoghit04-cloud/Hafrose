@@ -25,12 +25,16 @@ use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\LoyaltyController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\PublicHealthCheckController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SearchController;
 use App\Http\Controllers\Api\SecurityController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// ── Health Check Public (Infrastructures, Docker, Nginx, CI/CD) ───────────────
+Route::get('/health', [PublicHealthCheckController::class, 'check']);
 
 // Route par défaut de Laravel Sanctum (préservée)
 Route::get('/user', function (Request $request) {

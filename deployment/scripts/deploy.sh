@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# HAFROSE Backend — Automated Production Deployment Script
+# ⚠️  LEGACY SCRIPT — NOT FOR USE WITH DOCKER PRODUCTION STACK ⚠️
 # ==============================================================================
-# Target OS: Ubuntu 24.04 LTS
+# This script was designed for a bare-metal PHP-FPM setup (php8.3-fpm via
+# systemd). HAFROSE now runs exclusively via Docker + Docker Compose.
+#
+# The production deployment is fully managed by:
+#   .github/workflows/ci-cd.yml  →  deploy-production job
+#   via appleboy/ssh-action + docker compose + docker exec
+#
+# DO NOT run this script on the production Docker server.
+# It is kept for historical reference only.
+# ==============================================================================
+# HAFROSE Backend — Automated Production Deployment Script (BARE-METAL LEGACY)
+# ==============================================================================
+# Target OS: Ubuntu 24.04 LTS (bare-metal, no Docker)
 # Usage: ./deploy.sh [branch_or_tag]
 # Features: Idempotency, Maintenance Mode, Cache Optimization, Service Reloads, Health Checks, Auto-Rollback
 # ==============================================================================

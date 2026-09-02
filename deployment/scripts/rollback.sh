@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# HAFROSE Backend — Automated Rollback Script
+# ⚠️  LEGACY SCRIPT — NOT FOR USE WITH DOCKER PRODUCTION STACK ⚠️
 # ==============================================================================
-# Target OS: Ubuntu 24.04 LTS
+# This script was designed for a bare-metal PHP-FPM setup (php8.3-fpm via
+# systemd). HAFROSE rollback is now managed by the CI/CD workflow:
+#   .github/workflows/ci-cd.yml  →  trap ERR handler
+#   via: git checkout -f $PREV_COMMIT + docker compose up -d
+#
+# DO NOT run this script on the production Docker server.
+# It is kept for historical reference only.
+# ==============================================================================
+# HAFROSE Backend — Automated Rollback Script (BARE-METAL LEGACY)
+# ==============================================================================
+# Target OS: Ubuntu 24.04 LTS (bare-metal, no Docker)
 # Usage: ./rollback.sh [target_commit_or_tag]
 # Features: Git Hard Reset, Re-installation, Cache Flush, Service Restarts, Recovery Verification
 # ==============================================================================

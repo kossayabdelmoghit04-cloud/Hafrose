@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# HAFROSE Backend — System Health Check Script
+# ⚠️  LEGACY SCRIPT — NOT FOR USE WITH DOCKER PRODUCTION STACK ⚠️
 # ==============================================================================
-# Target OS: Ubuntu 24.04 LTS
+# This script was designed for a bare-metal setup checking systemd services
+# (nginx, php8.3-fpm, supervisor). HAFROSE health checks in Docker use:
+#   - docker compose ps  (healthcheck statuses)
+#   - docker exec hafrose_backend php artisan hafrose:deploy:status
+#   - curl https://hafrose.com/health
+#   - curl https://hafrose.com/api/health
+#
+# DO NOT run this script on the production Docker server.
+# It is kept for historical reference only.
+# ==============================================================================
+# HAFROSE Backend — System Health Check Script (BARE-METAL LEGACY)
+# ==============================================================================
+# Target OS: Ubuntu 24.04 LTS (bare-metal, no Docker)
 # Usage: ./health-check.sh [endpoint_url]
 # Features: HTTP Endpoint Check, Systemd Services Check, Supervisor Workers Check, Storage Writeability
 # ==============================================================================
