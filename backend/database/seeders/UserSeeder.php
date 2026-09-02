@@ -16,6 +16,7 @@ class UserSeeder extends Seeder
         // Strict environment guard: test users must never be created outside testing
         if (! app()->environment('testing')) {
             $this->command?->warn('⚠️ UserSeeder is restricted to testing environment. Skipping execution.');
+
             return;
         }
 

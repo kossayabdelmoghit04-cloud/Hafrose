@@ -11,14 +11,15 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryService
 {
-    protected CategoryRepositoryInterface  $categoryRepository;
-    protected ImageOptimizationService     $imageOptimizationService;
+    protected CategoryRepositoryInterface $categoryRepository;
+
+    protected ImageOptimizationService $imageOptimizationService;
 
     public function __construct(
         CategoryRepositoryInterface $categoryRepository,
-        ImageOptimizationService    $imageOptimizationService
+        ImageOptimizationService $imageOptimizationService
     ) {
-        $this->categoryRepository       = $categoryRepository;
+        $this->categoryRepository = $categoryRepository;
         $this->imageOptimizationService = $imageOptimizationService;
     }
 
@@ -67,10 +68,10 @@ class CategoryService
     public function createCategory(array $data, ?UploadedFile $imageFile = null): Category
     {
         if ($imageFile) {
-            $result       = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
+            $result = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
             $data['image'] = $result['original'];
         } elseif (! empty($data['image_path'])) {
-            $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+            $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
             $data['image'] = $cleanPath;
         }
 
@@ -88,10 +89,10 @@ class CategoryService
                 $this->imageOptimizationService->deleteWithVariants($category->image, 'public');
             }
 
-            $result        = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
+            $result = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'categories');
             $data['image'] = $result['original'];
         } elseif (! empty($data['image_path'])) {
-            $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+            $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
             $data['image'] = $cleanPath;
         } else {
             // Conserver l'image existante si aucune nouvelle image n'est envoyée
@@ -119,7 +120,7 @@ class CategoryService
      */
     private function deletePhysicalImage(string $url): void
     {
-        $path         = parse_url($url, PHP_URL_PATH) ?? $url;
+        $path = parse_url($url, PHP_URL_PATH) ?? $url;
         $relativePath = str_replace('/storage/', '', $path);
         $relativePath = ltrim($relativePath, '/');
 

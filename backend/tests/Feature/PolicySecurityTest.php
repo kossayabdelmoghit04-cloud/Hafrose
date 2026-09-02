@@ -30,6 +30,7 @@ class PolicySecurityTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'customer']);
         $token = $user->createToken('test')->plainTextToken;
+
         return [$user, $token];
     }
 

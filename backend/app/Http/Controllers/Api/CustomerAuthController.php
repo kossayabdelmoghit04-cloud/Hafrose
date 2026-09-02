@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Traits\HttpResponses;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,13 +25,13 @@ class CustomerAuthController extends Controller
     protected function formatUserPayload(User $user): array
     {
         return [
-            'id'         => $user->id,
+            'id' => $user->id,
             'first_name' => $user->first_name,
-            'last_name'  => $user->last_name,
-            'name'       => $user->full_name ?: $user->name,
-            'email'      => $user->email,
-            'phone'      => $user->phone,
-            'role'       => $user->role ?? 'customer',
+            'last_name' => $user->last_name,
+            'name' => $user->full_name ?: $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role ?? 'customer',
             'created_at' => $user->created_at?->toISOString(),
         ];
     }
@@ -44,7 +43,7 @@ class CustomerAuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
-            'email'    => 'required|email|max:255',
+            'email' => 'required|email|max:255',
             'password' => 'required|string|min:6',
         ]);
 
@@ -70,7 +69,7 @@ class CustomerAuthController extends Controller
 
         return $this->successResponse([
             'token' => $token,
-            'user'  => $this->formatUserPayload($user),
+            'user' => $this->formatUserPayload($user),
         ], 'Connexion réussie. Bienvenue dans la Maison HAFROSE.');
     }
 
@@ -81,29 +80,29 @@ class CustomerAuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'first_name'            => 'required|string|max:100',
-            'last_name'             => 'required|string|max:100',
-            'email'                 => 'required|email|max:255|unique:users,email',
-            'phone'                 => 'nullable|string|max:30',
-            'password'              => 'required|string|min:8|confirmed',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:30',
+            'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|min:8',
         ]);
 
         $user = User::create([
             'first_name' => $data['first_name'],
-            'last_name'  => $data['last_name'],
-            'name'       => trim($data['first_name'] . ' ' . $data['last_name']),
-            'email'      => $data['email'],
-            'phone'      => $data['phone'] ?? null,
-            'password'   => Hash::make($data['password']),
-            'role'       => 'customer',
+            'last_name' => $data['last_name'],
+            'name' => trim($data['first_name'].' '.$data['last_name']),
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
+            'password' => Hash::make($data['password']),
+            'role' => 'customer',
         ]);
 
         $token = $user->createToken('customer-token')->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
-            'user'  => $this->formatUserPayload($user),
+            'user' => $this->formatUserPayload($user),
         ], 'Compte créé avec succès. Bienvenue dans la Maison HAFROSE.', 201);
     }
 
@@ -147,9 +146,9 @@ class CustomerAuthController extends Controller
     public function resetPassword(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'token'                 => 'required|string',
-            'email'                 => 'required|email|max:255',
-            'password'              => 'required|string|min:8|confirmed',
+            'token' => 'required|string',
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|min:8',
         ]);
 
@@ -189,14 +188,14 @@ class CustomerAuthController extends Controller
 
         $data = $request->validate([
             'first_name' => 'sometimes|string|max:100',
-            'last_name'  => 'sometimes|string|max:100',
-            'email'      => 'sometimes|email|max:255|unique:users,email,' . $user->id,
-            'phone'      => 'nullable|string|max:30',
+            'last_name' => 'sometimes|string|max:100',
+            'email' => 'sometimes|email|max:255|unique:users,email,'.$user->id,
+            'phone' => 'nullable|string|max:30',
         ]);
 
         $user->fill($data);
         if (isset($data['first_name']) || isset($data['last_name'])) {
-            $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            $user->name = trim(($user->first_name ?? '').' '.($user->last_name ?? ''));
         }
         $user->save();
 
@@ -212,8 +211,8 @@ class CustomerAuthController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'current_password'      => 'required|string',
-            'password'              => 'required|string|min:8|confirmed',
+            'current_password' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|min:8',
         ]);
 

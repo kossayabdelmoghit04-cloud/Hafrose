@@ -30,17 +30,17 @@ return new class extends Migration
 
         // Backfill existing rows
         DB::table('orders')->orderBy('id')->each(function ($order) {
-            $orderNum = 'HF-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
+            $orderNum = 'HF-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
             $subtotal = (float) $order->total_price;
-            $tax      = round($subtotal - ($subtotal / 1.2), 2);
-            $total    = $subtotal; // default 0 shipping for backfill
+            $tax = round($subtotal - ($subtotal / 1.2), 2);
+            $total = $subtotal; // default 0 shipping for backfill
 
             DB::table('orders')->where('id', $order->id)->update([
-                'order_number'    => $orderNum,
+                'order_number' => $orderNum,
                 'subtotal_amount' => $subtotal,
-                'tax_amount'      => $tax,
+                'tax_amount' => $tax,
                 'shipping_amount' => 0.00,
-                'total_amount'    => $total,
+                'total_amount' => $total,
             ]);
         });
     }

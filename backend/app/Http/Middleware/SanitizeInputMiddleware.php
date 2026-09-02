@@ -40,6 +40,7 @@ class SanitizeInputMiddleware
                 $data[$key] = $this->sanitizeString($value);
             }
         }
+
         return $data;
     }
 

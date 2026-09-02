@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\AdminLogController;
+use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\AuthController;
 use App\Http\Controllers\Api\Admin\BulkActionController;
 use App\Http\Controllers\Api\Admin\CacheAdminController;
@@ -15,13 +16,18 @@ use App\Http\Controllers\Api\Admin\SystemBackupController;
 use App\Http\Controllers\Api\Admin\SystemMonitoringController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\CustomerAddressController;
 use App\Http\Controllers\Api\CustomerAuthController;
 use App\Http\Controllers\Api\CustomerNotificationController;
+use App\Http\Controllers\Api\GiftCardController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\LoyaltyController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\SearchController;
+use App\Http\Controllers\Api\SecurityController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -84,7 +90,7 @@ Route::middleware('throttle:api')->group(function () {
     Route::get('/products/filters', [ProductController::class, 'filters']);
     Route::get('/products/popular', [ProductController::class, 'popular']);
     Route::get('/products/search', [ProductController::class, 'search']);
-    Route::get('/products/autocomplete', [\App\Http\Controllers\Api\SearchController::class, 'autocomplete']);
+    Route::get('/products/autocomplete', [SearchController::class, 'autocomplete']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{slug}', [ProductController::class, 'show']);
     Route::get('/products/{product}/related', [ProductController::class, 'related']);
@@ -130,7 +136,7 @@ Route::prefix('admin')->group(function () {
 
         // Dashboard & Analytics
         Route::get('/dashboard', [DashboardController::class, 'index']);
-        Route::get('/analytics', [\App\Http\Controllers\Api\Admin\AnalyticsController::class, 'index']);
+        Route::get('/analytics', [AnalyticsController::class, 'index']);
 
         // Exports CSV & Excel
         Route::get('/export/{resource}/csv', [ExportController::class, 'exportCsv']);
@@ -212,26 +218,26 @@ Route::prefix('admin')->group(function () {
         Route::post('/system/deployment/warmup', [DeploymentController::class, 'warmup']);
 
         // ── v2.0 Enterprise Analytics ───────────────────────────────────────
-        Route::get('/analytics/dashboard', [\App\Http\Controllers\Api\Admin\AnalyticsController::class, 'index']);
+        Route::get('/analytics/dashboard', [AnalyticsController::class, 'index']);
     });
 });
 
 // ── HAFROSE E-COMMERCE LUXE EXPANSION ROUTES ──────────────────────────────
 Route::middleware('throttle:api')->group(function () {
     // Phase 6.4: Gift Cards Check
-    Route::get('/gift-cards/check', [\App\Http\Controllers\Api\GiftCardController::class, 'check']);
+    Route::get('/gift-cards/check', [GiftCardController::class, 'check']);
 
     // Phase 6.5: Multi-Currency
-    Route::get('/currencies', [\App\Http\Controllers\Api\CurrencyController::class, 'index']);
+    Route::get('/currencies', [CurrencyController::class, 'index']);
 });
 
 // Authenticated v2 Routes
 Route::middleware('auth:sanctum')->group(function () {
     // Phase 6.3: Loyalty Program
-    Route::get('/loyalty/account', [\App\Http\Controllers\Api\LoyaltyController::class, 'account']);
-    Route::get('/loyalty/rewards', [\App\Http\Controllers\Api\LoyaltyController::class, 'rewards']);
+    Route::get('/loyalty/account', [LoyaltyController::class, 'account']);
+    Route::get('/loyalty/rewards', [LoyaltyController::class, 'rewards']);
 
     // Phase 6.17: Enterprise Security
-    Route::post('/security/2fa/setup', [\App\Http\Controllers\Api\SecurityController::class, 'setup2Fa']);
-    Route::get('/security/audit-logs', [\App\Http\Controllers\Api\SecurityController::class, 'auditLogs']);
+    Route::post('/security/2fa/setup', [SecurityController::class, 'setup2Fa']);
+    Route::get('/security/audit-logs', [SecurityController::class, 'auditLogs']);
 });

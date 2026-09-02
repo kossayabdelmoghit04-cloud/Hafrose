@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\TestCustomerSeeder;
 use Database\Seeders\UserSeeder;
@@ -36,7 +35,7 @@ class TestCustomerSeederSecurityTest extends TestCase
         foreach (self::TEST_EMAILS as $email) {
             $this->assertDatabaseHas('users', [
                 'email' => $email,
-                'role'  => 'customer',
+                'role' => 'customer',
             ]);
         }
     }
@@ -50,7 +49,7 @@ class TestCustomerSeederSecurityTest extends TestCase
         $this->assertTrue(app()->isProduction());
         $this->assertFalse(app()->environment('testing'));
 
-        $seeder = new TestCustomerSeeder();
+        $seeder = new TestCustomerSeeder;
         $seeder->setContainer($this->app);
         $seeder->run();
 
@@ -69,7 +68,7 @@ class TestCustomerSeederSecurityTest extends TestCase
         $this->app['env'] = 'local';
         $this->assertFalse(app()->environment('testing'));
 
-        $seeder = new TestCustomerSeeder();
+        $seeder = new TestCustomerSeeder;
         $seeder->setContainer($this->app);
         $seeder->run();
 
@@ -88,7 +87,7 @@ class TestCustomerSeederSecurityTest extends TestCase
         $this->app['env'] = 'production';
         $this->assertFalse(app()->environment('testing'));
 
-        $seeder = new UserSeeder();
+        $seeder = new UserSeeder;
         $seeder->setContainer($this->app);
         $seeder->run();
 

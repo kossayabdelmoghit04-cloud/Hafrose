@@ -45,10 +45,10 @@ class Category extends Model
         }
 
         $cleanPath = ltrim(str_replace('/storage/', '', $this->image), '/');
-        $fullPath  = storage_path('app/public/' . $cleanPath);
-        $v         = file_exists($fullPath) ? filemtime($fullPath) : ($this->updated_at ? $this->updated_at->timestamp : '1');
+        $fullPath = storage_path('app/public/'.$cleanPath);
+        $v = file_exists($fullPath) ? filemtime($fullPath) : ($this->updated_at ? $this->updated_at->timestamp : '1');
 
-        return Storage::url($cleanPath) . '?v=' . $v;
+        return Storage::url($cleanPath).'?v='.$v;
     }
 
     /**

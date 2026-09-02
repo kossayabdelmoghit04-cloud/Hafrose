@@ -23,22 +23,22 @@ class StoreOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer'        => 'required|string|max:255',
-            'phone'           => 'required|string|max:50',
-            'address'         => 'required|string|max:500',
-            'city'            => 'required|string|max:100',
-            'postal_code'     => 'nullable|string|max:20',
-            'country'         => 'nullable|string|max:100',
+            'customer' => 'required|string|max:255',
+            'phone' => 'required|string|max:50',
+            'address' => 'required|string|max:500',
+            'city' => 'required|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
             'shipping_amount' => 'nullable|numeric|min:0',
             'shipping_method' => 'nullable|string|max:50',
-            'payment_method'  => 'nullable|string|max:50',
-            'payment_status'  => 'nullable|string|max:50',
+            'payment_method' => 'nullable|string|max:50',
+            'payment_status' => 'nullable|string|max:50',
             'shipping_address' => 'nullable|array',
-            'items'           => 'required|array|min:1',
+            'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1|max:999',
-            'items.*.size'       => 'nullable|string|max:50',
-            'items.*.color'      => 'nullable|string|max:50',
+            'items.*.quantity' => 'required|integer|min:1|max:999',
+            'items.*.size' => 'nullable|string|max:50',
+            'items.*.color' => 'nullable|string|max:50',
         ];
     }
 

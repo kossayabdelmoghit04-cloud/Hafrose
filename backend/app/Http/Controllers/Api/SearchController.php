@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ProductResource;
 use App\Services\SearchService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;

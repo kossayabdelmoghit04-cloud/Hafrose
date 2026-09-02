@@ -24,7 +24,7 @@ class GiftCardController extends Controller
         $code = $request->input('code', '');
         $card = $this->giftCardService->checkCard($code);
 
-        if (!$card) {
+        if (! $card) {
             return $this->errorResponse('Carte cadeau invalide ou expirée.', 404);
         }
 

@@ -30,13 +30,13 @@ return new class extends Migration
             ->where('name', '!=', '')
             ->orderBy('id')
             ->each(function ($user) {
-                $parts     = explode(' ', trim($user->name), 2);
+                $parts = explode(' ', trim($user->name), 2);
                 $firstName = $parts[0] ?? '';
-                $lastName  = $parts[1] ?? '';
+                $lastName = $parts[1] ?? '';
 
                 DB::table('users')->where('id', $user->id)->update([
                     'first_name' => $firstName,
-                    'last_name'  => $lastName,
+                    'last_name' => $lastName,
                 ]);
             });
     }

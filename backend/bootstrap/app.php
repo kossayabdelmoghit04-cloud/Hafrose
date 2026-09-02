@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\InsufficientStockException;
+use App\Exceptions\ProductNotFoundException;
 use App\Http\Middleware\BlockSpamHoneypot;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\MonitoringMiddleware;
@@ -48,6 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return null;
             }
+
             return '/login';
         });
 
@@ -62,10 +65,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson()) {
                 $status = 500;
                 $isProduction = config('app.env') === 'production';
-                $message = ($isProduction && !($e instanceof ValidationException))
+                $message = ($isProduction && ! ($e instanceof ValidationException))
                     ? 'Le serveur MAISON HAFROSE rencontre une indisponibilité temporaire.'
                     : ($e->getMessage() ?: 'Server Error');
-                
+
                 $errors = null;
                 $data = null;
 
@@ -73,11 +76,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     $status = 422;
                     $message = 'Validation failed';
                     $errors = $e->errors();
-                } elseif ($e instanceof \App\Exceptions\InsufficientStockException) {
+                } elseif ($e instanceof InsufficientStockException) {
                     $status = 409;
                     $message = $e->getMessage();
                     $errors = ['stock' => ["Le stock disponible est de {$e->availableStock} unité(s)."]];
-                } elseif ($e instanceof \App\Exceptions\ProductNotFoundException) {
+                } elseif ($e instanceof ProductNotFoundException) {
                     $status = 404;
                     $message = 'Product not found';
                     $errors = ['product_id' => [$e->getMessage()]];

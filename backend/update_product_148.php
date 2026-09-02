@@ -1,11 +1,15 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$app = require_once __DIR__ . '/bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-$product = App\Models\Product::where('name', 'LIKE', '%Sac Cabas Signature Bordeaux%')->first();
-if (!$product) {
-    $product = App\Models\Product::orderBy('id', 'desc')->first();
+use App\Models\Product;
+use Illuminate\Contracts\Console\Kernel;
+
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$app->make(Kernel::class)->bootstrap();
+
+$product = Product::where('name', 'LIKE', '%Sac Cabas Signature Bordeaux%')->first();
+if (! $product) {
+    $product = Product::orderBy('id', 'desc')->first();
 }
 
 if ($product) {

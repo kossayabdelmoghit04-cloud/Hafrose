@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
 
 class SearchService
 {
@@ -29,9 +28,9 @@ class SearchService
         }
 
         $products = Product::where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                  ->orWhere('material', 'LIKE', "%{$query}%");
-            })
+            $q->where('name', 'LIKE', "%{$query}%")
+                ->orWhere('material', 'LIKE', "%{$query}%");
+        })
             ->select('id', 'name', 'slug', 'price', 'image')
             ->take($limit)
             ->get();

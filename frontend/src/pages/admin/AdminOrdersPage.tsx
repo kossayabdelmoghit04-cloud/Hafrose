@@ -6,6 +6,7 @@ import { ErrorState } from '../../components/ui/ErrorState';
 import { Pagination } from '../../components/ui/Pagination';
 import { useSEO } from '../../hooks/useSEO';
 import { formatPrice } from '../../utils/formatters';
+import { API_BASE_URL } from '../../constants/api.constants';
 import { Order, OrderStatus } from '../../types/models';
 
 const STATUS_OPTIONS = [
@@ -189,7 +190,7 @@ export const AdminOrdersPage: React.FC = () => {
                           <Eye className="w-4 h-4" />
                         </button>
                         <a
-                          href={`http://localhost:8000/api/admin/orders/${o.id}/pdf`}
+                          href={`${API_BASE_URL}/admin/orders/${o.id}/pdf`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-950/30 rounded-lg transition-colors"

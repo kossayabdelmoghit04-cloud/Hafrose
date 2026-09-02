@@ -36,7 +36,7 @@ class OptimizeExistingImages extends Command
     public function handle(): int
     {
         $isDryRun = $this->option('dry-run');
-        $force    = $this->option('force');
+        $force = $this->option('force');
 
         $this->info('╔══════════════════════════════════════════════════════════╗');
         $this->info('║       HAFROSE — Optimisation des Images Existantes       ║');
@@ -46,11 +46,11 @@ class OptimizeExistingImages extends Command
         }
 
         $directories = [
-            'categories'       => ['card', 'thumb'],
-            'products'         => ['card', 'thumb', 'large'],
+            'categories' => ['card', 'thumb'],
+            'products' => ['card', 'thumb', 'large'],
             'products/gallery' => ['thumb', 'large'],
-            'hero'             => ['banner', 'large'],
-            'banners'          => ['banner', 'large'],
+            'hero' => ['banner', 'large'],
+            'banners' => ['banner', 'large'],
         ];
 
         $totalOriginalSize = 0;
@@ -69,11 +69,11 @@ class OptimizeExistingImages extends Command
             $this->newLine();
             $this->line("<fg=cyan;options=bold>📁 Dossier : {$dir}</>");
 
-            $files = glob($fullDir . '/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
+            $files = glob($fullDir.'/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', GLOB_BRACE);
 
             foreach ($files as $filePath) {
                 $filename = pathinfo($filePath, PATHINFO_FILENAME);
-                $ext      = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
                 // Ignorer les variantes déjà générées
                 $isVariant = false;
@@ -87,12 +87,12 @@ class OptimizeExistingImages extends Command
                     continue;
                 }
 
-                $relativePath = $dir . '/' . basename($filePath);
+                $relativePath = $dir.'/'.basename($filePath);
                 $originalBytes = filesize($filePath);
                 $totalOriginalSize += $originalBytes;
                 $totalProcessed++;
 
-                $this->line(sprintf("  ▶ <comment>%-50s</comment> (%d KB)", basename($filePath), round($originalBytes / 1024)));
+                $this->line(sprintf('  ▶ <comment>%-50s</comment> (%d KB)', basename($filePath), round($originalBytes / 1024)));
 
                 if (! $isDryRun) {
                     $result = $this->imageOptimizationService->optimizeAndStore(
@@ -109,12 +109,12 @@ class OptimizeExistingImages extends Command
                     foreach ($result['variants'] as $vName => $vPath) {
                         $vBytes = Storage::disk('public')->exists($vPath) ? Storage::disk('public')->size($vPath) : 0;
                         $totalOptimizedSize += $vBytes;
-                        $this->line(sprintf("     ✓ %-10s : %s (%d KB)", $vName, basename($vPath), round($vBytes / 1024)));
+                        $this->line(sprintf('     ✓ %-10s : %s (%d KB)', $vName, basename($vPath), round($vBytes / 1024)));
                     }
 
                     foreach ($result['webp'] as $wName => $wPath) {
                         $wBytes = Storage::disk('public')->exists($wPath) ? Storage::disk('public')->size($wPath) : 0;
-                        $this->line(sprintf("     ✓ WebP %-5s : %s (%d KB)", $wName, basename($wPath), round($wBytes / 1024)));
+                        $this->line(sprintf('     ✓ WebP %-5s : %s (%d KB)', $wName, basename($wPath), round($wBytes / 1024)));
                     }
                 }
             }
@@ -124,11 +124,11 @@ class OptimizeExistingImages extends Command
         $this->info('╔══════════════════════════════════════════════════════════╗');
         $this->info('║                   RÉSUMÉ DU TRAITEMENT                   ║');
         $this->info('╚══════════════════════════════════════════════════════════╝');
-        $this->line(sprintf("  Images originales traitées : <info>%d</info>", $totalProcessed));
-        $this->line(sprintf("  Poids original total       : <info>%d KB (~%.2f MB)</info>", round($totalOriginalSize / 1024), $totalOriginalSize / (1024 * 1024)));
+        $this->line(sprintf('  Images originales traitées : <info>%d</info>', $totalProcessed));
+        $this->line(sprintf('  Poids original total       : <info>%d KB (~%.2f MB)</info>', round($totalOriginalSize / 1024), $totalOriginalSize / (1024 * 1024)));
 
         if (! $isDryRun) {
-            $this->line(sprintf("  Variantes générées         : <info>%d</info>", $totalVariantsCreated));
+            $this->line(sprintf('  Variantes générées         : <info>%d</info>', $totalVariantsCreated));
             $this->info("\n  ✅ Optimisation terminée avec succès !");
         }
 

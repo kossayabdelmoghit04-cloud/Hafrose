@@ -20,20 +20,20 @@ class TestCustomerSeeder extends Seeder
      */
     private const TEST_CUSTOMERS = [
         [
-            'email'      => 'client.test@hafrose.com',
-            'name'       => 'Client Test',
+            'email' => 'client.test@hafrose.com',
+            'name' => 'Client Test',
             'first_name' => 'Client',
-            'last_name'  => 'Test',
-            'password'   => 'password',
-            'phone'      => '0600000001',
+            'last_name' => 'Test',
+            'password' => 'password',
+            'phone' => '0600000001',
         ],
         [
-            'email'      => 'client@hafrose.com',
-            'name'       => 'Sophie Laurent',
+            'email' => 'client@hafrose.com',
+            'name' => 'Sophie Laurent',
             'first_name' => 'Sophie',
-            'last_name'  => 'Laurent',
-            'password'   => 'Secret123!',
-            'phone'      => '0600000002',
+            'last_name' => 'Laurent',
+            'password' => 'Secret123!',
+            'phone' => '0600000002',
         ],
     ];
 
@@ -41,7 +41,8 @@ class TestCustomerSeeder extends Seeder
     {
         // Strict environment guard: TestCustomerSeeder must ONLY run in the testing environment
         if (! app()->environment('testing')) {
-            $this->command?->warn('⚠️ TestCustomerSeeder is strictly restricted to the testing environment. Skipping execution in current environment: ' . app()->environment());
+            $this->command?->warn('⚠️ TestCustomerSeeder is strictly restricted to the testing environment. Skipping execution in current environment: '.app()->environment());
+
             return;
         }
 
@@ -49,13 +50,13 @@ class TestCustomerSeeder extends Seeder
             User::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'       => $data['name'],
+                    'name' => $data['name'],
                     'first_name' => $data['first_name'],
-                    'last_name'  => $data['last_name'],
-                    'email'      => $data['email'],
-                    'password'   => Hash::make($data['password']),
-                    'role'       => 'customer',
-                    'phone'      => $data['phone'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'role' => 'customer',
+                    'phone' => $data['phone'],
                 ]
             );
 

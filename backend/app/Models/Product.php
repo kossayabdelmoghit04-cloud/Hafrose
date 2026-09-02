@@ -68,8 +68,8 @@ class Product extends Model
      */
     public function getIsOnSaleAttribute(): bool
     {
-        return $this->sale_price !== null 
-            && (float) $this->sale_price > 0 
+        return $this->sale_price !== null
+            && (float) $this->sale_price > 0
             && (float) $this->sale_price < (float) $this->price;
     }
 

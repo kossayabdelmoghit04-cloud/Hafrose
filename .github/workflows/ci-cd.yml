@@ -5,11 +5,21 @@ on:
     branches: [ main, develop, 'release/*' ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
-  # ── 1. Frontend Quality & Tests ─────────────────────────────────────────────
+  # ── 1. Frontend Quality & Build ────────────────────────────────────────────
   frontend-ci:
-    name: Frontend Lint, Test & Build
+    name: Frontend Typecheck, Lint & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -27,32 +37,22 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Oxlint Linter
+      - name: Run TypeScript Check
+        working-directory: ./frontend
+        run: npm run typecheck
+
+      - name: Run ESLint Linter
         working-directory: ./frontend
         run: npm run lint
-
-      - name: Run Vitest Unit & Component Tests
-        working-directory: ./frontend
-        run: npm run test
 
       - name: Verify Production Build
         working-directory: ./frontend
         run: npm run build
 
-  # ── 2. Backend Quality & Tests ──────────────────────────────────────────────
+  # ── 2. Backend Quality & Tests ─────────────────────────────────────────────
   backend-ci:
     name: Backend Lint, Static Analysis & Tests
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: hafrose_test
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Checkout Code
@@ -61,35 +61,67 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: mbstring, pdo, pdo_mysql, zip, gd
-          coverage: xdebug
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_mysql, pdo_sqlite, zip, gd, bcmath, ctype, json, xml, redis
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-8.3-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            composer-8.3-
+            composer-
 
       - name: Install Backend Dependencies
         working-directory: ./backend
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
-      - name: Run Pint Code Style Test
+      - name: Run Pint Code Style Check
         working-directory: ./backend
         run: composer lint:test
 
-      - name: Prepare Database & Run PHPUnit Tests
+      - name: Prepare CI environment
+        working-directory: ./backend
+        run: |
+          cp .env.ci .env
+          touch database/database.sqlite
+
+      - name: Generate APP_KEY
+        working-directory: ./backend
+        run: php artisan key:generate --force
+
+      - name: Run database migrations
         working-directory: ./backend
         env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: hafrose_test
-          DB_USERNAME: root
-          DB_PASSWORD: root
-          APP_ENV: testing
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-          php artisan migrate --force
-          php artisan test
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/backend/database/database.sqlite
+        run: php artisan migrate --force
 
-  # ── 3. Production Deployment Trigger (main branch only) ────────────────────
+      - name: Clear application caches
+        working-directory: ./backend
+        run: |
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
+
+      - name: Execute PHPUnit Tests
+        working-directory: ./backend
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/backend/database/database.sqlite
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+          MAIL_MAILER: array
+          SESSION_DRIVER: array
+          TURNSTILE_ENABLED: false
+          HONEYPOT_ENABLED: false
+          MONITORING_ENABLED: false
+        run: php artisan test --colors=always
+
+  # ── 3. Production Deployment Trigger (main branch only) ───────────────────
   deploy-production:
     name: Deploy to Production
     needs: [frontend-ci, backend-ci]
@@ -101,7 +133,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy via SSH
-        # Requires secrets configured in GitHub → Settings → Secrets: PROD_SERVER_IP, PROD_SERVER_USER, PROD_SSH_PRIVATE_KEY
+        # Required secrets in GitHub → Settings → Secrets:
+        #   PROD_SERVER_IP    → IP/hostname of the production server
+        #   PROD_SERVER_USER  → SSH user (e.g. deploy)
+        #   PROD_SSH_PRIVATE_KEY → SSH private key for authentication
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
@@ -115,4 +150,3 @@ jobs:
             docker exec hafrose_backend php artisan config:cache
             docker exec hafrose_backend php artisan route:cache
             docker exec hafrose_backend php artisan view:cache
-

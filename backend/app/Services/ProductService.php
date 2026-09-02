@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\Storage;
 class ProductService
 {
     protected ProductRepositoryInterface $productRepository;
-    protected ImageOptimizationService   $imageOptimizationService;
+
+    protected ImageOptimizationService $imageOptimizationService;
 
     public function __construct(
         ProductRepositoryInterface $productRepository,
-        ImageOptimizationService   $imageOptimizationService
+        ImageOptimizationService $imageOptimizationService
     ) {
-        $this->productRepository        = $productRepository;
+        $this->productRepository = $productRepository;
         $this->imageOptimizationService = $imageOptimizationService;
     }
 
@@ -71,10 +72,10 @@ class ProductService
         return DB::transaction(function () use ($data, $imageFile, $galleryFiles) {
             // Gérer l'image principale
             if ($imageFile) {
-                $result       = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
+                $result = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
                 $data['image'] = $result['original'];
             } elseif (! empty($data['image_path'])) {
-                $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
                 $data['image'] = $cleanPath;
             }
 
@@ -108,10 +109,10 @@ class ProductService
                 if ($product->image) {
                     $this->imageOptimizationService->deleteWithVariants($product->image, 'public');
                 }
-                $result        = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
+                $result = $this->imageOptimizationService->optimizeAndStore($imageFile, 'public', 'products');
                 $data['image'] = $result['original'];
             } elseif (! empty($data['image_path'])) {
-                $cleanPath     = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
+                $cleanPath = ltrim(str_replace('/storage/', '', $data['image_path']), '/');
                 $data['image'] = $cleanPath;
             } else {
                 // Conserver l'image existante si aucune nouvelle image n'est envoyée
@@ -210,7 +211,7 @@ class ProductService
      */
     private function deletePhysicalImage(string $url): void
     {
-        $path         = parse_url($url, PHP_URL_PATH) ?? $url;
+        $path = parse_url($url, PHP_URL_PATH) ?? $url;
         $relativePath = str_replace('/storage/', '', $path);
         $relativePath = ltrim($relativePath, '/');
 

@@ -19,15 +19,15 @@ class UserAddressFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'     => User::factory(),
-            'title'       => $this->faker->randomElement(['Domicile', 'Bureau', 'Livraison']),
-            'name'        => $this->faker->name(),
-            'address'     => $this->faker->streetAddress(),
-            'city'        => $this->faker->city(),
+            'user_id' => User::factory(),
+            'title' => $this->faker->randomElement(['Domicile', 'Bureau', 'Livraison']),
+            'name' => $this->faker->name(),
+            'address' => $this->faker->streetAddress(),
+            'city' => $this->faker->city(),
             'postal_code' => $this->faker->postcode(),
-            'country'     => 'France',
-            'phone'       => $this->faker->phoneNumber(),
-            'is_default'  => false,
+            'country' => 'France',
+            'phone' => $this->faker->phoneNumber(),
+            'is_default' => false,
         ];
     }
 }

@@ -231,7 +231,6 @@ class ProductControllerTest extends TestCase
             ->assertJsonValidationErrors(['image']);
     }
 
-
     // ─── Destroy ──────────────────────────────────────────────────────────────
 
     public function test_can_delete_product(): void

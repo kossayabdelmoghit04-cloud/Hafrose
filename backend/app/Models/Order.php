@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
@@ -55,16 +56,16 @@ class Order extends Model
      */
     protected $casts = [
         'subtotal_amount' => 'decimal:2',
-        'tax_amount'      => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'shipping_amount' => 'decimal:2',
-        'total_amount'    => 'decimal:2',
-        'total_price'     => 'decimal:2',
+        'total_amount' => 'decimal:2',
+        'total_price' => 'decimal:2',
     ];
 
     /**
      * Relation : Une commande appartient à un utilisateur (optionnel pour les invités).
      */
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -83,16 +84,16 @@ class Order extends Model
     public function recalculateTotal(): void
     {
         $itemsSubtotal = (float) $this->orderItems()->sum('subtotal');
-        $shipping      = (float) ($this->shipping_amount ?? 0);
-        $total         = $itemsSubtotal + $shipping;
+        $shipping = (float) ($this->shipping_amount ?? 0);
+        $total = $itemsSubtotal + $shipping;
 
         $this->subtotal_amount = $itemsSubtotal;
-        $this->tax_amount      = round($itemsSubtotal - ($itemsSubtotal / 1.2), 2);
-        $this->total_amount    = $total;
-        $this->total_price     = $total;
+        $this->tax_amount = round($itemsSubtotal - ($itemsSubtotal / 1.2), 2);
+        $this->total_amount = $total;
+        $this->total_price = $total;
 
         if (empty($this->order_number)) {
-            $this->order_number = 'HF-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+            $this->order_number = 'HF-'.str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
         }
 
         $this->saveQuietly();

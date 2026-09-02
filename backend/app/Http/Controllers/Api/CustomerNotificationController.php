@@ -27,12 +27,12 @@ class CustomerNotificationController extends Controller
             ->limit(50)
             ->get()
             ->map(fn ($n) => [
-                'id'      => $n->id,
-                'title'   => $n->title,
+                'id' => $n->id,
+                'title' => $n->title,
                 'message' => $n->message,
-                'type'    => $n->type,
-                'read'    => $n->is_read,
-                'date'    => $n->created_at?->toISOString(),
+                'type' => $n->type,
+                'read' => $n->is_read,
+                'date' => $n->created_at?->toISOString(),
             ]);
 
         return $this->successResponse($notifications);

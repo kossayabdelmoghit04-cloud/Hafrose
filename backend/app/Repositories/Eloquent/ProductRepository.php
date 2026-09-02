@@ -79,17 +79,17 @@ class ProductRepository implements ProductRepositoryInterface
 
         // Mapper les alias du frontend vers les colonnes réelles
         $sortMap = [
-            'featured'   => ['column' => 'is_featured', 'direction' => 'desc'],
-            'latest'     => ['column' => 'created_at',  'direction' => 'desc'],
-            'price_asc'  => ['column' => 'price',       'direction' => 'asc'],
+            'featured' => ['column' => 'is_featured', 'direction' => 'desc'],
+            'latest' => ['column' => 'created_at',  'direction' => 'desc'],
+            'price_asc' => ['column' => 'price',       'direction' => 'asc'],
             'price_desc' => ['column' => 'price',       'direction' => 'desc'],
         ];
 
         if (isset($sortMap[$rawSort])) {
-            $sortBy    = $sortMap[$rawSort]['column'];
+            $sortBy = $sortMap[$rawSort]['column'];
             $sortOrder = $sortMap[$rawSort]['direction'];
         } else {
-            $sortBy    = in_array($rawSort, $allowedSorts) ? $rawSort : 'created_at';
+            $sortBy = in_array($rawSort, $allowedSorts) ? $rawSort : 'created_at';
             $sortOrder = $filters['direction'] ?? $filters['sort_order'] ?? 'desc';
             $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
         }

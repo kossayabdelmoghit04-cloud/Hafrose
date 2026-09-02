@@ -38,22 +38,22 @@ class OrderService
         return DB::transaction(function () use ($data) {
             // 1. Créer la commande initiale avec ventilation financière et logistique
             $order = $this->orderRepository->create([
-                'user_id'         => $data['user_id'] ?? null,
-                'customer_name'   => $data['customer'],
-                'phone'           => $data['phone'],
-                'address'         => $data['address'],
-                'city'            => $data['city'],
-                'postal_code'     => $data['postal_code'] ?? $data['shipping_address']['postal_code'] ?? null,
-                'country'         => $data['country'] ?? $data['shipping_address']['country'] ?? 'France',
+                'user_id' => $data['user_id'] ?? null,
+                'customer_name' => $data['customer'],
+                'phone' => $data['phone'],
+                'address' => $data['address'],
+                'city' => $data['city'],
+                'postal_code' => $data['postal_code'] ?? $data['shipping_address']['postal_code'] ?? null,
+                'country' => $data['country'] ?? $data['shipping_address']['country'] ?? 'France',
                 'shipping_amount' => $data['shipping_amount'] ?? 0.00,
                 'shipping_method' => $data['shipping_method'] ?? 'express',
-                'payment_method'  => $data['payment_method'] ?? 'card',
-                'payment_status'  => $data['payment_status'] ?? 'paid',
+                'payment_method' => $data['payment_method'] ?? 'card',
+                'payment_status' => $data['payment_status'] ?? 'paid',
                 'subtotal_amount' => 0.00,
-                'tax_amount'      => 0.00,
-                'total_amount'    => 0.00,
-                'total_price'     => 0.00,
-                'status'          => Order::STATUS_PENDING,
+                'tax_amount' => 0.00,
+                'total_amount' => 0.00,
+                'total_price' => 0.00,
+                'status' => Order::STATUS_PENDING,
             ]);
 
             // 2. Traiter chaque article de commande
@@ -79,10 +79,10 @@ class OrderService
                 // Créer la ligne de commande (le sous-total et le total de la commande se mettent à jour automatiquement via Eloquent)
                 $this->orderRepository->createItem($order, [
                     'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
+                    'quantity' => $item['quantity'],
                     'unit_price' => $unitPrice,
-                    'size'       => $item['size'] ?? null,
-                    'color'      => $item['color'] ?? null,
+                    'size' => $item['size'] ?? null,
+                    'color' => $item['color'] ?? null,
                 ]);
             }
 

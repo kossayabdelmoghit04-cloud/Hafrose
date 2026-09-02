@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
 use App\Services\OrderService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -44,11 +46,11 @@ class OrderController extends Controller
      * GET /api/auth/orders
      * Obtenir l'historique des commandes du client connecté.
      */
-    public function myOrders(\Illuminate\Http\Request $request): JsonResponse
+    public function myOrders(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', \App\Models\Order::class);
+        $this->authorize('viewAny', Order::class);
 
-        $orders = \App\Models\Order::with('orderItems.product')
+        $orders = Order::with('orderItems.product')
             ->where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
             ->get();
@@ -62,9 +64,9 @@ class OrderController extends Controller
      * La Policy OrderPolicy::view() vérifie que l'utilisateur est bien le
      * propriétaire : prévient l'IDOR (User A ne peut pas accéder commande User B).
      */
-    public function myOrderDetails(\Illuminate\Http\Request $request, int $id): JsonResponse
+    public function myOrderDetails(Request $request, int $id): JsonResponse
     {
-        $order = \App\Models\Order::with('orderItems.product')->findOrFail($id);
+        $order = Order::with('orderItems.product')->findOrFail($id);
 
         $this->authorize('view', $order);
 

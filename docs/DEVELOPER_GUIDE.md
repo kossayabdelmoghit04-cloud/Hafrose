@@ -6,7 +6,7 @@
 ```bash
 cd frontend
 npm install
-npm run dev      # Local dev server (http://localhost:5173)
+npm run dev      # Local dev server (http://localhost:3000)
 npm run lint     # Oxlint code check
 npm run test     # Vitest unit & component test suite
 npm run build    # Production build

@@ -24,36 +24,39 @@ use Illuminate\Support\Facades\Storage;
 class ImageOptimizationService
 {
     protected array $sizes;
-    protected int   $quality;
-    protected bool  $generateWebp;
-    protected int   $webpQuality;
+
+    protected int $quality;
+
+    protected bool $generateWebp;
+
+    protected int $webpQuality;
 
     public function __construct()
     {
-        $this->sizes        = config('cache-performance.images.sizes', [
-            'card'   => ['width' => 480,  'height' => 640,  'crop' => false],
-            'thumb'  => ['width' => 120,  'height' => 160,  'crop' => true],
-            'large'  => ['width' => 1200, 'height' => 1200, 'crop' => false],
+        $this->sizes = config('cache-performance.images.sizes', [
+            'card' => ['width' => 480,  'height' => 640,  'crop' => false],
+            'thumb' => ['width' => 120,  'height' => 160,  'crop' => true],
+            'large' => ['width' => 1200, 'height' => 1200, 'crop' => false],
             'banner' => ['width' => 1400, 'height' => 700,  'crop' => false],
         ]);
-        $this->quality      = config('cache-performance.images.quality', 82);
+        $this->quality = config('cache-performance.images.quality', 82);
         $this->generateWebp = (bool) config('cache-performance.images.generate_webp', true);
-        $this->webpQuality  = (int)  config('cache-performance.images.webp_quality', 80);
+        $this->webpQuality = (int) config('cache-performance.images.webp_quality', 80);
     }
 
     /**
      * Optimiser une image uploadée et générer ses variantes (+ WebP si activé).
      *
-     * @param  UploadedFile|string $file      Fichier uploadé ou chemin relatif dans le disk
-     * @param  string              $disk      Disque de stockage (ex: 'public')
-     * @param  string              $directory Dossier destination (ex: 'products')
-     * @param  array               $variants  Noms des variantes à générer (défaut : toutes)
+     * @param  UploadedFile|string  $file  Fichier uploadé ou chemin relatif dans le disk
+     * @param  string  $disk  Disque de stockage (ex: 'public')
+     * @param  string  $directory  Dossier destination (ex: 'products')
+     * @param  array  $variants  Noms des variantes à générer (défaut : toutes)
      * @return array {
-     *   original: string,
-     *   mime_type: string,
-     *   variants: array<string, string>,
-     *   webp: array<string, string>,
-     * }
+     *               original: string,
+     *               mime_type: string,
+     *               variants: array<string, string>,
+     *               webp: array<string, string>,
+     *               }
      */
     public function optimizeAndStore(
         UploadedFile|string $file,
@@ -62,39 +65,41 @@ class ImageOptimizationService
         array $variants = []
     ): array {
         if ($file instanceof UploadedFile) {
-            $originalPath       = $file->store($directory, $disk);
-            $mimeType           = $file->getMimeType();
-            $fullOriginalPath   = Storage::disk($disk)->path($originalPath);
+            $originalPath = $file->store($directory, $disk);
+            $mimeType = $file->getMimeType();
+            $fullOriginalPath = Storage::disk($disk)->path($originalPath);
         } else {
-            $originalPath       = $file;
-            $fullOriginalPath   = Storage::disk($disk)->path($originalPath);
-            $mimeType           = file_exists($fullOriginalPath)
+            $originalPath = $file;
+            $fullOriginalPath = Storage::disk($disk)->path($originalPath);
+            $mimeType = file_exists($fullOriginalPath)
                 ? (mime_content_type($fullOriginalPath) ?: 'image/jpeg')
                 : 'image/jpeg';
         }
 
         $result = [
-            'original'  => $originalPath,
+            'original' => $originalPath,
             'mime_type' => $mimeType,
-            'variants'  => [],
-            'webp'      => [],
+            'variants' => [],
+            'webp' => [],
         ];
 
         if (! extension_loaded('gd') || ! file_exists($fullOriginalPath)) {
             Log::warning("GD extension not available or file missing; optimization skipped for {$originalPath}");
+
             return $result;
         }
 
         $imageResource = $this->createGdResource($fullOriginalPath, $mimeType);
         if (! $imageResource) {
             Log::warning("Could not create GD resource for {$originalPath} (mime: {$mimeType})");
+
             return $result;
         }
 
         $pathInfo = pathinfo($originalPath);
-        $dirname  = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : $directory;
+        $dirname = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : $directory;
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? 'jpg');
+        $ext = strtolower($pathInfo['extension'] ?? 'jpg');
 
         // Sélectionner les variantes à générer
         $sizesToGenerate = empty($variants)
@@ -136,7 +141,7 @@ class ImageOptimizationService
 
                 imagedestroy($resized);
             } catch (\Throwable $e) {
-                Log::error("Failed to generate image variant '{$variantName}' for {$originalPath}: " . $e->getMessage());
+                Log::error("Failed to generate image variant '{$variantName}' for {$originalPath}: ".$e->getMessage());
             }
         }
 
@@ -151,9 +156,9 @@ class ImageOptimizationService
     public function deleteWithVariants(string $originalPath, string $disk = 'public'): bool
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? '');
+        $ext = strtolower($pathInfo['extension'] ?? '');
 
         // Supprimer l'original
         if (Storage::disk($disk)->exists($originalPath)) {
@@ -189,13 +194,13 @@ class ImageOptimizationService
     public function getVariantPaths(string $originalPath): array
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : '';
+        $dirname = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : '';
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? 'jpg');
+        $ext = strtolower($pathInfo['extension'] ?? 'jpg');
 
         $variants = [];
         foreach ($this->sizes as $variantName => $dims) {
-            $variants[$variantName] = ($dirname ? "{$dirname}/" : '') . "{$filename}_{$variantName}.{$ext}";
+            $variants[$variantName] = ($dirname ? "{$dirname}/" : '')."{$filename}_{$variantName}.{$ext}";
         }
 
         return $variants;
@@ -207,12 +212,12 @@ class ImageOptimizationService
     public function getExistingVariantPaths(string $originalPath, string $disk = 'public'): array
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? '');
+        $ext = strtolower($pathInfo['extension'] ?? '');
 
         $variants = [];
-        $webp     = [];
+        $webp = [];
 
         foreach ($this->sizes as $variantName => $dims) {
             $variantPath = "{$dirname}/{$filename}_{$variantName}.{$ext}";
@@ -235,23 +240,23 @@ class ImageOptimizationService
     public function getWebpPath(string $originalPath, string $variantName): string
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : '';
+        $dirname = ($pathInfo['dirname'] !== '.') ? $pathInfo['dirname'] : '';
         $filename = $pathInfo['filename'];
 
-        return ($dirname ? "{$dirname}/" : '') . "{$filename}_{$variantName}.webp";
+        return ($dirname ? "{$dirname}/" : '')."{$filename}_{$variantName}.webp";
     }
 
     /**
      * Obtenir l'URL publique d'une variante si elle existe sur le disque.
      *
-     * @return string|null  URL complète ou null si la variante n'existe pas
+     * @return string|null URL complète ou null si la variante n'existe pas
      */
     public function getVariantUrl(string $originalPath, string $variantName, string $disk = 'public'): ?string
     {
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
-        $ext      = strtolower($pathInfo['extension'] ?? '');
+        $ext = strtolower($pathInfo['extension'] ?? '');
 
         $variantPath = "{$dirname}/{$filename}_{$variantName}.{$ext}";
 
@@ -265,18 +270,18 @@ class ImageOptimizationService
     /**
      * Obtenir l'URL publique de la variante WebP si elle existe.
      *
-     * @return string|null  URL complète ou null si le WebP n'existe pas
+     * @return string|null URL complète ou null si le WebP n'existe pas
      */
     public function getVariantWebpUrl(string $originalPath, string $variantName, string $disk = 'public'): ?string
     {
         $webpPath = $this->getWebpPath($originalPath, $variantName);
 
         // Normaliser si le dirname est '.'
-        $webpPath = ltrim(str_replace('/./', '/', '/' . $webpPath), '/');
+        $webpPath = ltrim(str_replace('/./', '/', '/'.$webpPath), '/');
 
         // Recherche à la racine si dirname était '.'
         $pathInfo = pathinfo($originalPath);
-        $dirname  = $pathInfo['dirname'];
+        $dirname = $pathInfo['dirname'];
         $filename = $pathInfo['filename'];
 
         $candidate = "{$dirname}/{$filename}_{$variantName}.webp";
@@ -296,10 +301,10 @@ class ImageOptimizationService
     {
         return match ($mimeType) {
             'image/jpeg', 'image/jpg' => @imagecreatefromjpeg($filePath),
-            'image/png'               => @imagecreatefrompng($filePath),
-            'image/webp'              => @imagecreatefromwebp($filePath),
-            'image/gif'               => @imagecreatefromgif($filePath),
-            default                   => null,
+            'image/png' => @imagecreatefrompng($filePath),
+            'image/webp' => @imagecreatefromwebp($filePath),
+            'image/gif' => @imagecreatefromgif($filePath),
+            default => null,
         };
     }
 
@@ -307,16 +312,16 @@ class ImageOptimizationService
     {
         return match ($mimeType) {
             'image/jpeg', 'image/jpg' => imagejpeg($resource, $outputPath, $quality),
-            'image/png'               => imagepng($resource, $outputPath, (int) round((9 * (100 - $quality)) / 100)),
-            'image/webp'              => imagewebp($resource, $outputPath, $quality),
-            'image/gif'               => imagegif($resource, $outputPath),
-            default                   => false,
+            'image/png' => imagepng($resource, $outputPath, (int) round((9 * (100 - $quality)) / 100)),
+            'image/webp' => imagewebp($resource, $outputPath, $quality),
+            'image/gif' => imagegif($resource, $outputPath),
+            default => false,
         };
     }
 
     protected function resizeImage(mixed $source, int $targetWidth, int $targetHeight, bool $crop = false): mixed
     {
-        $origWidth  = imagesx($source);
+        $origWidth = imagesx($source);
         $origHeight = imagesy($source);
 
         if ($origWidth <= 0 || $origHeight <= 0) {
@@ -324,8 +329,8 @@ class ImageOptimizationService
         }
 
         if ($crop) {
-            $ratio     = max($targetWidth / $origWidth, $targetHeight / $origHeight);
-            $newWidth  = (int) round($origWidth * $ratio);
+            $ratio = max($targetWidth / $origWidth, $targetHeight / $origHeight);
+            $newWidth = (int) round($origWidth * $ratio);
             $newHeight = (int) round($origHeight * $ratio);
 
             $srcX = (int) round(($newWidth - $targetWidth) / (2 * $ratio));
@@ -350,10 +355,10 @@ class ImageOptimizationService
 
         if ($ratio >= 1.0) {
             // L'image est déjà plus petite que la cible : pas d'agrandissement
-            $targetWidth  = $origWidth;
+            $targetWidth = $origWidth;
             $targetHeight = $origHeight;
         } else {
-            $targetWidth  = (int) round($origWidth * $ratio);
+            $targetWidth = (int) round($origWidth * $ratio);
             $targetHeight = (int) round($origHeight * $ratio);
         }
 

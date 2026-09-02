@@ -51,6 +51,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    strictPort: true,
     host: true,
     proxy: {
       '/api': {
@@ -59,5 +60,10 @@ export default defineConfig({
         secure: false,
       },
     },
+  },
+  preview: {
+    port: 3000,
+    strictPort: true,
+    host: true,
   },
 });

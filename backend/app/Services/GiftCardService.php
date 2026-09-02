@@ -13,7 +13,7 @@ class GiftCardService
             ->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             })
             ->first();
     }
@@ -21,7 +21,7 @@ class GiftCardService
     public function createGiftCard(float $amount, string $currency = 'EUR'): GiftCard
     {
         return GiftCard::create([
-            'code' => 'HAFROSE-' . strtoupper(Str::random(8)),
+            'code' => 'HAFROSE-'.strtoupper(Str::random(8)),
             'initial_balance' => $amount,
             'current_balance' => $amount,
             'currency' => $currency,

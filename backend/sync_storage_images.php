@@ -1,21 +1,21 @@
 <?php
 
-require __DIR__ . '/vendor/autoload.php';
-$app = require_once __DIR__ . '/bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\Product;
 use App\Models\Category;
-use App\Models\Gallery;
+use App\Models\Product;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\File;
 
 $storagePublic = storage_path('app/public');
-$productsDir = $storagePublic . '/products';
-$galleryDir = $productsDir . '/gallery';
-$categoriesDir = $storagePublic . '/categories';
-$heroDir = $storagePublic . '/hero';
-$bannersDir = $storagePublic . '/banners';
+$productsDir = $storagePublic.'/products';
+$galleryDir = $productsDir.'/gallery';
+$categoriesDir = $storagePublic.'/categories';
+$heroDir = $storagePublic.'/hero';
+$bannersDir = $storagePublic.'/banners';
 
 File::ensureDirectoryExists($productsDir);
 File::ensureDirectoryExists($galleryDir);
@@ -34,8 +34,8 @@ $categorySourceMap = [
 ];
 
 foreach (Category::all() as $cat) {
-    $target = $categoriesDir . '/' . $cat->slug . '.jpg';
-    if (!File::exists($target)) {
+    $target = $categoriesDir.'/'.$cat->slug.'.jpg';
+    if (! File::exists($target)) {
         $source = $categorySourceMap[$cat->slug] ?? null;
         if ($source && File::exists($source)) {
             File::copy($source, $target);
@@ -47,16 +47,16 @@ foreach (Category::all() as $cat) {
 }
 
 // 2. Hero and Banners
-if (File::exists(public_path('assets/images/hero-main.png')) && !File::exists($heroDir . '/hero-main.png')) {
-    File::copy(public_path('assets/images/hero-main.png'), $heroDir . '/hero-main.png');
+if (File::exists(public_path('assets/images/hero-main.png')) && ! File::exists($heroDir.'/hero-main.png')) {
+    File::copy(public_path('assets/images/hero-main.png'), $heroDir.'/hero-main.png');
     echo "Copied hero-main.png\n";
 }
-if (File::exists(public_path('assets/images/new-collection.jpg')) && !File::exists($bannersDir . '/new-collection.jpg')) {
-    File::copy(public_path('assets/images/new-collection.jpg'), $bannersDir . '/new-collection.jpg');
+if (File::exists(public_path('assets/images/new-collection.jpg')) && ! File::exists($bannersDir.'/new-collection.jpg')) {
+    File::copy(public_path('assets/images/new-collection.jpg'), $bannersDir.'/new-collection.jpg');
     echo "Copied new-collection.jpg\n";
 }
-if (File::exists(public_path('assets/images/promo-banner.jpg')) && !File::exists($bannersDir . '/promo-banner.jpg')) {
-    File::copy(public_path('assets/images/promo-banner.jpg'), $bannersDir . '/promo-banner.jpg');
+if (File::exists(public_path('assets/images/promo-banner.jpg')) && ! File::exists($bannersDir.'/promo-banner.jpg')) {
+    File::copy(public_path('assets/images/promo-banner.jpg'), $bannersDir.'/promo-banner.jpg');
     echo "Copied promo-banner.jpg\n";
 }
 
@@ -78,8 +78,8 @@ foreach (Product::with('category', 'galleries')->get() as $idx => $p) {
 
     // Product main image
     $imageBasename = basename($p->image);
-    $targetPath = $productsDir . '/' . $imageBasename;
-    if (!File::exists($targetPath) && File::exists($sourceFile)) {
+    $targetPath = $productsDir.'/'.$imageBasename;
+    if (! File::exists($targetPath) && File::exists($sourceFile)) {
         File::copy($sourceFile, $targetPath);
         echo "Copied product image: {$imageBasename}\n";
     }
@@ -87,8 +87,8 @@ foreach (Product::with('category', 'galleries')->get() as $idx => $p) {
     // Product galleries
     foreach ($p->galleries as $gIdx => $g) {
         $galleryBasename = basename($g->image);
-        $galleryTarget = $galleryDir . '/' . $galleryBasename;
-        if (!File::exists($galleryTarget)) {
+        $galleryTarget = $galleryDir.'/'.$galleryBasename;
+        if (! File::exists($galleryTarget)) {
             $gSource = $availableFiles[($idx + $gIdx + 1) % count($availableFiles)]->getRealPath();
             if (File::exists($gSource)) {
                 File::copy($gSource, $galleryTarget);

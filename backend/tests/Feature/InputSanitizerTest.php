@@ -20,7 +20,7 @@ class InputSanitizerTest extends TestCase
         $payload = [
             'name' => "Malicious User\x00",
             'message' => "<script>alert('XSS')</script>Hello Maison Hafrose",
-            'website' => "javascript:alert(1)",
+            'website' => 'javascript:alert(1)',
         ];
 
         $response = $this->postJson('/api/contact', $payload);

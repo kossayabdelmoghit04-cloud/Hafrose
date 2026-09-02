@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Traits\HasJsonValidation;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StoreProductRequest extends FormRequest
 {
@@ -24,7 +25,7 @@ class StoreProductRequest extends FormRequest
     {
         if (empty($this->slug) && ! empty($this->name)) {
             $this->merge([
-                'slug' => \Illuminate\Support\Str::slug($this->name),
+                'slug' => Str::slug($this->name),
             ]);
         }
     }
@@ -33,7 +34,6 @@ class StoreProductRequest extends FormRequest
      * Règles de validation pour la création d'un produit.
      */
     public function rules(): array
-
     {
         return [
             'category_id' => 'required|integer|exists:categories,id',

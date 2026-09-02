@@ -40,14 +40,14 @@ class CustomerAddressController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'title'       => 'sometimes|string|max:100',
-            'name'        => 'required|string|max:255',
-            'address'     => 'required|string|max:500',
-            'city'        => 'required|string|max:100',
+            'title' => 'sometimes|string|max:100',
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'city' => 'required|string|max:100',
             'postal_code' => 'required|string|max:20',
-            'country'     => 'sometimes|string|max:100',
-            'phone'       => 'sometimes|nullable|string|max:30',
-            'is_default'  => 'sometimes|boolean',
+            'country' => 'sometimes|string|max:100',
+            'phone' => 'sometimes|nullable|string|max:30',
+            'is_default' => 'sometimes|boolean',
         ]);
 
         $userId = $request->user()->id;
@@ -83,14 +83,14 @@ class CustomerAddressController extends Controller
         $this->authorize('update', $address);
 
         $data = $request->validate([
-            'title'       => 'sometimes|string|max:100',
-            'name'        => 'sometimes|string|max:255',
-            'address'     => 'sometimes|string|max:500',
-            'city'        => 'sometimes|string|max:100',
+            'title' => 'sometimes|string|max:100',
+            'name' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:500',
+            'city' => 'sometimes|string|max:100',
             'postal_code' => 'sometimes|string|max:20',
-            'country'     => 'sometimes|string|max:100',
-            'phone'       => 'sometimes|nullable|string|max:30',
-            'is_default'  => 'sometimes|boolean',
+            'country' => 'sometimes|string|max:100',
+            'phone' => 'sometimes|nullable|string|max:30',
+            'is_default' => 'sometimes|boolean',
         ]);
 
         if (! empty($data['is_default']) && $data['is_default']) {
@@ -155,4 +155,3 @@ class CustomerAddressController extends Controller
         );
     }
 }
-
