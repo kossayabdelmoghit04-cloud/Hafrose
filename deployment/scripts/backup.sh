@@ -29,11 +29,15 @@ if ! command -v php &>/dev/null; then
     exit 1
 fi
 
-# Run custom artisan backup command
-if php artisan hafrose:backup:run --detailed $EXTRA_FLAGS; then
+# Run custom artisan backup command (direct or via docker)
+if command -v docker &>/dev/null && docker ps -q -f name=hafrose_backend 2>/dev/null | grep -q .; then
+    echo -e "${BLUE}[INFO] Running backup inside hafrose_backend container...${NC}"
+    docker exec hafrose_backend php artisan hafrose:backup --detailed $EXTRA_FLAGS
+elif php artisan hafrose:backup --detailed $EXTRA_FLAGS; then
     echo -e "${GREEN}[SUCCESS] Production backup completed and verified successfully.${NC}"
     exit 0
 else
     echo -e "${RED}[ERROR] Backup execution failed! Check storage/logs/laravel.log for stacktrace.${NC}"
     exit 1
 fi
+

@@ -1,0 +1,10 @@
+# Ignore all SSL private keys, CSRs, and certificates
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.p12
+
+# Keep README.md
+!README.md
