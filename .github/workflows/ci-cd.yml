@@ -121,10 +121,66 @@ jobs:
           MONITORING_ENABLED: false
         run: php artisan test --colors=always
 
-  # ── 3. Production Deployment Trigger (main branch only) ───────────────────
+  # ── 3. Security & Vulnerability Checks ─────────────────────────────────────
+  security-checks:
+    name: Security & Secret Audits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Audit Repository for Tracked Sensitive Files
+        run: |
+          echo "=== Scanning for accidentally committed sensitive files ==="
+          FAILED=0
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "❌ CRITICAL: Root .env is tracked by git!"
+            FAILED=1
+          fi
+          if git ls-files --error-unmatch backend/.env 2>/dev/null; then
+            echo "❌ CRITICAL: backend/.env is tracked by git!"
+            FAILED=1
+          fi
+          if git ls-files --error-unmatch frontend/.env 2>/dev/null; then
+            echo "❌ CRITICAL: frontend/.env is tracked by git!"
+            FAILED=1
+          fi
+          if [ $FAILED -ne 0 ]; then
+            exit 1
+          fi
+          echo "✅ No sensitive .env files are tracked."
+
+      - name: Setup Node.js for Security Audit
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Run Frontend NPM Audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=high
+
+      - name: Setup PHP for Composer Security Audit
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, json
+          coverage: none
+
+      - name: Validate Composer Configuration
+        working-directory: ./backend
+        run: composer validate --strict
+
+      - name: Run Backend Composer Audit
+        working-directory: ./backend
+        run: composer audit --no-dev
+
+  # ── 4. Production Deployment Trigger (main branch only) ───────────────────
   deploy-production:
     name: Deploy to Production
-    needs: [frontend-ci, backend-ci]
+    needs: [frontend-ci, backend-ci, security-checks]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -132,11 +188,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Verify Production Deployment Guards
+        id: deploy-guard
+        run: |
+          echo "=== Auditing Production Deployment Prerequisites ==="
+          if [ -z "${{ secrets.PROD_SERVER_IP }}" ] || [ -z "${{ secrets.PROD_SERVER_USER }}" ] || [ -z "${{ secrets.PROD_SSH_PRIVATE_KEY }}" ]; then
+            echo "::warning title=Deployment Guard::DEPLOYMENT BLOCKED — PRODUCTION SECRETS NOT CONFIGURED"
+            echo "Production secrets (PROD_SERVER_IP, PROD_SERVER_USER, PROD_SSH_PRIVATE_KEY) are not configured."
+            echo "Automatic deployment aborted safely. Pipeline validation successful."
+            echo "can_deploy=false" >> $GITHUB_OUTPUT
+          else
+            echo "Production secrets detected. Ready for deployment."
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy via SSH
-        # Required secrets in GitHub → Settings → Secrets:
-        #   PROD_SERVER_IP    → IP/hostname of the production server
-        #   PROD_SERVER_USER  → SSH user (e.g. deploy)
-        #   PROD_SSH_PRIVATE_KEY → SSH private key for authentication
+        if: steps.deploy-guard.outputs.can_deploy == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.PROD_SERVER_IP }}
