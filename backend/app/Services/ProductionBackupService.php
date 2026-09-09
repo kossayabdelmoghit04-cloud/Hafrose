@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -164,7 +165,7 @@ class ProductionBackupService
     // ─── Sauvegarde base de données ──────────────────────────────────────────
 
     /**
-     * Sauvegarder la base de données via mysqldump.
+     * Sauvegarder la base de données via mysqldump (avec fallback PDO natif).
      */
     private function backupDatabase(bool $dryRun, bool $verbose): void
     {
@@ -193,7 +194,6 @@ class ProductionBackupService
             return;
         }
 
-        // MySQL / MariaDB via mysqldump
         $destDir = $this->workDir.'/database';
         File::ensureDirectoryExists($destDir, 0755);
 
@@ -204,28 +204,114 @@ class ProductionBackupService
         $password = $config['password'] ?? '';
         $dumpFile = $destDir.'/database.sql';
 
-        // Construire la commande mysqldump
-        $cmd = sprintf(
-            'mysqldump --host=%s --port=%s --user=%s --password=%s --single-transaction --quick %s > %s 2>&1',
-            escapeshellarg($host),
-            escapeshellarg((string) $port),
-            escapeshellarg($username),
-            escapeshellarg($password),
-            escapeshellarg($database),
-            escapeshellarg($dumpFile)
-        );
+        // Tentative 1 : mysqldump via shell (si disponible et compatible)
+        $mysqldump = trim((string) shell_exec('which mysqldump 2>/dev/null'));
+        if ($mysqldump !== '') {
+            $cmd = sprintf(
+                '%s --host=%s --port=%s --user=%s --password=%s --single-transaction --quick %s > %s 2>&1',
+                escapeshellarg($mysqldump),
+                escapeshellarg($host),
+                escapeshellarg((string) $port),
+                escapeshellarg($username),
+                escapeshellarg($password),
+                escapeshellarg($database),
+                escapeshellarg($dumpFile)
+            );
+            exec($cmd, $shellOutput, $exitCode);
 
-        exec($cmd, $output, $exitCode);
+            if ($exitCode === 0 && File::exists($dumpFile) && File::size($dumpFile) > 100) {
+                $sizeKb = round(File::size($dumpFile) / 1024, 1);
+                $this->addStep('database', 'OK', "Dump MySQL (mysqldump) : {$database} ({$sizeKb} Ko)");
 
-        if ($exitCode !== 0) {
-            $error = implode("\n", $output);
-            $this->addStep('database', 'FAIL', $error);
-            $this->report['errors'][] = "Sauvegarde base de données échouée : {$error}";
-        } else {
+                return;
+            }
+        }
+
+        // Tentative 2 : PDO-native dump — compatible MySQL 8.0+ (caching_sha2_password) sans binaire externe
+        try {
+            $this->backupDatabaseViaPdo($database, $username, $password, $host, (int) $port, $dumpFile);
             $sizeKb = round(File::size($dumpFile) / 1024, 1);
-            $this->addStep('database', 'OK', "Dump MySQL : {$database} ({$sizeKb} Ko)");
+            $this->addStep('database', 'OK', "Dump MySQL (PDO natif) : {$database} ({$sizeKb} Ko)");
+        } catch (\Throwable $e) {
+            $this->addStep('database', 'FAIL', $e->getMessage());
+            $this->report['errors'][] = "Sauvegarde base de données échouée : {$e->getMessage()}";
         }
     }
+
+    /**
+     * Dump MySQL/MariaDB via PDO — aucun binaire externe requis.
+     * Compatible MySQL 8.0+ (caching_sha2_password) et MariaDB.
+     */
+    private function backupDatabaseViaPdo(
+        string $database,
+        string $username,
+        string $password,
+        string $host,
+        int $port,
+        string $dumpFile
+    ): void {
+        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+        $pdo = new \PDO($dsn, $username, $password, [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
+        ]);
+
+        $handle = fopen($dumpFile, 'w');
+        if ($handle === false) {
+            throw new \RuntimeException("Impossible de créer le fichier dump : {$dumpFile}");
+        }
+
+        $now = now()->toIso8601String();
+        fwrite($handle, "-- HAFROSE MySQL Dump — {$now}\n");
+        fwrite($handle, "-- Database: {$database}\n\n");
+        fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
+        fwrite($handle, "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n");
+
+        $tables = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(\PDO::FETCH_NUM);
+
+        foreach ($tables as $tableRow) {
+            $table = $tableRow[0];
+
+            // CREATE TABLE statement
+            $create = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(\PDO::FETCH_NUM);
+            fwrite($handle, "\n-- Table structure for `{$table}`\n");
+            fwrite($handle, "DROP TABLE IF EXISTS `{$table}`;\n");
+            fwrite($handle, $create[1].";\n\n");
+
+            // INSERT data in chunks of 500 rows
+            $stmt = $pdo->query("SELECT * FROM `{$table}`");
+            $cols = $pdo->query("DESCRIBE `{$table}`")->fetchAll(\PDO::FETCH_COLUMN);
+            $columns = '`'.implode('`, `', $cols).'`';
+            $buffer = [];
+            $headerWritten = false;
+
+            while ($rowData = $stmt->fetch(\PDO::FETCH_NUM)) {
+                if (! $headerWritten) {
+                    fwrite($handle, "-- Data for table `{$table}`\n");
+                    $headerWritten = true;
+                }
+
+                $escaped = array_map(function ($val) use ($pdo) {
+                    return $val === null ? 'NULL' : $pdo->quote($val);
+                }, $rowData);
+
+                $buffer[] = '('.implode(', ', $escaped).')';
+
+                if (count($buffer) >= 500) {
+                    fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES\n".implode(",\n", $buffer).";\n");
+                    $buffer = [];
+                }
+            }
+
+            if (! empty($buffer)) {
+                fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES\n".implode(",\n", $buffer).";\n");
+            }
+        }
+
+        fwrite($handle, "\nSET FOREIGN_KEY_CHECKS=1;\n");
+        fclose($handle);
+    }
+
 
     // ─── Sauvegarde storage/ ─────────────────────────────────────────────────
 
