@@ -33,8 +33,10 @@ class CategoryService
 
     /**
      * Récupérer une catégorie par son slug.
+     *
+     * @throws ModelNotFoundException
      */
-    public function getCategoryBySlug(string $slug)
+    public function getCategoryBySlug(string $slug): Category
     {
         $category = $this->categoryRepository->findBySlug($slug);
 
@@ -47,8 +49,10 @@ class CategoryService
 
     /**
      * Récupérer une catégorie par son ID.
+     *
+     * @throws ModelNotFoundException
      */
-    public function getCategoryById(int $id)
+    public function getCategoryById(int $id): Category
     {
         $category = $this->categoryRepository->find($id);
 

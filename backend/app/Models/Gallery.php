@@ -3,11 +3,28 @@
 namespace App\Models;
 
 use App\Services\ImageOptimizationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * App\Models\Gallery
+ *
+ * @property int $id
+ * @property int $product_id
+ * @property string $image
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string|null $image_url
+ * @property-read string|null $image_thumb_url
+ * @property-read Product $product
+ *
+ * @mixin Builder
+ * @mixin Model
+ */
 class Gallery extends Model
 {
     use HasFactory;

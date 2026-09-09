@@ -35,8 +35,10 @@ class ProductService
 
     /**
      * Obtenir un produit par son slug.
+     *
+     * @throws ModelNotFoundException
      */
-    public function getProductBySlug(string $slug)
+    public function getProductBySlug(string $slug): Product
     {
         $product = $this->productRepository->findBySlug($slug);
 
@@ -49,8 +51,10 @@ class ProductService
 
     /**
      * Trouver un produit par son ID.
+     *
+     * @throws ModelNotFoundException
      */
-    public function getProductById(int $id)
+    public function getProductById(int $id): Product
     {
         $product = $this->productRepository->find($id);
 

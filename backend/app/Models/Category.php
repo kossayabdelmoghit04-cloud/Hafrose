@@ -3,11 +3,32 @@
 namespace App\Models;
 
 use App\Services\ImageOptimizationService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * App\Models\Category
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property string|null $image
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string|null $image_url
+ * @property-read string|null $image_card_url
+ * @property-read Collection<int, Product> $products
+ * @property-read int|null $products_count
+ *
+ * @mixin Builder
+ * @mixin Model
+ */
 class Category extends Model
 {
     use HasFactory;

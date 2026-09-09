@@ -3,12 +3,55 @@
 namespace App\Models;
 
 use App\Services\ImageOptimizationService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * App\Models\Product
+ *
+ * @property int $id
+ * @property int $category_id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property string|null $short_description
+ * @property string|float $price
+ * @property string|float|null $sale_price
+ * @property int $stock
+ * @property string|null $color
+ * @property string|null $material
+ * @property string|null $brand
+ * @property string|null $image
+ * @property bool $is_featured
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read string|null $image_url
+ * @property-read string|null $image_card_url
+ * @property-read string|null $image_thumb_url
+ * @property-read bool $is_on_sale
+ * @property-read int|null $discount_percentage
+ * @property-read Category $category
+ * @property-read Collection<int, Gallery> $galleries
+ * @property-read int|null $galleries_count
+ * @property-read Collection<int, Review> $reviews
+ * @property-read int|null $reviews_count
+ * @property-read Collection<int, OrderItem> $orderItems
+ * @property-read int|null $order_items_count
+ * @property-read Collection<int, WishlistItem> $wishlistItems
+ * @property-read int|null $wishlist_items_count
+ *
+ * @method $this load(array|string $relations)
+ * @method $this loadMissing(array|string $relations)
+ *
+ * @mixin Builder
+ * @mixin Model
+ */
 class Product extends Model
 {
     use HasFactory;
