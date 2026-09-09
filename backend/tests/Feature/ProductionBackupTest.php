@@ -740,4 +740,119 @@ class ProductionBackupTest extends TestCase
         $service = app(MaintenanceService::class);
         $this->assertInstanceOf(MaintenanceService::class, $service);
     }
+
+    // =========================================================================
+    // 12. Phase 5.2 — Manifest, Restauration Locale, Vérification & CLI
+    // =========================================================================
+
+    #[Test]
+    public function backup_service_generates_manifest_and_verifies_integrity(): void
+    {
+        Config::set('production.backup.enabled', true);
+        Config::set('production.backup.database', false);
+        Config::set('production.backup.storage', false);
+        Config::set('production.backup.images', false);
+
+        /** @var ProductionBackupService $service */
+        $service = app(ProductionBackupService::class);
+        $report = $service->run(dryRun: false, verbose: true);
+
+        $this->assertTrue($report['success']);
+        $this->assertNotNull($report['archive']);
+        $this->assertNotEmpty($report['archive_sha256']);
+
+        $cleanId = basename($report['archive'], '.zip');
+        $verify = $service->verifyBackup($cleanId);
+
+        $this->assertTrue($verify['valid']);
+        $this->assertTrue($verify['zip_integrity']);
+        $this->assertTrue($verify['manifest_present']);
+        $this->assertTrue($verify['manifest_valid']);
+        $this->assertTrue($verify['checksums_verified']);
+
+        // Vérification de l'absence totale de secrets dans le manifest
+        $manifest = $verify['manifest'];
+        $this->assertArrayHasKey('database', $manifest);
+        $this->assertArrayNotHasKey('password', $manifest['database']);
+        $this->assertArrayNotHasKey('username', $manifest['database']);
+
+        // Nettoyage de l'archive de test
+        $service->deleteBackup($cleanId);
+    }
+
+    #[Test]
+    public function restore_dry_run_succeeds(): void
+    {
+        Config::set('production.backup.enabled', true);
+        Config::set('production.backup.database', false);
+        Config::set('production.backup.storage', false);
+        Config::set('production.backup.images', false);
+
+        /** @var ProductionBackupService $service */
+        $service = app(ProductionBackupService::class);
+        $backup = $service->run(dryRun: false);
+        $cleanId = basename($backup['archive'], '.zip');
+
+        $restoreReport = $service->restore(
+            backupId: $cleanId,
+            targetDatabase: 'hafrose_test_db',
+            dryRun: true
+        );
+
+        $this->assertTrue($restoreReport['success']);
+        $this->assertTrue($restoreReport['dry_run']);
+        $this->assertEquals('hafrose_test_db', $restoreReport['target_database']);
+
+        // Nettoyage
+        $service->deleteBackup($cleanId);
+    }
+
+    #[Test]
+    public function artisan_restore_command_dry_run_exits_with_success(): void
+    {
+        Config::set('production.backup.enabled', true);
+        Config::set('production.backup.database', false);
+        Config::set('production.backup.storage', false);
+        Config::set('production.backup.images', false);
+
+        /** @var ProductionBackupService $service */
+        $service = app(ProductionBackupService::class);
+        $backup = $service->run(dryRun: false);
+        $cleanId = basename($backup['archive'], '.zip');
+
+        $this->artisan('hafrose:restore', [
+            'backup_id' => $cleanId,
+            '--dry-run' => true,
+            '--target-db' => 'hafrose_test_target',
+        ])->assertExitCode(0);
+
+        $service->deleteBackup($cleanId);
+    }
+
+    #[Test]
+    public function artisan_verify_backup_command_runs_successfully(): void
+    {
+        Config::set('production.backup.enabled', true);
+        Config::set('production.backup.database', false);
+        Config::set('production.backup.storage', false);
+        Config::set('production.backup.images', false);
+
+        /** @var ProductionBackupService $service */
+        $service = app(ProductionBackupService::class);
+        $backup = $service->run(dryRun: false);
+        $cleanId = basename($backup['archive'], '.zip');
+
+        $this->artisan('hafrose:backup:verify', [
+            'backup_id' => $cleanId,
+        ])->assertExitCode(0);
+
+        $service->deleteBackup($cleanId);
+    }
+
+    #[Test]
+    public function artisan_list_backups_command_runs_successfully(): void
+    {
+        $this->artisan('hafrose:backup:list')
+            ->assertExitCode(0);
+    }
 }

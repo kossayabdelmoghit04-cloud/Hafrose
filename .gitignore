@@ -9,12 +9,18 @@ backend/vendor/
 backend/bootstrap/cache/*
 !backend/bootstrap/cache/.gitignore
 backend/storage/*.key
+backend/storage/app/backups/*
+!backend/storage/app/backups/.gitignore
 backend/storage/framework/cache/data/*
 backend/storage/framework/sessions/*
 backend/storage/framework/testing/*
 backend/storage/framework/views/*
 backend/storage/logs/*
 !backend/storage/**/.gitignore
+backups/
+*.sql
+*.dump
+
 
 # Vite / React
 frontend/node_modules/

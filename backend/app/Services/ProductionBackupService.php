@@ -85,6 +85,8 @@ class ProductionBackupService
 
             $this->backupCriticalFiles($dryRun, $verbose);
 
+            $this->generateManifest($archiveName, $timestamp, $dryRun, $verbose);
+
             // ── Archive ZIP ──────────────────────────────────────────────────
 
             if (! $dryRun) {
@@ -103,9 +105,9 @@ class ProductionBackupService
 
             $this->report['success'] = true;
             $this->report['ended_at'] = now()->toIso8601String();
-            $this->report['duration_s'] = now()->diffInSeconds(
+            $this->report['duration_s'] = abs(now()->diffInSeconds(
                 Carbon::parse($this->report['started_at'])
-            );
+            ));
 
         } catch (\Throwable $e) {
             $this->report['errors'][] = $e->getMessage();
@@ -205,7 +207,8 @@ class ProductionBackupService
         $dumpFile = $destDir.'/database.sql';
 
         // Tentative 1 : mysqldump via shell (si disponible et compatible)
-        $mysqldump = trim((string) shell_exec('which mysqldump 2>/dev/null'));
+        $findCmd = PHP_OS_FAMILY === 'Windows' ? 'where mysqldump 2>nul' : 'which mysqldump 2>/dev/null';
+        $mysqldump = trim((string) shell_exec($findCmd));
         if ($mysqldump !== '') {
             $cmd = sprintf(
                 '%s --host=%s --port=%s --user=%s --password=%s --single-transaction --quick %s > %s 2>&1',
@@ -383,12 +386,12 @@ class ProductionBackupService
     // ─── Sauvegarde fichiers critiques ───────────────────────────────────────
 
     /**
-     * Sauvegarder les fichiers de configuration critiques.
+     * Sauvegarder les fichiers de configuration critiques (avec assainissement des secrets).
      */
     private function backupCriticalFiles(bool $dryRun, bool $verbose): void
     {
         $criticalFiles = [
-            base_path('.env') => 'config/.env',
+            base_path('.env.example') => 'config/.env.example',
             base_path('composer.json') => 'config/composer.json',
             base_path('composer.lock') => 'config/composer.lock',
             base_path('phpunit.xml') => 'config/phpunit.xml',
@@ -396,7 +399,7 @@ class ProductionBackupService
         ];
 
         if ($dryRun) {
-            $this->addStep('critical_files', 'DRY-RUN', count($criticalFiles).' fichiers critiques');
+            $this->addStep('critical_files', 'DRY-RUN', (count($criticalFiles) + 1).' fichiers critiques (secrets assainis)');
 
             return;
         }
@@ -411,7 +414,116 @@ class ProductionBackupService
             }
         }
 
-        $this->addStep('critical_files', 'OK', "{$count} fichier(s) critique(s) sauvegardé(s)");
+        // Créer une version strictement assainie de .env (aucun mot de passe, token ou clé secrète)
+        if (File::exists(base_path('.env'))) {
+            $envContent = File::get(base_path('.env'));
+            $sanitizedEnv = preg_replace(
+                '/^(APP_KEY|DB_PASSWORD|REDIS_PASSWORD|MAIL_PASSWORD|AWS_SECRET_ACCESS_KEY|TURNSTILE_SECRET_KEY|.*SECRET.*|.*PASSWORD.*|.*TOKEN.*)=.*$/m',
+                '$1=[REDACTED_FOR_SECURITY]',
+                $envContent
+            );
+            $destSanitized = $this->workDir.'/config/.env.sanitized';
+            File::ensureDirectoryExists(dirname($destSanitized), 0755);
+            File::put($destSanitized, $sanitizedEnv);
+            $count++;
+        }
+
+        $this->addStep('critical_files', 'OK', "{$count} fichier(s) critique(s) sauvegardé(s) (secrets assainis)");
+    }
+
+    /**
+     * Générer le manifeste JSON de la sauvegarde (manifest.json).
+     */
+    private function generateManifest(string $archiveName, string $timestamp, bool $dryRun, bool $verbose): void
+    {
+        if ($dryRun) {
+            $this->addStep('manifest', 'DRY-RUN', 'Simulation de génération du manifest.json');
+
+            return;
+        }
+
+        // Indexer et calculer le SHA-256 de chaque fichier dans workDir
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->workDir));
+        $manifestFiles = [];
+
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                continue;
+            }
+
+            $filePath = $file->getRealPath();
+            $relativePath = str_replace('\\', '/', substr($filePath, strlen($this->workDir) + 1));
+
+            if ($relativePath === 'manifest.json') {
+                continue;
+            }
+
+            $manifestFiles[$relativePath] = [
+                'size_bytes' => $file->getSize(),
+                'sha256' => hash_file('sha256', $filePath),
+            ];
+        }
+
+        // Métadonnées de base de données
+        $dbIncluded = config('production.backup.database', true);
+        $dbConnection = config('database.default', 'mysql');
+        $dbConfig = config("database.connections.{$dbConnection}");
+        $dbName = $dbConfig['database'] ?? '';
+        $tablesInfo = [];
+
+        if ($dbIncluded && $dbConnection === 'mysql') {
+            try {
+                $tables = DB::select("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'");
+                foreach ($tables as $t) {
+                    $tableArray = (array) $t;
+                    $tableName = reset($tableArray);
+                    $count = DB::table($tableName)->count();
+                    $tablesInfo[$tableName] = $count;
+                }
+            } catch (\Throwable) {
+                // Ignore DB query errors during mock/testing
+            }
+        }
+
+        // Métadonnées Git
+        $gitCommit = null;
+        try {
+            $commit = trim((string) @shell_exec('git rev-parse --short HEAD 2>nul'));
+            if (! empty($commit) && strlen($commit) <= 40 && ! str_contains($commit, 'fatal')) {
+                $gitCommit = $commit;
+            }
+        } catch (\Throwable) {
+        }
+
+        $manifestData = [
+            'manifest_version' => '1.0',
+            'backup_id' => str_replace('.zip', '', $archiveName),
+            'timestamp' => $timestamp,
+            'created_at' => now()->toIso8601String(),
+            'environment' => app()->environment(),
+            'app_version' => config('app.name', 'Hafrose').' (Laravel '.app()->version().')',
+            'git_commit' => $gitCommit,
+            'database' => [
+                'included' => $dbIncluded,
+                'engine' => $dbConnection,
+                'name' => $dbName,
+                'tables_count' => count($tablesInfo),
+                'tables' => $tablesInfo,
+            ],
+            'storage_files_count' => File::isDirectory($this->workDir.'/storage') ? count(File::allFiles($this->workDir.'/storage')) : 0,
+            'images_files_count' => File::isDirectory($this->workDir.'/images') ? count(File::allFiles($this->workDir.'/images')) : 0,
+            'critical_files_count' => File::isDirectory($this->workDir.'/config') ? count(File::allFiles($this->workDir.'/config')) : 0,
+            'total_files_count' => count($manifestFiles),
+            'checksum_algorithm' => 'sha256',
+            'files' => $manifestFiles,
+        ];
+
+        File::put(
+            $this->workDir.'/manifest.json',
+            json_encode($manifestData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+
+        $this->addStep('manifest', 'OK', 'Manifest JSON généré ('.count($manifestFiles).' fichiers indexés en SHA-256)');
     }
 
     // ─── Création de l'archive ZIP ───────────────────────────────────────────
@@ -447,7 +559,7 @@ class ProductionBackupService
             }
 
             $filePath = $file->getRealPath();
-            $relativePath = substr($filePath, strlen($this->workDir) + 1);
+            $relativePath = str_replace('\\', '/', substr($filePath, strlen($this->workDir) + 1));
 
             if ($compress) {
                 $zip->addFile($filePath, $relativePath);
@@ -465,11 +577,16 @@ class ProductionBackupService
 
         $zip->close();
 
+        $archiveSha256 = hash_file('sha256', $archivePath);
+        $this->report['archive_sha256'] = $archiveSha256;
+        $this->report['archive_size_bytes'] = File::size($archivePath);
+        $this->report['archive_size_human'] = $this->humanFileSize(File::size($archivePath));
+
         $sizeKb = round(File::size($archivePath) / 1024, 1);
         $this->addStep(
             'archive',
             'OK',
-            "Archive : {$archiveName} ({$addedFiles} fichiers, {$sizeKb} Ko)"
+            "Archive : {$archiveName} ({$addedFiles} fichiers, {$sizeKb} Ko, SHA-256: ".substr($archiveSha256, 0, 12).'…)'
         );
 
         // Chemin relatif pour le rapport
@@ -602,52 +719,358 @@ class ProductionBackupService
         File::delete($filePath);
     }
 
-    // ─── Restauration (méthodes préparées) ───────────────────────────────────
+    // ─── Restauration & Vérification d'Intégrité ─────────────────────────────
 
     /**
-     * [PRÉPARÉ] Restaurer une sauvegarde complète depuis une archive ZIP.
+     * Restaurer une sauvegarde complète ou ciblée.
      *
-     * Cette méthode est préparée pour une future implémentation sécurisée.
-     * La restauration complète nécessite une intervention manuelle validée.
-     *
-     * @param  string  $backupId  Identifiant de la sauvegarde à restaurer.
+     * @param  string  $backupId  Identifiant de la sauvegarde (nom avec ou sans .zip).
+     * @param  string|null  $targetDatabase  Nom de la base de données cible (si null, base par défaut).
+     * @param  bool  $restoreDatabase  Restaurer la base de données.
+     * @param  bool  $restoreStorage  Restaurer le contenu du répertoire storage/app.
+     * @param  bool  $restoreImages  Restaurer les images publiques.
+     * @param  bool  $dryRun  Simuler la restauration sans altérer le système.
+     * @param  bool  $verbose  Afficher les détails de chaque étape.
      * @return array Rapport de restauration.
      */
-    public function restore(string $backupId): array
-    {
-        return [
+    public function restore(
+        string $backupId,
+        ?string $targetDatabase = null,
+        bool $restoreDatabase = true,
+        bool $restoreStorage = true,
+        bool $restoreImages = true,
+        bool $dryRun = false,
+        bool $verbose = false
+    ): array {
+        $backupBasePath = config('production.backup.path', 'backups');
+        $cleanId = basename($backupId, '.zip');
+        $filePath = storage_path("app/{$backupBasePath}/{$cleanId}.zip");
+
+        $defaultDb = config('database.connections.mysql.database', 'hafrose');
+        $targetDb = $targetDatabase ?: $defaultDb;
+
+        $report = [
             'success' => false,
-            'message' => 'La restauration automatisée n\'est pas encore activée. '
-                .'Veuillez restaurer manuellement depuis storage/backups/'.$backupId.'.zip.',
-            'backup_id' => $backupId,
+            'dry_run' => $dryRun,
+            'backup_id' => $cleanId,
+            'target_database' => $targetDb,
+            'started_at' => now()->toIso8601String(),
+            'steps' => [],
+            'errors' => [],
+            'message' => '',
         ];
+
+        if (! File::exists($filePath)) {
+            $report['errors'][] = "Le fichier de sauvegarde [{$cleanId}.zip] n'existe pas.";
+            $report['message'] = "Sauvegarde introuvable : {$cleanId}";
+
+            return $report;
+        }
+
+        if ($dryRun) {
+            $report['steps'][] = ['name' => 'archive_check', 'status' => 'DRY-RUN', 'message' => "Archive présente : {$filePath}"];
+            if ($restoreDatabase) {
+                $report['steps'][] = ['name' => 'database', 'status' => 'DRY-RUN', 'message' => "Simulation restauration DB vers `{$targetDb}`"];
+            }
+            if ($restoreStorage) {
+                $report['steps'][] = ['name' => 'storage', 'status' => 'DRY-RUN', 'message' => 'Simulation restauration storage/app'];
+            }
+            if ($restoreImages) {
+                $report['steps'][] = ['name' => 'images', 'status' => 'DRY-RUN', 'message' => 'Simulation restauration public/images'];
+            }
+
+            $report['success'] = true;
+            $report['message'] = "Simulation de restauration réussie pour {$cleanId}.";
+            $report['ended_at'] = now()->toIso8601String();
+
+            return $report;
+        }
+
+        $tempExtract = storage_path("app/{$backupBasePath}/tmp_restore_".uniqid());
+
+        try {
+            File::ensureDirectoryExists($tempExtract, 0755);
+
+            // 1. Extraction de l'archive ZIP
+            $zip = new ZipArchive;
+            if ($zip->open($filePath) !== true) {
+                throw new \RuntimeException("Impossible d'ouvrir l'archive ZIP : {$filePath}");
+            }
+            $zip->extractTo($tempExtract);
+            $zip->close();
+            $report['steps'][] = ['name' => 'extract', 'status' => 'OK', 'message' => 'Archive extraite dans le dossier temporaire'];
+
+            // 2. Vérification du manifest
+            $manifestPath = $tempExtract.'/manifest.json';
+            $manifest = null;
+            if (File::exists($manifestPath)) {
+                $manifest = json_decode(File::get($manifestPath), true);
+                $report['steps'][] = ['name' => 'manifest', 'status' => 'OK', 'message' => 'Manifest trouvé et validé'];
+            }
+
+            // 3. Restauration base de données
+            if ($restoreDatabase) {
+                $sqlFile = $tempExtract.'/database/database.sql';
+                $sqliteFile = $tempExtract.'/database/database.sqlite';
+
+                if (File::exists($sqlFile)) {
+                    $this->restoreMysqlDatabase($sqlFile, $targetDb);
+                    $report['steps'][] = ['name' => 'database', 'status' => 'OK', 'message' => "Base MySQL restaurée vers `{$targetDb}`"];
+                } elseif (File::exists($sqliteFile)) {
+                    $destSqlite = config('database.connections.sqlite.database');
+                    File::copy($sqliteFile, $destSqlite);
+                    $report['steps'][] = ['name' => 'database', 'status' => 'OK', 'message' => "Fichier SQLite restauré vers {$destSqlite}"];
+                } else {
+                    $report['steps'][] = ['name' => 'database', 'status' => 'SKIP', 'message' => 'Aucun fichier de base de données trouvé dans l\'archive'];
+                }
+            }
+
+            // 4. Restauration storage/app
+            if ($restoreStorage && File::isDirectory($tempExtract.'/storage')) {
+                $targetStorage = storage_path('app');
+                $this->copyDirectoryExcluding($tempExtract.'/storage', $targetStorage, ['backups', 'tmp_']);
+                $count = count(File::allFiles($tempExtract.'/storage'));
+                $report['steps'][] = ['name' => 'storage', 'status' => 'OK', 'message' => "{$count} fichier(s) restauré(s) dans storage/app"];
+            }
+
+            // 5. Restauration images
+            if ($restoreImages && File::isDirectory($tempExtract.'/images')) {
+                $count = 0;
+                if (File::isDirectory($tempExtract.'/images/public_images')) {
+                    File::ensureDirectoryExists(public_path('images'), 0755);
+                    File::copyDirectory($tempExtract.'/images/public_images', public_path('images'));
+                    $count += count(File::allFiles($tempExtract.'/images/public_images'));
+                }
+                if (File::isDirectory($tempExtract.'/images/storage_public')) {
+                    File::ensureDirectoryExists(storage_path('app/public'), 0755);
+                    File::copyDirectory($tempExtract.'/images/storage_public', storage_path('app/public'));
+                    $count += count(File::allFiles($tempExtract.'/images/storage_public'));
+                }
+                $report['steps'][] = ['name' => 'images', 'status' => 'OK', 'message' => "{$count} image(s) restaurée(s)"];
+            }
+
+            $report['success'] = true;
+            $report['message'] = "Restauration terminée avec succès depuis {$cleanId}.";
+
+        } catch (\Throwable $e) {
+            $report['success'] = false;
+            $report['errors'][] = $e->getMessage();
+            $report['message'] = "La restauration a échoué : {$e->getMessage()}";
+            Log::error('ProductionBackupService: erreur lors de la restauration.', [
+                'backup_id' => $cleanId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        } finally {
+            if (File::isDirectory($tempExtract)) {
+                File::deleteDirectory($tempExtract);
+            }
+        }
+
+        $report['ended_at'] = now()->toIso8601String();
+        $report['duration_s'] = now()->diffInSeconds(Carbon::parse($report['started_at']));
+
+        return $report;
     }
 
     /**
-     * [PRÉPARÉ] Vérifier l'intégrité d'une archive de sauvegarde.
+     * Restaurer un fichier dump SQL dans une base MySQL via PDO natif.
+     */
+    private function restoreMysqlDatabase(string $dumpFile, string $targetDatabase): void
+    {
+        $connection = config('database.default', 'mysql');
+        $config = config("database.connections.{$connection}");
+
+        $host = $config['host'] ?? '127.0.0.1';
+        $port = (int) ($config['port'] ?? 3306);
+        $username = $config['username'] ?? 'root';
+        $password = $config['password'] ?? '';
+
+        $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
+        $pdo = new \PDO($dsn, $username, $password, [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
+            \PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
+        ]);
+
+        // Créer la base cible si nécessaire
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$targetDatabase}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+        $pdo->exec("USE `{$targetDatabase}`;");
+        $pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
+        $pdo->exec("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';");
+
+        $handle = fopen($dumpFile, 'r');
+        if ($handle === false) {
+            throw new \RuntimeException("Impossible d'ouvrir le fichier SQL : {$dumpFile}");
+        }
+
+        $buffer = '';
+        while (($line = fgets($handle)) !== false) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '/*')) {
+                continue;
+            }
+
+            $buffer .= $line;
+
+            if (str_ends_with($trimmed, ';')) {
+                $pdo->exec($buffer);
+                $buffer = '';
+            }
+        }
+
+        if (trim($buffer) !== '') {
+            $pdo->exec($buffer);
+        }
+
+        fclose($handle);
+
+        $pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
+    }
+
+    /**
+     * Vérifier l'intégrité détaillée d'une archive de sauvegarde.
+     *
+     * @return array Rapport d'intégrité détaillé.
+     */
+    public function verifyBackup(string $backupId): array
+    {
+        $backupBasePath = config('production.backup.path', 'backups');
+        $cleanId = basename($backupId, '.zip');
+        $filePath = storage_path("app/{$backupBasePath}/{$cleanId}.zip");
+
+        $report = [
+            'valid' => false,
+            'backup_id' => $cleanId,
+            'archive_path' => "{$backupBasePath}/{$cleanId}.zip",
+            'archive_size_bytes' => 0,
+            'archive_size_human' => '0 o',
+            'archive_sha256' => null,
+            'zip_integrity' => false,
+            'manifest_present' => false,
+            'manifest_valid' => false,
+            'manifest' => null,
+            'checksums_verified' => false,
+            'database_valid' => false,
+            'errors' => [],
+            'warnings' => [],
+        ];
+
+        if (! File::exists($filePath)) {
+            $report['errors'][] = "Sauvegarde introuvable : {$cleanId}.zip";
+
+            return $report;
+        }
+
+        $size = File::size($filePath);
+        $report['archive_size_bytes'] = $size;
+        $report['archive_size_human'] = $this->humanFileSize($size);
+        $report['archive_sha256'] = hash_file('sha256', $filePath);
+
+        $zip = new ZipArchive;
+        $openResult = $zip->open($filePath, ZipArchive::CHECKCONS);
+
+        if ($openResult !== true) {
+            $report['errors'][] = "L'archive ZIP est invalide ou corrompue (code: {$openResult}).";
+
+            return $report;
+        }
+
+        $report['zip_integrity'] = true;
+
+        // Vérification du manifest.json
+        $manifestContent = $zip->getFromName('manifest.json');
+        if ($manifestContent !== false) {
+            $report['manifest_present'] = true;
+            $manifestJson = json_decode($manifestContent, true);
+
+            if (is_array($manifestJson) && isset($manifestJson['backup_id'])) {
+                $report['manifest_valid'] = true;
+                $report['manifest'] = $manifestJson;
+
+                // Vérification des checksums des fichiers déclarés
+                $allChecksumsOk = true;
+
+                if (isset($manifestJson['files']) && is_array($manifestJson['files'])) {
+                    foreach ($manifestJson['files'] as $relativePath => $fileInfo) {
+                        $expectedHash = $fileInfo['sha256'] ?? null;
+                        if (! $expectedHash) {
+                            continue;
+                        }
+
+                        $fileStream = $zip->getStream($relativePath);
+                        if ($fileStream === false) {
+                            $report['errors'][] = "Fichier manquant dans l'archive : {$relativePath}";
+                            $allChecksumsOk = false;
+                            continue;
+                        }
+
+                        $ctx = hash_init('sha256');
+                        hash_update_stream($ctx, $fileStream);
+                        $actualHash = hash_final($ctx);
+                        fclose($fileStream);
+
+                        if ($actualHash !== $expectedHash) {
+                            $report['errors'][] = "Checksum SHA-256 non concordant pour {$relativePath} (attendu: {$expectedHash}, calculé: {$actualHash})";
+                            $allChecksumsOk = false;
+                        }
+                    }
+                }
+
+                $report['checksums_verified'] = $allChecksumsOk;
+            } else {
+                $report['warnings'][] = "Le fichier manifest.json est présent mais n'est pas un JSON valide.";
+            }
+        } else {
+            $report['warnings'][] = "Aucun fichier manifest.json trouvé dans l'archive.";
+        }
+
+        // Vérification de la présence et cohérence du dump DB
+        $dbDump = $zip->getFromName('database/database.sql');
+        $dbSqlite = $zip->getFromName('database/database.sqlite');
+        $dbExpected = true;
+
+        if ($report['manifest'] && isset($report['manifest']['database'])) {
+            $dbMeta = $report['manifest']['database'];
+            if (isset($dbMeta['included']) && ! $dbMeta['included']) {
+                $dbExpected = false;
+            } elseif (isset($dbMeta['tables_count']) && $dbMeta['tables_count'] === 0) {
+                $dbExpected = false;
+            }
+        }
+
+        if ($dbDump !== false && strlen($dbDump) > 100) {
+            if (str_contains($dbDump, 'CREATE TABLE') || str_contains($dbDump, 'INSERT INTO')) {
+                $report['database_valid'] = true;
+            } else {
+                $report['warnings'][] = 'Le dump SQL ne semble pas contenir d\'instructions valides.';
+            }
+        } elseif ($dbSqlite !== false && strlen($dbSqlite) > 100) {
+            $report['database_valid'] = true;
+        } elseif (! $dbExpected) {
+            $report['database_valid'] = true;
+            $report['warnings'][] = 'Sauvegarde sans composant base de données.';
+        } else {
+            $report['errors'][] = 'Aucun dump de base de données valide trouvé dans database/.';
+        }
+
+        $report['valid'] = empty($report['errors']);
+        $zip->close();
+
+        return $report;
+    }
+
+    /**
+     * Vérifier l'intégrité d'une archive de sauvegarde (compatibilité booléenne).
      *
      * @param  string  $backupId  Identifiant de la sauvegarde.
      * @return bool True si l'archive est valide.
      */
     public function verifyBackupIntegrity(string $backupId): bool
     {
-        $backupBasePath = config('production.backup.path', 'backups');
-        $filePath = storage_path("app/{$backupBasePath}/{$backupId}.zip");
+        $result = $this->verifyBackup($backupId);
 
-        if (! File::exists($filePath)) {
-            return false;
-        }
-
-        $zip = new ZipArchive;
-        $result = $zip->open($filePath, ZipArchive::CHECKCONS);
-
-        if ($result === true) {
-            $zip->close();
-
-            return true;
-        }
-
-        return false;
+        return (bool) ($result['valid'] ?? false);
     }
 
     // ─── Utilitaires internes ────────────────────────────────────────────────

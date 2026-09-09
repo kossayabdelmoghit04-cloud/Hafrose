@@ -5,6 +5,10 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/backups/*
+!/storage/app/backups/.gitignore
+*.sql
+*.dump
 /vendor
 .env
 .env.backup

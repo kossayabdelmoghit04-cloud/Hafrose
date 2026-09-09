@@ -150,6 +150,12 @@ class BackupCommand extends Command
         if ($report['success']) {
             if (! $dryRun && ! empty($report['archive'])) {
                 $this->line('  <fg=green;options=bold>Sauvegarde créée :</> storage/'.$report['archive']);
+                if (! empty($report['archive_size_human'])) {
+                    $this->line("  <fg=gray>Taille :</> {$report['archive_size_human']}");
+                }
+                if (! empty($report['archive_sha256'])) {
+                    $this->line("  <fg=gray>SHA-256 :</> {$report['archive_sha256']}");
+                }
             }
 
             if (isset($report['duration_s'])) {
