@@ -231,8 +231,17 @@ Le workflow `.github/workflows/ci-cd.yml` est complètement structuré :
 
 ## 12. Sauvegardes (Backup)
 
-* **Script :** [`deployment/scripts/backup.sh`](file:///c:\Users\DELL\Desktop\Hafrose\deployment\scripts\backup.sh) configuré pour exécuter `php artisan hafrose:backup --detailed` directement ou au sein du conteneur `hafrose_backend`.
-* **Commande Artisan :** `php artisan hafrose:backup` (gère la base de données, `storage/app`, les images et la rotation des sauvegardes).
+* **Script :** [`deployment/scripts/backup.sh`](file:///c:\Users\DELL\Desktop\Hafrose\deployment\scripts\backup.sh) configuré pour exécuter `php artisan hafrose:backup --detailed` au sein du conteneur `hafrose_backend`.
+* **Commande Artisan :** `php artisan hafrose:backup --detailed --force` (gère la base de données, `storage/app`, les images et la rotation des sauvegardes).
+* **Moteur de Dump DB :** Fallback PDO natif (`backupDatabaseViaPdo`) intégré dans [`ProductionBackupService`](file:///c:\Users\DELL\Desktop\Hafrose\backend\app\Services\ProductionBackupService.php), éliminant toute incompatibilité `mysqldump` / `caching_sha2_password` sous MySQL 8.0.
+* **Validation Réelle (2026-09-09) :**
+  - Disk check : ✅ PASS (espace disponible validé)
+  - Database : ✅ PASS (Dump MySQL PDO natif : hafrose, 51.2 Ko)
+  - Storage : ✅ PASS (669 fichiers)
+  - Images : ✅ PASS (731 images)
+  - Critical files : ✅ PASS (3 fichiers)
+  - Archive : ✅ PASS (`hafrose-backup_2026-09-09_12-03-56.zip`, 1407 fichiers, 117 Mo)
+  - Rotation : ✅ PASS
 * **Rétention :** 7 jours en local, 4 hebdomadaires, 6 mensuels (selon `backend/.env.example`).
 * **Recommandation Prod :** Synchronisation automatique du dossier `/var/www/hafrose/backend/storage/app/backups/` vers un bucket S3 / Cloudflare R2 distant.
 
