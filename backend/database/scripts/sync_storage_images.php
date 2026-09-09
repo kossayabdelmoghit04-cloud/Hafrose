@@ -1,14 +1,25 @@
 <?php
 
-require __DIR__.'/vendor/autoload.php';
-$app = require_once __DIR__.'/bootstrap/app.php';
-$kernel = $app->make(Kernel::class);
-$kernel->bootstrap();
+/**
+ * HAFROSE — Local Storage Image Synchronization Utility
+ *
+ * Copies canonical seeds and product images from public/images and public/assets
+ * into storage/app/public to ensure media URLs (/storage/...) resolve correctly
+ * in local development.
+ *
+ * Usage:
+ *   php database/scripts/sync_storage_images.php
+ */
 
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\File;
+
+require __DIR__.'/../../vendor/autoload.php';
+$app = require_once __DIR__.'/../../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
+$kernel->bootstrap();
 
 $storagePublic = storage_path('app/public');
 $productsDir = $storagePublic.'/products';
@@ -74,6 +85,9 @@ $allFallbackFiles = File::allFiles(public_path('images/products'));
 foreach (Product::with('category', 'galleries')->get() as $idx => $p) {
     $catSlug = $p->category->slug ?? 'sacs';
     $availableFiles = $categoryFiles[$catSlug] ?? $allFallbackFiles;
+    if (empty($availableFiles)) {
+        continue;
+    }
     $sourceFile = $availableFiles[$idx % count($availableFiles)]->getRealPath();
 
     // Product main image
