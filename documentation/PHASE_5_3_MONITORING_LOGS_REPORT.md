@@ -1,57 +1,57 @@
-# HAFROSE — Rapport Phase 5.3 : Monitoring & Logs Locaux
+# HAFROSE â€” Rapport Phase 5.3 : Monitoring & Logs Locaux
 
-> **Statut : ? VALIDÉE**
+> **Statut : ? VALIDÃ‰E**
 > Date : 2026-09-09
 > Environnement : Local Windows (exclusivement)
 
 ---
 
-## 1. Résumé Exécutif
+## 1. RÃ©sumÃ© ExÃ©cutif
 
-La Phase 5.3 met en place un système complet de monitoring et de gestion des logs locaux pour l application HAFROSE. Elle améliore la visibilité, le diagnostic et la maintenance sans introduire de nouveau service distant, SaaS ou infrastructure externe.
+La Phase 5.3 met en place un systÃ¨me complet de monitoring et de gestion des logs locaux pour l application HAFROSE. Elle amÃ©liore la visibilitÃ©, le diagnostic et la maintenance sans introduire de nouveau service distant, SaaS ou infrastructure externe.
 
-**Périmètre :**
+**PÃ©rimÃ¨tre :**
 - Backend : Laravel 11 (PHP 8.2+, Monolog 3)
 - Frontend : React + Vite
-- Base de données : MySQL 8
+- Base de donnÃ©es : MySQL 8
 - Environnement : 100% local Windows
 
 ---
 
-## 2. Objectifs et Réalisations
+## 2. Objectifs et RÃ©alisations
 
 | # | Objectif | Statut |
 |---|---|---|
-| 1 | Détection des erreurs | ? Canal daily + SanitizeContextProcessor |
-| 2 | Consultation des logs | ? Guide opérationnel + commandes PowerShell |
-| 3 | Identification rapide des problèmes | ? Script health-check.ps1 + endpoint /api/health |
-| 4 | Suivi des événements importants | ? 8 niveaux RFC 5424 configurés |
-| 5 | Rotation et rétention maîtrisées | ? Canal daily, 14 jours, nettoyage automatique |
-| 6 | Facilitation du diagnostic | ? Procédure en 7 étapes documentée |
-| 7 | Documentation des procédures | ? LOCAL_MONITORING_LOGS_GUIDE.md |
+| 1 | DÃ©tection des erreurs | ? Canal daily + SanitizeContextProcessor |
+| 2 | Consultation des logs | ? Guide opÃ©rationnel + commandes PowerShell |
+| 3 | Identification rapide des problÃ¨mes | ? Script health-check.ps1 + endpoint /api/health |
+| 4 | Suivi des Ã©vÃ©nements importants | ? 8 niveaux RFC 5424 configurÃ©s |
+| 5 | Rotation et rÃ©tention maÃ®trisÃ©es | ? Canal daily, 14 jours, nettoyage automatique |
+| 6 | Facilitation du diagnostic | ? ProcÃ©dure en 7 Ã©tapes documentÃ©e |
+| 7 | Documentation des procÃ©dures | ? LOCAL_MONITORING_LOGS_GUIDE.md |
 
 ---
 
-## 3. Composants Créés / Modifiés
+## 3. Composants CrÃ©Ã©s / ModifiÃ©s
 
 ### 3.1 Nouveaux Fichiers
 
 | Fichier | Description |
 |---|---|
-| `backend/app/Logging/SanitizeContextProcessor.php` | Processeur Monolog 3 masquant les données sensibles |
+| `backend/app/Logging/SanitizeContextProcessor.php` | Processeur Monolog 3 masquant les donnÃ©es sensibles |
 | `backend/app/Console/Commands/CleanLogsCommand.php` | Commande Artisan hafrose:logs:clean |
 | `scripts/health-check.ps1` | Script PowerShell de diagnostic local complet |
 | `backend/tests/Feature/LoggingAndMonitoringTest.php` | Suite de tests Phase 5.3 (7 tests) |
-| `documentation/LOCAL_MONITORING_LOGS_GUIDE.md` | Guide opérationnel complet |
+| `documentation/LOCAL_MONITORING_LOGS_GUIDE.md` | Guide opÃ©rationnel complet |
 | `documentation/PHASE_5_3_MONITORING_LOGS_REPORT.md` | Ce rapport |
 
-### 3.2 Fichiers Modifiés
+### 3.2 Fichiers ModifiÃ©s
 
 | Fichier | Modification |
 |---|---|
-| `backend/config/logging.php` | Canal daily par défaut + SanitizeContextProcessor dans processors |
+| `backend/config/logging.php` | Canal daily par dÃ©faut + SanitizeContextProcessor dans processors |
 | `backend/.env` | LOG_CHANNEL=daily, LOG_LEVEL=debug, LOG_DAILY_DAYS=14 |
-| `backend/.env.example` | Mêmes paramètres pour les nouveaux développeurs |
+| `backend/.env.example` | MÃªmes paramÃ¨tres pour les nouveaux dÃ©veloppeurs |
 | `backend/app/Http/Controllers/Api/PublicHealthCheckController.php` | Enrichissement de /api/health (application, database, storage, logs, cache) |
 
 ---
@@ -66,18 +66,18 @@ LOG_LEVEL=debug
 LOG_DAILY_DAYS=14
 ```
 
-Fichiers générés : `backend/storage/logs/laravel-YYYY-MM-DD.log`
-Rétention : 14 jours (gestion native Monolog RotatingFileHandler)
+Fichiers gÃ©nÃ©rÃ©s : `backend/storage/logs/laravel-YYYY-MM-DD.log`
+RÃ©tention : 14 jours (gestion native Monolog RotatingFileHandler)
 
-### 4.2 Protection des Données Sensibles
+### 4.2 Protection des DonnÃ©es Sensibles
 
 Le processeur `SanitizeContextProcessor` masque automatiquement :
 
-- Clés de contexte : password, token, api_key, cvv, card_number, app_key, secret...
+- ClÃ©s de contexte : password, token, api_key, cvv, card_number, app_key, secret...
 - Tokens Sanctum (`\d+|[A-Za-z0-9]{30,}`)
-- En-têtes Bearer (`Bearer [REDACTED]`)
+- En-tÃªtes Bearer (`Bearer [REDACTED]`)
 - APP_KEY Laravel (`base64:[REDACTED_APP_KEY]`)
-- Numéros de carte bancaire
+- NumÃ©ros de carte bancaire
 
 ---
 
@@ -85,7 +85,7 @@ Le processeur `SanitizeContextProcessor` masque automatiquement :
 
 **Route :** `GET /api/health` (publique, sans authentification)
 
-**Réponse HTTP 200 (healthy) :**
+**RÃ©ponse HTTP 200 (healthy) :**
 ```json
 {
   "status": "healthy",
@@ -100,7 +100,7 @@ Le processeur `SanitizeContextProcessor` masque automatiquement :
 }
 ```
 
-**Réponse HTTP 503 (unhealthy) :** Retournée si database ou storage est défaillant.
+**RÃ©ponse HTTP 503 (unhealthy) :** RetournÃ©e si database ou storage est dÃ©faillant.
 
 ---
 
@@ -112,15 +112,15 @@ powershell -ExecutionPolicy Bypass -File scripts\health-check.ps1
 powershell -ExecutionPolicy Bypass -File scripts\health-check.ps1 -Detailed
 ```
 
-**Contrôles effectués :**
-1. Prérequis système (PHP >= 8.2, Composer, Node.js, npm)
-2. Port MySQL (3306) + requête SELECT 1
+**ContrÃ´les effectuÃ©s :**
+1. PrÃ©requis systÃ¨me (PHP >= 8.2, Composer, Node.js, npm)
+2. Port MySQL (3306) + requÃªte SELECT 1
 3. Port Backend (8000) + appel /api/health
-4. Port Frontend (5173)
+4. Port Frontend (3000)
 5. Permissions des dossiers storage/
 6. Logs : fichier du jour, taille totale, .gitignore
 
-**Codes de sortie :** 0 = succès, 1 = échec critique
+**Codes de sortie :** 0 = succÃ¨s, 1 = Ã©chec critique
 
 ---
 
@@ -142,21 +142,21 @@ php artisan hafrose:logs:clean --days=7 --force   # Nettoyage 7 jours
 |---|---|---|
 | 1 | test_health_check_endpoint_returns_healthy_with_all_services | Endpoint /api/health retourne 200 + structure JSON |
 | 2 | test_logging_configuration_uses_daily_channel_and_correct_retention | Canal daily + 14 jours + SanitizeContextProcessor |
-| 3 | test_sanitize_context_processor_redacts_sensitive_keys | Clés password/token/api_key redactées en [REDACTED] |
-| 4 | test_sanitize_context_processor_redacts_patterns_in_messages | Bearer/base64/Sanctum redactés dans les messages |
-| 5 | test_controlled_error_is_logged_without_leaking_secrets | Erreur loggée sans fuite de mot de passe ni token |
-| 6 | test_customer_authentication_lifecycle_logging | Login / logout / échec de login fonctionnels |
+| 3 | test_sanitize_context_processor_redacts_sensitive_keys | ClÃ©s password/token/api_key redactÃ©es en [REDACTED] |
+| 4 | test_sanitize_context_processor_redacts_patterns_in_messages | Bearer/base64/Sanctum redactÃ©s dans les messages |
+| 5 | test_controlled_error_is_logged_without_leaking_secrets | Erreur loggÃ©e sans fuite de mot de passe ni token |
+| 6 | test_customer_authentication_lifecycle_logging | Login / logout / Ã©chec de login fonctionnels |
 | 7 | test_clean_logs_artisan_command | Commande hafrose:logs:clean --dry-run et --force |
 
 ---
 
-## 9. Sécurité Git
+## 9. SÃ©curitÃ© Git
 
 Garanties en place :
 - `backend/storage/logs/.gitignore` : ignore tous les fichiers `.log`
 - `.gitignore` racine : ignore `backend/storage/logs/`
 
-Vérification :
+VÃ©rification :
 ```powershell
 git ls-files backend/storage/logs/
 # Aucune sortie attendue
@@ -164,9 +164,9 @@ git ls-files backend/storage/logs/
 
 ---
 
-## 10. Non-Régression
+## 10. Non-RÃ©gression
 
-Les modifications de la Phase 5.3 sont rétrocompatibles. Aucune modification de schéma de base de données, aucune nouvelle route publique à risque, aucune dépendance externe ajoutée.
+Les modifications de la Phase 5.3 sont rÃ©trocompatibles. Aucune modification de schÃ©ma de base de donnÃ©es, aucune nouvelle route publique Ã  risque, aucune dÃ©pendance externe ajoutÃ©e.
 
 ---
 
@@ -174,25 +174,25 @@ Les modifications de la Phase 5.3 sont rétrocompatibles. Aucune modification de 
 
 | Document | Description |
 |---|---|
-| `documentation/LOCAL_MONITORING_LOGS_GUIDE.md` | Guide opérationnel complet (diagnostic 7 étapes, commandes, rotation) |
+| `documentation/LOCAL_MONITORING_LOGS_GUIDE.md` | Guide opÃ©rationnel complet (diagnostic 7 Ã©tapes, commandes, rotation) |
 | `documentation/PHASE_5_3_MONITORING_LOGS_REPORT.md` | Ce rapport de validation |
 
 ---
 
 ## 12. Validation Finale
 
-**Phase 5.3 — Monitoring & Logs Locaux : ? VALIDÉE**
+**Phase 5.3 â€” Monitoring & Logs Locaux : ? VALIDÃ‰E**
 
 Tous les objectifs sont atteints :
-- Rotation native daily avec rétention 14 jours
-- Masquage automatique des données sensibles (SanitizeContextProcessor)
-- Endpoint /api/health enrichi (5 services monitorés)
+- Rotation native daily avec rÃ©tention 14 jours
+- Masquage automatique des donnÃ©es sensibles (SanitizeContextProcessor)
+- Endpoint /api/health enrichi (5 services monitorÃ©s)
 - Script PowerShell de diagnostic local (health-check.ps1)
 - Commande Artisan de nettoyage (hafrose:logs:clean)
-- Suite de tests dédiée (7 tests)
-- Documentation opérationnelle complète
-- Sécurité Git garantie (aucun log suivi)
+- Suite de tests dÃ©diÃ©e (7 tests)
+- Documentation opÃ©rationnelle complÃ¨te
+- SÃ©curitÃ© Git garantie (aucun log suivi)
 
 ---
 
-*Rapport généré le 2026-09-09 — HAFROSE Phase 5.3*
+*Rapport gÃ©nÃ©rÃ© le 2026-09-09 â€” HAFROSE Phase 5.3*

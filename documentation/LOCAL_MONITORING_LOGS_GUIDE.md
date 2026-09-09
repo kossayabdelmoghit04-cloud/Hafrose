@@ -1,23 +1,23 @@
-# HAFROSE — Guide de Monitoring & Logs Locaux
+# HAFROSE â€” Guide de Monitoring & Logs Locaux
 
-> **Phase 5.3 — Monitoring & Logs Locaux**
+> **Phase 5.3 â€” Monitoring & Logs Locaux**
 > Environnement exclusivement local (Windows). Aucun service distant.
 
 ---
 
 ## 1. Architecture des Logs
 
-### 1.1 Canal par Défaut
+### 1.1 Canal par DÃ©faut
 
 HAFROSE utilise le canal **`daily`** (Monolog `RotatingFileHandler`).
 
-| Paramètre | Valeur |
+| ParamÃ¨tre | Valeur |
 |---|---|
 | `LOG_CHANNEL` | `daily` |
 | `LOG_LEVEL` | `debug` |
 | `LOG_DAILY_DAYS` | `14` |
 | Chemin des fichiers | `backend/storage/logs/laravel-YYYY-MM-DD.log` |
-| Rétention | 14 jours (nettoyage automatique Monolog) |
+| RÃ©tention | 14 jours (nettoyage automatique Monolog) |
 
 ### 1.2 Conventions de Nommage
 
@@ -25,7 +25,7 @@ HAFROSE utilise le canal **`daily`** (Monolog `RotatingFileHandler`).
 backend/storage/logs/
 +-- laravel-2026-09-09.log    # Fichier du jour courant
 +-- laravel-2026-09-08.log    # Hier
-+-- ...                       # Jusqu à 14 jours
++-- ...                       # Jusqu Ã  14 jours
 ```
 
 ### 1.3 Processeur de Masquage Automatique (SanitizeContextProcessor)
@@ -34,44 +34,44 @@ Tout enregistrement Monolog passe par `App\Logging\SanitizeContextProcessor` ava
 
 | Type | Remplacement |
 |---|---|
-| Clés sensibles (password, token, api_key, cvv, app_key...) | `[REDACTED]` |
+| ClÃ©s sensibles (password, token, api_key, cvv, app_key...) | `[REDACTED]` |
 | Tokens Sanctum (`442\|GshHwgQ...`) | `[REDACTED_SANCTUM_TOKEN]` |
-| En-têtes Bearer | `Bearer [REDACTED]` |
+| En-tÃªtes Bearer | `Bearer [REDACTED]` |
 | APP_KEY Laravel | `base64:[REDACTED_APP_KEY]` |
-| Numéros de carte bancaire | `[REDACTED_CARD]` |
+| NumÃ©ros de carte bancaire | `[REDACTED_CARD]` |
 
 ---
 
 ## 2. Niveaux de Log (8 Niveaux RFC 5424)
 
-| Niveau | Méthode PHP | Utilisation |
+| Niveau | MÃ©thode PHP | Utilisation |
 |---|---|---|
-| `DEBUG` | `Log::debug()` | Traces de développement |
-| `INFO` | `Log::info()` | Événements normaux |
+| `DEBUG` | `Log::debug()` | Traces de dÃ©veloppement |
+| `INFO` | `Log::info()` | Ã‰vÃ©nements normaux |
 | `NOTICE` | `Log::notice()` | Conditions inhabituelles non critiques |
 | `WARNING` | `Log::warning()` | Comportements inattendus |
-| `ERROR` | `Log::error()` | Erreurs sans arrêt de service |
-| `CRITICAL` | `Log::critical()` | Composant critique défaillant |
-| `ALERT` | `Log::alert()` | Action immédiate requise |
-| `EMERGENCY` | `Log::emergency()` | Système inutilisable |
+| `ERROR` | `Log::error()` | Erreurs sans arrÃªt de service |
+| `CRITICAL` | `Log::critical()` | Composant critique dÃ©faillant |
+| `ALERT` | `Log::alert()` | Action immÃ©diate requise |
+| `EMERGENCY` | `Log::emergency()` | SystÃ¨me inutilisable |
 
 ---
 
-## 3. Diagnostic en 7 Étapes
+## 3. Diagnostic en 7 Ã‰tapes
 
-### Étape 1 — Script PowerShell Automatisé
+### Ã‰tape 1 â€” Script PowerShell AutomatisÃ©
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\health-check.ps1
 ```
 
-### Étape 2 — Endpoint Healthcheck API
+### Ã‰tape 2 â€” Endpoint Healthcheck API
 
 ```powershell
 Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/health" -Method Get | ConvertTo-Json
 ```
 
-Réponse attendue (HTTP 200) :
+RÃ©ponse attendue (HTTP 200) :
 ```json
 {
   "status": "healthy",
@@ -79,34 +79,34 @@ Réponse attendue (HTTP 200) :
 }
 ```
 
-### Étape 3 — Vérification des Logs Backend
+### Ã‰tape 3 â€” VÃ©rification des Logs Backend
 
 ```powershell
 $today = (Get-Date).ToString("yyyy-MM-dd")
 Get-Content "backend\storage\logs\laravel-$today.log" -Tail 50
 ```
 
-### Étape 4 — Vérification du Backend
+### Ã‰tape 4 â€” VÃ©rification du Backend
 
 ```powershell
 cd backend && php artisan about
 ```
 
-### Étape 5 — Vérification DB
+### Ã‰tape 5 â€” VÃ©rification DB
 
 ```powershell
 cd backend && php artisan db:show
 ```
 
-### Étape 6 — Vérification des Ports
+### Ã‰tape 6 â€” VÃ©rification des Ports
 
 ```powershell
 Test-NetConnection -ComputerName 127.0.0.1 -Port 3306   # MySQL
 Test-NetConnection -ComputerName 127.0.0.1 -Port 8000   # Backend
-Test-NetConnection -ComputerName localhost  -Port 5173   # Frontend
+Test-NetConnection -ComputerName localhost  -Port 3000   # Frontend
 ```
 
-### Étape 7 — Tests Automatisés
+### Ã‰tape 7 â€” Tests AutomatisÃ©s
 
 ```powershell
 cd backend && php artisan test --filter=LoggingAndMonitoringTest
@@ -121,26 +121,26 @@ cd backend && php artisan test
 # Simulation (aucune suppression)
 php artisan hafrose:logs:clean --dry-run
 
-# Nettoyage avec rétention 14 jours
+# Nettoyage avec rÃ©tention 14 jours
 php artisan hafrose:logs:clean --force
 
-# Rétention personnalisée (30 jours)
+# RÃ©tention personnalisÃ©e (30 jours)
 php artisan hafrose:logs:clean --days=30 --force
 ```
 
 ### Alerte Taille Totale
 
-Si `storage/logs/` dépasse **50 Mo**, exécuter :
+Si `storage/logs/` dÃ©passe **50 Mo**, exÃ©cuter :
 ```powershell
 php artisan hafrose:logs:clean --days=7 --force
 ```
 
 ---
 
-## 5. Sécurité Git
+## 5. SÃ©curitÃ© Git
 
 ```powershell
-# Aucune sortie ne doit apparaître
+# Aucune sortie ne doit apparaÃ®tre
 git ls-files backend/storage/logs/
 
 # En cas d erreur accidentelle
@@ -149,10 +149,10 @@ git rm --cached backend/storage/logs/laravel.log
 
 ---
 
-## 6. Monitoring Temps Réel (Développement)
+## 6. Monitoring Temps RÃ©el (DÃ©veloppement)
 
 ```powershell
-# Suivi en temps réel
+# Suivi en temps rÃ©el
 $today = (Get-Date).ToString("yyyy-MM-dd")
 Get-Content "backend\storage\logs\laravel-$today.log" -Wait -Tail 30
 
@@ -162,17 +162,17 @@ Select-String -Path "backend\storage\logs\*.log" -Pattern "\.(ERROR|CRITICAL|ALE
 
 ---
 
-## 7. Rotation & Rétention
+## 7. Rotation & RÃ©tention
 
-La rotation est gérée nativement par Monolog `RotatingFileHandler` :
+La rotation est gÃ©rÃ©e nativement par Monolog `RotatingFileHandler` :
 
-1. Nouveau fichier `laravel-YYYY-MM-DD.log` créé chaque jour.
-2. Fichiers plus anciens que `LOG_DAILY_DAYS` (14j) supprimés automatiquement.
-3. Aucune tâche cron requise.
+1. Nouveau fichier `laravel-YYYY-MM-DD.log` crÃ©Ã© chaque jour.
+2. Fichiers plus anciens que `LOG_DAILY_DAYS` (14j) supprimÃ©s automatiquement.
+3. Aucune tÃ¢che cron requise.
 
 ---
 
-## 8. Référence Rapide
+## 8. RÃ©fÃ©rence Rapide
 
 | Action | Commande |
 |---|---|
@@ -183,4 +183,4 @@ La rotation est gérée nativement par Monolog `RotatingFileHandler` :
 | Nettoyage dry-run | `php artisan hafrose:logs:clean --dry-run` |
 | Nettoyage 14j | `php artisan hafrose:logs:clean --days=14 --force` |
 | Tests Phase 5.3 | `php artisan test --filter=LoggingAndMonitoringTest` |
-| Suite complète | `php artisan test` |
+| Suite complÃ¨te | `php artisan test` |

@@ -11,7 +11,7 @@
 param (
     [switch]$Detailed,
     [string]$BackendUrl = "http://127.0.0.1:8000",
-    [string]$FrontendUrl = "http://localhost:5173",
+    [string]$FrontendUrl = "http://localhost:3000",
     [int]$DbPort = 3306
 )
 
@@ -37,7 +37,7 @@ function Write-Fail([string]$label, [string]$detail) {
 
 Write-Host ""
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "       HAFROSE - Diagnostic & Monitoring Local (v5.3)       " -ForegroundColor Cyan
+Write-Host "       HAFROSE - Diagnostic & Monitoring Local (v5.4)       " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -175,15 +175,6 @@ Write-Host "  [4/6] Frontend Web Application" -ForegroundColor Magenta
 $frontendUri = [System.Uri]$FrontendUrl
 $tcpFrontend = Test-NetConnection -ComputerName $frontendUri.Host -Port $frontendUri.Port -WarningAction SilentlyContinue
 
-if (-not $tcpFrontend.TcpTestSucceeded) {
-    $altFrontend = Test-NetConnection -ComputerName "localhost" -Port 3000 -WarningAction SilentlyContinue
-    if ($altFrontend.TcpTestSucceeded) {
-        $FrontendUrl = "http://localhost:3000"
-        $frontendUri = [System.Uri]$FrontendUrl
-        $tcpFrontend = $altFrontend
-    }
-}
-
 if ($tcpFrontend.TcpTestSucceeded) {
     Write-Pass "Port Frontend ($($frontendUri.Port))" "Serveur Vite actif sur $($frontendUri.Host):$($frontendUri.Port)"
     $globalPass++
@@ -202,7 +193,7 @@ if ($tcpFrontend.TcpTestSucceeded) {
         $globalWarn++
     }
 } else {
-    Write-WarnMsg "Port Frontend ($($frontendUri.Port))" "Serveur Vite non detecte sur port 5173 ou 3000"
+    Write-WarnMsg "Port Frontend ($($frontendUri.Port))" "Serveur Vite non detecte sur $($frontendUri.Host):$($frontendUri.Port)"
     $globalWarn++
 }
 
