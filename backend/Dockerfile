@@ -11,11 +11,12 @@ RUN composer install \
     --no-scripts \
     --no-autoloader \
     --optimize-autoloader \
-    --prefer-dist
+    --prefer-dist \
+    --ignore-platform-reqs
 
 COPY . .
 
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev --ignore-platform-reqs
 
 # ── Stage 2: PHP-FPM Production ───────────────────────────────────────────────
 FROM php:8.4-fpm-alpine AS production
@@ -27,6 +28,7 @@ RUN apk add --no-cache \
     libwebp-dev \
     libzip-dev \
     oniguruma-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
