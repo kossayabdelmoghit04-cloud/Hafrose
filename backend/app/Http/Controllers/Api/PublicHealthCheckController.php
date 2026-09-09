@@ -23,16 +23,26 @@ class PublicHealthCheckController extends Controller
         $dbConnected = false;
         try {
             DB::connection()->getPdo();
+            DB::select('SELECT 1');
             $dbConnected = true;
         } catch (\Throwable $e) {
             Log::error('Health check database failure', [
-                'message' => $e->getMessage(),
+                'exception' => $e->getMessage(),
             ]);
         }
 
         $storageWritable = is_writable(storage_path('framework/cache'));
+        $logsWritable = is_dir(storage_path('logs')) && is_writable(storage_path('logs'));
 
-        $isHealthy = $dbConnected && $storageWritable;
+        $cacheOk = true;
+        try {
+            \Illuminate\Support\Facades\Cache::put('health_ping', 1, 5);
+            $cacheOk = (\Illuminate\Support\Facades\Cache::get('health_ping') === 1);
+        } catch (\Throwable $e) {
+            $cacheOk = false;
+        }
+
+        $isHealthy = $dbConnected && $storageWritable && $logsWritable;
 
         $payload = [
             'status' => $isHealthy ? 'healthy' : 'unhealthy',
@@ -41,6 +51,8 @@ class PublicHealthCheckController extends Controller
                 'application' => 'ok',
                 'database' => $dbConnected ? 'ok' : 'unreachable',
                 'storage' => $storageWritable ? 'ok' : 'unwritable',
+                'logs' => $logsWritable ? 'ok' : 'unwritable',
+                'cache' => $cacheOk ? 'ok' : 'unreachable',
             ],
         ];
 
