@@ -139,13 +139,14 @@ HAFROSE intègre une solution complète de sauvegarde et restauration autonome :
 
 ---
 
-## 📚 Documentation Complète
+## 📚 Documentation Complète & Certification
 
 Pour les procédures détaillées, la maintenance, la gestion des incidents et les spécifications techniques, consultez :
 
+- 📜 [**Certificat Technique Officiel (HAFROSE_FINAL_CERTIFICATION.md)**](file:///documentation/HAFROSE_FINAL_CERTIFICATION.md) : attestation officielle de certification finale (Phase 5.7).
+- 📋 [**Rapport de Certification Finale (PHASE_5_7_FINAL_CERTIFICATION_REPORT.md)**](file:///documentation/PHASE_5_7_FINAL_CERTIFICATION_REPORT.md) : audit exhaustif et matrice de conformité de clôture.
 - 📖 [**Guide Opérationnel Local Complet (LOCAL_OPERATIONS_GUIDE.md)**](file:///documentation/LOCAL_OPERATIONS_GUIDE.md) : référence exhaustive des 28 procédures locales.
 - 🗂️ [**Index de la Documentation (documentation/README.md)**](file:///documentation/README.md) : catalogue structuré de toute la documentation du projet.
-- 📋 [**Rapport de Validation Phase 5.5**](file:///documentation/PHASE_5_5_DOCUMENTATION_OPERATIONS_REPORT.md) : bilan officiel de conformité documentaire.
 
 ---
 

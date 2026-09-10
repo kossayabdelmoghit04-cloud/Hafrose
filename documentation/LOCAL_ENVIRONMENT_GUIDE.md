@@ -1,4 +1,4 @@
-﻿# HAFROSE — Guide d'Environnement Local
+# HAFROSE — Guide d'Environnement Local
 
 > **Version** : Phase 5.1 — Stabilisation locale
 > **OS cible** : Windows 10/11 (adapté macOS/Linux en note)
@@ -138,7 +138,7 @@ npm run dev
 cd backend
 php artisan test
 ```
-Résultat attendu : 413 tests, 1656 assertions, 0 failure.
+Résultat attendu : 432 tests, 1742 assertions, 0 failure (suite complète actualisée).
 
 **Tests E2E Playwright :**
 ```bash

@@ -13,7 +13,7 @@ Le projet **HAFROSE** fonctionne exclusivement sur une architecture locale déco
 | Composant | URL / Port Local | Rôle & Description |
 |---|---|---|
 | **Frontend SPA (Vite / React)** | `http://localhost:3000` | Interface client Haute Couture & Back-office |
-| **Backend API (Laravel 11)** | `http://127.0.0.1:8000` | Moteur métier, Sanctum, Monolog 3 |
+| **Backend API (Laravel 12)** | `http://127.0.0.1:8000` | Moteur métier, Sanctum, Monolog 3 |
 | **Endpoint Healthcheck** | `http://127.0.0.1:8000/api/health` | Contrôle d'état en temps réel (DB, Storage, Logs, Cache) |
 | **Base de Données (MySQL)** | `127.0.0.1:3306` | Base relationnelle locale (`hafrose`) |
 

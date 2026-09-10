@@ -21,6 +21,9 @@ L'ensemble des documents ci-dessous reflète l'architecture, les spécifications
 ```text
 documentation/
 │
+├── 📜 Certification Finale Officielle
+│   └── HAFROSE_FINAL_CERTIFICATION.md           # Certificat Technique Officiel de Clôture (Phase 5.7)
+│
 ├── 📖 Guides Opérationnels Locaux
 │   ├── LOCAL_OPERATIONS_GUIDE.md            # Guide central complet unifié (Phase 5.5)
 │   ├── LOCAL_ENVIRONMENT_GUIDE.md           # Guide d'installation et de stabilisation (Phase 5.1)
@@ -33,7 +36,9 @@ documentation/
 │   ├── PHASE_5_2_BACKUP_RESTORE_REPORT.md        # Clôture Phase 5.2 — Backup & Restore
 │   ├── PHASE_5_3_MONITORING_LOGS_REPORT.md        # Clôture Phase 5.3 — Logs & Monitoring
 │   ├── PHASE_5_4_MAINTENANCE_SECURITY_REPORT.md   # Clôture Phase 5.4 — Maintenance & Sécurité
-│   └── PHASE_5_5_DOCUMENTATION_OPERATIONS_REPORT.md # Clôture Phase 5.5 — Documentation & Opérations
+│   ├── PHASE_5_5_DOCUMENTATION_OPERATIONS_REPORT.md # Clôture Phase 5.5 — Documentation & Opérations
+│   ├── PHASE_5_6_FINAL_AUDIT_REPORT.md            # Clôture Phase 5.6 — Audit Final Global
+│   └── PHASE_5_7_FINAL_CERTIFICATION_REPORT.md    # Clôture Phase 5.7 — Certification Finale
 │
 └── 📐 Spécifications Fonctionnelles & Conception Initiale
     ├── Cahier des charges.md          # Besoins métier & univers Haute Couture
