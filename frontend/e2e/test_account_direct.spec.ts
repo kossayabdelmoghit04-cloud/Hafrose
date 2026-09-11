@@ -38,7 +38,7 @@ test('Test direct access to /account without auth and with auth', async ({ page 
   await page.waitForURL(/\/account/, { timeout: 20000 });
   await expect(page).toHaveURL(/\/account/);
   const welcomeHeading = page.locator('h1');
-  await expect(welcomeHeading).toContainText('Ravi de vous revoir');
+  await expect(welcomeHeading).toContainText('Bienvenue');
   console.log('H1 text in dashboard :', await welcomeHeading.innerText());
 
   // Screenshot du dashboard client

@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBag, Heart, MapPin, User as UserIcon, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useLogout } from '../../hooks/useAuthHooks';
-import { Card } from '../ui/Card';
 import { cn } from '../../utils/cn';
 
 const NAV_ITEMS = [
@@ -24,29 +23,39 @@ export const AccountSidebar: React.FC = () => {
     navigate('/login');
   };
 
-  const userInitial = user?.first_name ? user.first_name.charAt(0).toUpperCase() : (user?.name?.charAt(0).toUpperCase() || 'H');
-  const fullName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || 'Membre HAFROSE' : 'Membre HAFROSE';
+  const userInitial = user?.first_name
+    ? user.first_name.charAt(0).toUpperCase()
+    : user?.name?.charAt(0).toUpperCase() || 'H';
+  const fullName =
+    user
+      ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || 'Membre HAFROSE'
+      : 'Membre HAFROSE';
 
   return (
-    <Card className="p-6 bg-white border border-neutral-200/60 shadow-hafrose-card space-y-6">
-      {/* Profile Avatar Header */}
-      <div className="flex items-center gap-3 pb-5 border-b border-neutral-200">
-        <div className="w-12 h-12 rounded-full bg-rose-powder text-burgundy-600 flex items-center justify-center font-serif text-h4 font-bold shadow-hafrose-xs">
-          {userInitial}
-        </div>
-        <div className="min-w-0 flex-1">
-          <span className="text-caption font-sans uppercase tracking-luxury font-semibold text-burgundy-500 block">
-            Espace Privé
-          </span>
-          <h2 className="font-serif text-h5 text-neutral-900 truncate">
-            {fullName}
-          </h2>
-          <p className="text-caption text-neutral-500 truncate">{user?.email || ''}</p>
+    <div className="bg-white border border-neutral-200/70 shadow-hafrose-card rounded-md overflow-hidden">
+      {/* ── Profile header ───────────────────────────────────── */}
+      <div className="px-5 py-5 border-b border-neutral-100 bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-burgundy-800">
+        <div className="flex items-center gap-3.5">
+          {/* Avatar */}
+          <div
+            aria-hidden="true"
+            className="w-11 h-11 rounded-full border border-rose-300/30 bg-rose-500/10 text-cream-100 flex items-center justify-center font-serif text-h5 font-bold flex-shrink-0 shadow-hafrose-xs"
+          >
+            {userInitial}
+          </div>
+          {/* Info */}
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] font-sans uppercase tracking-luxury font-semibold text-rose-300 block mb-0.5">
+              Espace Privé
+            </span>
+            <p className="font-serif text-h6 text-cream-100 truncate leading-snug">{fullName}</p>
+            <p className="text-[11px] text-cream-200/60 truncate mt-0.5 font-sans">{user?.email || ''}</p>
+          </div>
         </div>
       </div>
 
-      {/* Navigation Links */}
-      <nav aria-label="Navigation espace client" className="space-y-1">
+      {/* ── Navigation principale ─────────────────────────────── */}
+      <nav aria-label="Navigation espace client" className="px-2.5 py-3 space-y-0.5">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.href}
@@ -54,28 +63,47 @@ export const AccountSidebar: React.FC = () => {
             end={item.end}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-3.5 py-3 rounded-xs text-body-sm font-medium transition-all duration-200',
+                'group flex items-center gap-3 px-3 py-2.5 rounded-sm text-body-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-400 focus-visible:ring-offset-1',
                 isActive
-                  ? 'bg-rose-powder/60 text-burgundy-700 font-semibold border-l-2 border-burgundy-500 shadow-hafrose-xs'
-                  : 'text-neutral-700 hover:bg-cream-100 hover:text-burgundy-600'
+                  ? 'bg-burgundy-50 text-burgundy-800 font-semibold border-l-[3px] border-burgundy-500 pl-[9px]'
+                  : 'text-neutral-600 hover:bg-cream-100 hover:text-neutral-900 border-l-[3px] border-transparent'
               )
             }
           >
-            <item.icon className="w-4 h-4 text-burgundy-500 flex-shrink-0" />
-            <span>{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <item.icon
+                  className={cn(
+                    'w-4 h-4 flex-shrink-0 transition-colors duration-200',
+                    isActive ? 'text-burgundy-600' : 'text-neutral-400 group-hover:text-burgundy-500'
+                  )}
+                />
+                <span>{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
+      </nav>
 
+      {/* ── Séparateur + déconnexion ─────────────────────────── */}
+      <div className="px-2.5 pb-3 pt-1 border-t border-neutral-100">
         <button
           type="button"
           onClick={handleLogout}
           disabled={logoutMutation.isPending}
-          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xs text-body-sm font-medium text-error-600 hover:bg-error-50 transition-colors duration-200 text-left mt-4 border-t border-neutral-100 pt-4"
+          aria-label="Se déconnecter"
+          className={cn(
+            'group w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-body-sm font-medium transition-all duration-200',
+            'text-error-600 hover:bg-error-50 hover:text-error-700',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error-400 focus-visible:ring-offset-1',
+            'border-l-[3px] border-transparent',
+            logoutMutation.isPending && 'opacity-50 cursor-not-allowed'
+          )}
         >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span>{logoutMutation.isPending ? 'Déconnexion...' : 'Déconnexion'}</span>
+          <LogOut className="w-4 h-4 flex-shrink-0 text-error-500 group-hover:text-error-600 transition-colors" />
+          <span>{logoutMutation.isPending ? 'Déconnexion…' : 'Déconnexion'}</span>
         </button>
-      </nav>
-    </Card>
+      </div>
+    </div>
   );
 };

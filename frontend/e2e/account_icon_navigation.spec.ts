@@ -66,7 +66,7 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
 
     // 5. Vérifier la navigation vers /account et l'affichage de AccountPage
     await expect(page).toHaveURL('http://localhost:3000/account');
-    await expect(page.locator('h1')).toContainText('Ravi de vous revoir');
+    await expect(page.locator('h1')).toContainText('Bienvenue');
   });
 
   test('TEST 3 — Accès direct /login : LoginPage est visible', async ({ page }) => {

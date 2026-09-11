@@ -19,14 +19,21 @@ export const AccountLayout: React.FC = () => {
             { label: 'Accueil', href: '/' },
             { label: 'Mon Espace Client' },
           ]}
-          className="mb-6"
+          className="mb-8"
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <aside className="lg:col-span-4 xl:col-span-3 sticky top-24">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
+          {/* Sidebar — sticky on large screens */}
+          <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24">
             <AccountSidebar />
           </aside>
-          <main className="lg:col-span-8 xl:col-span-9 min-h-[500px]">
+
+          {/* Main content area */}
+          <main
+            id="account-main-content"
+            className="lg:col-span-8 xl:col-span-9 min-h-[500px] focus:outline-none"
+            tabIndex={-1}
+          >
             <Outlet />
           </main>
         </div>
