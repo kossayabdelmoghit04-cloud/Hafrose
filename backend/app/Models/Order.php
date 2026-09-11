@@ -11,6 +11,8 @@ class Order extends Model
 {
     use HasFactory;
 
+    public const PAYMENT_STATUS_PENDING = 'pending';
+
     /**
      * Statuts possibles d'une commande
      */

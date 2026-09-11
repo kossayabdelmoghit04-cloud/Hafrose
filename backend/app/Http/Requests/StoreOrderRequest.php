@@ -32,7 +32,7 @@ class StoreOrderRequest extends FormRequest
             'shipping_amount' => 'nullable|numeric|min:0',
             'shipping_method' => 'nullable|string|max:50',
             'payment_method' => 'nullable|string|max:50',
-            'payment_status' => 'nullable|string|max:50',
+            'payment_status' => 'prohibited',
             'shipping_address' => 'nullable|array',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',

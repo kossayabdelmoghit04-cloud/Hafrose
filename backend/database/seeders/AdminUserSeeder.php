@@ -16,6 +16,15 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        $email = config('admin-seeder.email');
+        $password = config('admin-seeder.password');
+
+        if (! config('admin-seeder.enabled') || ! $email || ! $password) {
+            $this->command?->warn('Admin account seeding skipped: explicit credentials are required.');
+
+            return;
+        }
+
         // Réinitialiser le cache de permissions Spatie pour éviter les conflits de migration
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -41,10 +50,10 @@ class AdminUserSeeder extends Seeder
 
         // --- Créer ou mettre à jour le super-administrateur ---
         $admin = User::updateOrCreate(
-            ['email' => 'admin@hafrose.com'],
+            ['email' => $email],
             [
-                'name' => 'Administrateur Hafrose',
-                'password' => Hash::make('Admin@Hafrose2024!'),
+                'name' => config('admin-seeder.name'),
+                'password' => Hash::make($password),
                 'role' => User::ROLE_ADMIN,
             ]
         );
@@ -52,6 +61,6 @@ class AdminUserSeeder extends Seeder
         // Assigner le rôle Spatie
         $admin->assignRole($adminRole);
 
-        $this->command->info('✅ Compte administrateur créé : admin@hafrose.com / Admin@Hafrose2024!');
+        $this->command?->info('Admin account created from environment-provided credentials.');
     }
 }

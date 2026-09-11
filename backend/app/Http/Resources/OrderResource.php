@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Order;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -33,7 +35,7 @@ class OrderResource extends JsonResource
             'shipping_amount' => round($shipping, 2),
             'shipping_method' => $this->shipping_method ?? 'express',
             'payment_method' => $this->payment_method ?? 'card',
-            'payment_status' => $this->payment_status ?? 'paid',
+            'payment_status' => $this->payment_status ?? Order::PAYMENT_STATUS_PENDING,
             'total_amount' => round($total, 2),
             'total_price' => round($total, 2),
             'status' => $this->status,

@@ -48,7 +48,7 @@ class OrderService
                 'shipping_amount' => $data['shipping_amount'] ?? 0.00,
                 'shipping_method' => $data['shipping_method'] ?? 'express',
                 'payment_method' => $data['payment_method'] ?? 'card',
-                'payment_status' => $data['payment_status'] ?? 'paid',
+                'payment_status' => Order::PAYMENT_STATUS_PENDING,
                 'subtotal_amount' => 0.00,
                 'tax_amount' => 0.00,
                 'total_amount' => 0.00,

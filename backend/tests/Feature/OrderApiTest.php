@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
@@ -10,6 +12,55 @@ use Tests\TestCase;
 class OrderApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function validPayload(Product $product): array
+    {
+        return [
+            'customer' => 'Client Test',
+            'phone' => '0612345678',
+            'address' => '123 Rue de la Paix',
+            'city' => 'Paris',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ];
+    }
+
+    public function test_client_cannot_declare_order_paid(): void
+    {
+        $product = Product::factory()->create(['stock' => 2, 'price' => 100]);
+
+        $this->postJson('/api/orders', $this->validPayload($product) + ['payment_status' => 'paid'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('payment_status');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_guest_order_has_no_user_and_is_unpaid(): void
+    {
+        $product = Product::factory()->create(['stock' => 2, 'price' => 100]);
+
+        $this->postJson('/api/orders', $this->validPayload($product))->assertCreated();
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => null,
+            'payment_status' => Order::PAYMENT_STATUS_PENDING,
+        ]);
+    }
+
+    public function test_authenticated_order_uses_sanctum_user_from_public_route(): void
+    {
+        $user = User::factory()->create(['role' => 'customer']);
+        $product = Product::factory()->create(['stock' => 2, 'price' => 100]);
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/orders', $this->validPayload($product) + ['user_id' => 999999])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('orders', [
+            'user_id' => $user->id,
+            'payment_status' => Order::PAYMENT_STATUS_PENDING,
+        ]);
+    }
 
     /**
      * Test de création d'une commande réussie.
