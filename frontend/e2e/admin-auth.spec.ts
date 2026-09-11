@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { adminCredentials, customerCredentials } from './helpers/credentials';
 
 const BASE_URL = 'http://localhost:3000';
 const API_URL = 'http://127.0.0.1:8000';
-const ADMIN_EMAIL = 'admin@hafrose.com';
-const ADMIN_PASSWORD = 'Admin@Hafrose2024!';
-const CUSTOMER_EMAIL = 'client.test@hafrose.com';
-const CUSTOMER_PASSWORD = 'password';
+const { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } = adminCredentials();
+const { email: CUSTOMER_EMAIL, password: CUSTOMER_PASSWORD } = customerCredentials();
 
 test.describe('Admin & Customer Auth - Complete E2E Chain', () => {
 
@@ -16,7 +15,7 @@ test.describe('Admin & Customer Auth - Complete E2E Chain', () => {
     });
     expect(resp.status()).toBe(200);
     const body = await resp.json();
-    console.log('DIRECT API RESPONSE:', JSON.stringify(body, null, 2));
+    console.log(`Admin login request: HTTP ${resp.status()}`);
     expect(body.success).toBe(true);
     expect(body.data.token).toBeTruthy();
     expect(body.data.user.role).toBe('admin');
@@ -42,8 +41,7 @@ test.describe('Admin & Customer Auth - Complete E2E Chain', () => {
       token: localStorage.getItem('hafrose_auth_token'),
       user: localStorage.getItem('hafrose_user_data'),
     }));
-    console.log('LOCALSTORAGE TOKEN:', localStorageData.token ? 'EXISTS (length=' + localStorageData.token.length + ')' : 'NULL');
-    console.log('LOCALSTORAGE USER:', localStorageData.user);
+    console.log('Authentication state present:', Boolean(localStorageData.token && localStorageData.user));
 
     expect(localStorageData.token).toBeTruthy();
     expect(localStorageData.user).toBeTruthy();

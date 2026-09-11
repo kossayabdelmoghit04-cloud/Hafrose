@@ -1,18 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { customerCredentials } from './helpers/credentials';
 
 const BASE_URL = 'http://localhost:3000';
 const API_URL = 'http://localhost:8000';
 
-const TEST_CREDENTIALS = {
-  email: 'client.test@hafrose.com',
-  password: 'password',
-};
+const TEST_CREDENTIALS = customerCredentials();
 
 test.skip('debug order submit', async ({ request, page }) => {
   page.on('response', async resp => {
     if (resp.url().includes('/api/orders')) {
       console.log(`API [${resp.status()}] ${resp.url()}`);
-      console.log('RESPONSE BODY:', await resp.text());
     }
   });
 

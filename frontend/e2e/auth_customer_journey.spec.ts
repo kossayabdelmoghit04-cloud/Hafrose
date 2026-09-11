@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { customerCredentials } from './helpers/credentials';
 
 test.describe('Customer Authentication and Account Journey', () => {
 
@@ -55,8 +56,9 @@ test.describe('Customer Authentication and Account Journey', () => {
   test('TEST 3: Valid customer login redirects to /account', async ({ page }) => {
     await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
     
-    await page.fill('input[type="email"]', 'client@hafrose.com');
-    await page.fill('input[type="password"]', 'Secret123!');
+    const credentials = customerCredentials();
+    await page.fill('input[type="email"]', credentials.email);
+    await page.fill('input[type="password"]', credentials.password);
     await page.click('button[type="submit"]');
     
     // Expect redirection to /account
@@ -75,8 +77,9 @@ test.describe('Customer Authentication and Account Journey', () => {
   test('TEST 4 & 6: Logged-in user can access /account, /account/orders, and click Mon compte', async ({ page }) => {
     // 1. Log in
     await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
-    await page.fill('input[type="email"]', 'client@hafrose.com');
-    await page.fill('input[type="password"]', 'Secret123!');
+    const credentials = customerCredentials();
+    await page.fill('input[type="email"]', credentials.email);
+    await page.fill('input[type="password"]', credentials.password);
     await page.click('button[type="submit"]');
     await page.waitForURL(/.*\/account/, { timeout: 20000 });
     await expect(page).toHaveURL(/.*\/account/);

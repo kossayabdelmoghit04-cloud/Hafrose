@@ -1,13 +1,13 @@
 import { test } from '@playwright/test';
+import { adminCredentials } from './helpers/credentials';
 
 const BASE_URL = 'http://localhost:3000';
 const _API_URL = 'http://localhost:8000';
-const ADMIN_EMAIL = 'admin@hafrose.com';
-const ADMIN_PASSWORD = 'Admin@Hafrose2024!';
+const { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } = adminCredentials();
 
 test('Diagnose admin login - capture ALL requests and errors', async ({ page }) => {
-  const allRequests: { method: string; url: string; payload: string }[] = [];
-  const allResponses: { url: string; status: number; body: string }[] = [];
+  const allRequests: { method: string; url: string }[] = [];
+  const allResponses: { url: string; status: number }[] = [];
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
 
@@ -16,17 +16,15 @@ test('Diagnose admin login - capture ALL requests and errors', async ({ page }) 
     allRequests.push({
       method: req.method(),
       url: req.url(),
-      payload: req.postData() || '',
     });
   });
 
   // Capture ALL responses (including failed ones)
   page.on('response', async resp => {
     try {
-      const body = await resp.text();
-      allResponses.push({ url: resp.url(), status: resp.status(), body: body.slice(0, 500) });
+      allResponses.push({ url: resp.url(), status: resp.status() });
     } catch {
-      allResponses.push({ url: resp.url(), status: resp.status(), body: '[unreadable]' });
+      allResponses.push({ url: resp.url(), status: resp.status() });
     }
   });
 
@@ -65,10 +63,10 @@ test('Diagnose admin login - capture ALL requests and errors', async ({ page }) 
 
   // Print everything
   console.log('\n=== ALL REQUESTS ===');
-  allRequests.forEach(r => console.log(`[${r.method}] ${r.url}${r.payload ? ' BODY: ' + r.payload : ''}`));
+  allRequests.forEach(r => console.log(`[${r.method}] ${r.url}`));
 
   console.log('\n=== ALL RESPONSES ===');
-  allResponses.forEach(r => console.log(`[${r.status}] ${r.url}\nBODY: ${r.body}\n`));
+  allResponses.forEach(r => console.log(`[${r.status}] ${r.url}`));
 
   console.log('\n=== CONSOLE ERRORS ===');
   consoleErrors.forEach(e => console.log('ERROR:', e));
@@ -79,13 +77,9 @@ test('Diagnose admin login - capture ALL requests and errors', async ({ page }) 
   console.log('\n=== CURRENT URL ===', page.url());
 
   // Check localStorage
-  const ls = await page.evaluate(() => ({
-    token: localStorage.getItem('hafrose_auth_token'),
-    user: localStorage.getItem('hafrose_user_data'),
-  }));
+  const authenticated = await page.evaluate(() => Boolean(localStorage.getItem('hafrose_auth_token')));
   console.log('\n=== LOCAL STORAGE ===');
-  console.log('token:', ls.token ? `EXISTS (len=${ls.token.length})` : 'NULL');
-  console.log('user:', ls.user);
+  console.log('authenticated:', authenticated);
 
   // Get the error message displayed on the page
   const errorEl = page.locator('[class*="alert"], [class*="error"], [role="alert"]').first();

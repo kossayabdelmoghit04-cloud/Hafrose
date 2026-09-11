@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { customerCredentials } from './helpers/credentials';
 
 test('Test direct access to /account without auth and with auth', async ({ page }) => {
+  const credentials = customerCredentials();
   // Clear any stale auth state from previous tests
   await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
@@ -31,8 +33,8 @@ test('Test direct access to /account without auth and with auth', async ({ page 
   expect(h1Text1[0]).toBe('Connexion Client');
 
   console.log('--- Step 2: Connexion avec un compte client valide ---');
-  await page.fill('input[type="email"]', 'client@hafrose.com');
-  await page.fill('input[type="password"]', 'Secret123!');
+  await page.fill('input[type="email"]', credentials.email);
+  await page.fill('input[type="password"]', credentials.password);
   await page.click('button[type="submit"]');
 
   await page.waitForURL(/\/account/, { timeout: 20000 });

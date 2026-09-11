@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { customerCredentials } from './helpers/credentials';
 
 /**
  * HAFROSE — Phase 8.2.6.6
@@ -13,10 +14,7 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = 'http://localhost:3000';
 const API_URL = 'http://localhost:8000';
 
-const TEST_CREDENTIALS = {
-  email: 'client.test@hafrose.com',
-  password: 'password',
-};
+const TEST_CREDENTIALS = customerCredentials();
 
 test.setTimeout(90000);
 

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { customerCredentials } from './helpers/credentials';
 
 test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Router Link)', () => {
 
@@ -44,8 +45,9 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
   test('TEST 2 — Utilisateur authentifié : clic icône compte → /account', async ({ page }) => {
     // 1. Se connecter avec le compte client
     await page.goto('http://localhost:3000/login', { waitUntil: 'domcontentloaded' });
-    await page.fill('input[type="email"]', 'client@hafrose.com');
-    await page.fill('input[type="password"]', 'Secret123!');
+    const credentials = customerCredentials();
+    await page.fill('input[type="email"]', credentials.email);
+    await page.fill('input[type="password"]', credentials.password);
     await page.click('button[type="submit"]');
 
     // Attendre redirection vers /account
