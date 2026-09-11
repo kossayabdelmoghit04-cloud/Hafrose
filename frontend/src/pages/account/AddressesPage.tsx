@@ -17,35 +17,6 @@ import {
 } from '../../hooks/useAccountHooks';
 import { UserAddress } from '../../types/models';
 
-const MOCK_FALLBACK_ADDRESSES: UserAddress[] = [
-  {
-    id: 1,
-    user_id: 1,
-    title: 'Résidence Principale (Paris)',
-    name: 'Mme. Éléonore De Saint-Germain',
-    address: '124 Avenue Montaigne',
-    city: 'Paris',
-    postal_code: '75008',
-    country: 'France',
-    phone: '+33 6 12 34 56 78',
-    is_default: true,
-    created_at: '',
-  },
-  {
-    id: 2,
-    user_id: 1,
-    title: 'Maison de Campagne (Cannes)',
-    name: 'Mme. Éléonore De Saint-Germain',
-    address: '42 Boulevard de la Croisette',
-    city: 'Cannes',
-    postal_code: '06400',
-    country: 'France',
-    phone: '+33 6 98 76 54 32',
-    is_default: false,
-    created_at: '',
-  },
-];
-
 export const AddressesPage: React.FC = () => {
   const { data: apiAddresses, isLoading, isError, refetch } = useAddresses();
   const addAddressMutation = useAddAddress();
@@ -53,11 +24,10 @@ export const AddressesPage: React.FC = () => {
   const deleteAddressMutation = useDeleteAddress();
   const setDefaultAddressMutation = useSetDefaultAddress();
 
-  const [localAddresses, setLocalAddresses] = useState<UserAddress[]>(MOCK_FALLBACK_ADDRESSES);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
 
-  const addresses = (apiAddresses && apiAddresses.length > 0) ? apiAddresses : localAddresses;
+  const addresses = apiAddresses || [];
 
   const [formData, setFormData] = useState({
     title: '',
@@ -103,18 +73,16 @@ export const AddressesPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteAddressMutation.mutateAsync(id);
-    } catch {
-      setLocalAddresses((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l\'adresse', err);
     }
   };
 
   const handleSetDefault = async (id: number) => {
     try {
       await setDefaultAddressMutation.mutateAsync(id);
-    } catch {
-      setLocalAddresses((prev) =>
-        prev.map((a) => ({ ...a, is_default: a.id === id }))
-      );
+    } catch (err) {
+      console.error('Erreur lors de la définition de l\'adresse par défaut', err);
     }
   };
 
@@ -126,23 +94,10 @@ export const AddressesPage: React.FC = () => {
       } else {
         await addAddressMutation.mutateAsync(formData);
       }
-    } catch {
-      // Local fallback for offline preview
-      if (editingAddress) {
-        setLocalAddresses((prev) =>
-          prev.map((a) => (a.id === editingAddress.id ? { ...a, ...formData } : a))
-        );
-      } else {
-        const newAddr: UserAddress = {
-          id: Date.now(),
-          user_id: 1,
-          ...formData,
-          created_at: new Date().toISOString(),
-        };
-        setLocalAddresses((prev) => [...prev, newAddr]);
-      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Erreur lors de l\'enregistrement de l\'adresse', err);
     }
-    setIsModalOpen(false);
   };
 
   return (
@@ -178,8 +133,26 @@ export const AddressesPage: React.FC = () => {
         />
       )}
 
+      {/* Empty State */}
+      {!isLoading && addresses.length === 0 && (
+        <div className="text-center py-16 bg-white rounded-md p-8 border border-neutral-200/80 space-y-4 max-w-md mx-auto">
+          <div className="w-16 h-16 rounded-full bg-cream-200 text-neutral-400 flex items-center justify-center mx-auto">
+            <MapPin className="w-8 h-8" />
+          </div>
+          <h2 className="font-serif text-h4 text-neutral-900">Aucune adresse enregistrée</h2>
+          <p className="text-body-sm text-neutral-500 leading-relaxed">
+            Ajoutez votre adresse de livraison pour simplifier et accélérer vos commandes sur la Maison HAFROSE.
+          </p>
+          <div className="pt-2">
+            <Button variant="primary" size="md" leftIcon={<Plus className="w-4 h-4" />} onClick={handleOpenAddModal}>
+              Ajouter ma première adresse
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Address Cards Grid */}
-      {!isLoading && (
+      {!isLoading && addresses.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {addresses.map((addr) => (
             <Card key={addr.id} className="p-6 bg-white space-y-4 relative flex flex-col justify-between border-neutral-200/80">

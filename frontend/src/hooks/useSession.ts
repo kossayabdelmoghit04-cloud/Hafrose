@@ -51,7 +51,7 @@ export function useSession() {
           if (userData && (userData as User).id) {
             setAuth(userData as User, token);
           } else {
-            setLoading(false);
+            logout();
           }
         }
       } catch {
