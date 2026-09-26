@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\UserAddress;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -172,7 +173,7 @@ class PolicySecurityTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function test_owner_can_delete_own_address(): void
     {
         [$user, $token] = $this->createUserWithToken();

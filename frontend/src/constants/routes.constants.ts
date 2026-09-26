@@ -1,17 +1,17 @@
 export const ROUTES = {
   PUBLIC: {
     HOME: '/',
-    CATALOG: '/catalog',
-    PRODUCT_DETAILS: '/catalog/:slug',
-    CATEGORY: '/category/:slug',
-    ABOUT: '/about',
-    CONTACT: '/contact',
-    LOOKBOOK: '/lookbook',
+    SHOP: '/shop',
+    PRODUCT_DETAIL: '/product/:slug',
+    SEARCH: '/search',
+    WISHLIST: '/wishlist',
+    CART: '/cart',
   },
   AUTH: {
     LOGIN: '/login',
     REGISTER: '/register',
     FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
   },
   CUSTOMER: {
     ACCOUNT: '/account',
@@ -32,7 +32,11 @@ export const ROUTES = {
     PRODUCTS: '/admin/products',
     CATEGORIES: '/admin/categories',
     ORDERS: '/admin/orders',
-    CUSTOMERS: '/admin/customers',
+    REVIEWS: '/admin/reviews',
+    CONTACTS: '/admin/contacts',
+    MEDIA: '/admin/media',
+    ANALYTICS: '/admin/analytics',
     SETTINGS: '/admin/settings',
+    LOGS: '/admin/logs',
   },
 } as const;

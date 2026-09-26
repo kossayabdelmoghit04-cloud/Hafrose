@@ -23,7 +23,7 @@ export async function loginAdmin(page: Page, credentials: E2ECredentials): Promi
   await page.goto('/admin/login');
   await page.locator('#admin-email').fill(credentials.email);
   await page.locator('#admin-password').fill(credentials.password);
-  await page.getByRole('button', { name: /connexion/i }).click();
+  await page.getByRole('button', { name: /panneau\s+admin/i }).click();
   await expect(page).toHaveURL(/\/admin(?:\/|$)/);
 }
 
@@ -72,6 +72,7 @@ export async function completeCheckout(page: Page, marker: string): Promise<Crea
   await page.getByRole('textbox', { name: /adresse/i }).fill(values.address);
   await page.getByRole('textbox', { name: /code postal/i }).fill(values.postalCode);
   await page.getByRole('textbox', { name: /ville/i }).fill(values.city);
+  await page.getByRole('checkbox', { name: /conditions g.n.rales de vente/i }).check();
 
   const orderResponse = page.waitForResponse(
     (response) => response.request().method() === 'POST' && /\/api\/orders$/.test(response.url())

@@ -1,4 +1,5 @@
 import { Instagram, Facebook, Twitter, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Container } from '../../../components/ui/Container';
 import { Divider } from '../../../components/ui/Divider';
 import { useCategories } from '../../../hooks/useProductHooks';
@@ -25,15 +26,16 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-3">
-            <a href="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 rounded-xs">
+            <Link to="/" className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 rounded-xs">
               <span className="font-serif text-h3 tracking-luxury-wide text-white">
                 HAFROSE
               </span>
-            </a>
+            </Link>
             <p className="text-body-sm text-neutral-400 max-w-sm leading-relaxed">
-              Maison de haute couture féminine incarnant l'élégance parisienne, le raffinement des matières et la modernité des silhouettes.
+              Maison de haute couture féminine incarnant l&apos;élégance parisienne, le raffinement des matières et la modernité des silhouettes.
             </p>
             <div className="flex items-center gap-2.5 pt-1">
+              {/* External social links keep native <a> with target="_blank" — correct */}
               <a
                 href="https://instagram.com"
                 target="_blank"
@@ -70,9 +72,10 @@ export const Footer = () => {
             <ul className="space-y-1.5 text-body-sm">
               {boutiqueLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="hover:text-rose-300 transition-colors duration-200">
+                  {/* SPA-friendly navigation: Link handles internal routing without Full Page Reload */}
+                  <Link to={link.href} className="hover:text-rose-300 transition-colors duration-200">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
