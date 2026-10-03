@@ -30,7 +30,7 @@ if ! command -v php &>/dev/null; then
 fi
 
 # Run custom artisan backup command
-if php artisan hafrose:backup:run --detailed $EXTRA_FLAGS; then
+if php artisan hafrose:backup --detailed $EXTRA_FLAGS; then
     echo -e "${GREEN}[SUCCESS] Production backup completed and verified successfully.${NC}"
     exit 0
 else

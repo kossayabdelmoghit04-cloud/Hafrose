@@ -123,7 +123,7 @@ Cette checklist constitue l'audit de qualification préalable à chaque mise en 
 | # | Vérification | Commande de contrôle | Statut |
 |---|---|---|---|
 | 9.1 | Crontab backup quotidien à 02:00 | `crontab -u www-data -l \| grep backup` | [ ] |
-| 9.2 | Exécution manuelle backup dry-run | `php artisan hafrose:backup:run --dry-run` | [ ] |
+| 9.2 | Exécution manuelle backup dry-run | `php artisan hafrose:backup --dry-run` | [ ] |
 | 9.3 | Répertoire de backup accessible | `ls storage/app/backups/` | [ ] |
 
 ---

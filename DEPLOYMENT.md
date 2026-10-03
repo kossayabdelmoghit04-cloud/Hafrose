@@ -102,6 +102,8 @@ sudo ufw status verbose
 | `DB_PASSWORD` | Oui | **Oui** | Secret `.env` | Mot de passe robuste |
 | `DB_ROOT_PASSWORD` | Oui | **Oui** | Secret `.env` | Mot de passe root MySQL |
 | `SESSION_DRIVER` | Oui | Non | `.env` | `database` ou `redis` |
+| `SESSION_SECURE_COOKIE` | Oui | Non | `.env` | `true` (HTTPS obligatoire en production) |
+| `LOG_LEVEL` | Oui | Non | `.env` | `info` (Niveau de log en production) |
 | `QUEUE_CONNECTION` | Oui | Non | `.env` | `database` ou `redis` |
 | `CACHE_STORE` | Oui | Non | `.env` | `database` ou `redis` |
 | `FILESYSTEM_DISK` | Oui | Non | `.env` | `local` (ou `s3`) |
@@ -243,7 +245,7 @@ docker exec hafrose_backend php artisan down --message="Maintenance urgente en c
 
 # 2. Restaurer la dernière sauvegarde validée
 # Les sauvegardes sont stockées dans storage/app/backups/
-docker exec hafrose_backend php artisan hafrose:backup:run --dry-run
+docker exec hafrose_backend php artisan hafrose:backup --dry-run
 
 # 3. Arrêter les services si nécessaire
 docker compose down

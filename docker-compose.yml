@@ -41,6 +41,8 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: ${APP_URL:-https://hafrose.com}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
@@ -62,6 +64,42 @@ services:
              php artisan route:cache &&
              php artisan view:cache &&
              php-fpm"
+
+  # ── Laravel Queue Worker ───────────────────────────────────────────────────
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: hafrose_worker
+    restart: unless-stopped
+    env_file:
+      - path: ./backend/.env
+        required: false
+      - path: .env
+        required: false
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-https://hafrose.com}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-hafrose}
+      DB_USERNAME: ${DB_USERNAME:-hafrose}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - backend_storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - hafrose_network
+    command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600 --timeout=90
 
   # ── React SPA Frontend ─────────────────────────────────────────────────────
   frontend:
