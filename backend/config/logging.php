@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\SanitizeContextProcessor;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -64,7 +65,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
             'processors' => [
-                \App\Logging\SanitizeContextProcessor::class,
+                SanitizeContextProcessor::class,
                 PsrLogMessageProcessor::class,
             ],
         ],
@@ -76,7 +77,7 @@ return [
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
             'processors' => [
-                \App\Logging\SanitizeContextProcessor::class,
+                SanitizeContextProcessor::class,
                 PsrLogMessageProcessor::class,
             ],
         ],

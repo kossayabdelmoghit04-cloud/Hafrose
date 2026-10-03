@@ -2,6 +2,7 @@
 
 namespace App\Logging;
 
+use Monolog\Logger;
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
 
@@ -53,14 +54,14 @@ class SanitizeContextProcessor implements ProcessorInterface
         // 1. Utilisation comme Tap Laravel sur le Logger
         if ($recordOrLogger instanceof \Illuminate\Log\Logger) {
             $underlying = $recordOrLogger->getLogger();
-            if ($underlying instanceof \Monolog\Logger) {
+            if ($underlying instanceof Logger) {
                 $underlying->pushProcessor($this);
             }
 
             return $recordOrLogger;
         }
 
-        if ($recordOrLogger instanceof \Monolog\Logger) {
+        if ($recordOrLogger instanceof Logger) {
             $recordOrLogger->pushProcessor($this);
 
             return $recordOrLogger;

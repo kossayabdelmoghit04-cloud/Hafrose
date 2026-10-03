@@ -20,14 +20,16 @@ use Tests\TestCase;
 class MC06C1ConcurrencyTest extends TestCase
 {
     private string $testSlug;
+
     private ?int $createdCategoryId = null;
+
     private ?int $createdProductId = null;
 
     protected function setUp(): void
     {
         parent::setUp();
         // Unique slug per run to avoid unique constraint collisions on retries
-        $this->testSlug = 'test-concurrency-' . Str::random(8);
+        $this->testSlug = 'test-concurrency-'.Str::random(8);
     }
 
     protected function tearDown(): void
@@ -67,7 +69,7 @@ class MC06C1ConcurrencyTest extends TestCase
         // Create isolated test category with unique slug
         $categoryId = DB::table('categories')->insertGetId([
             'name' => 'ConcurrencyTestCategory',
-            'slug' => $this->testSlug . '-cat',
+            'slug' => $this->testSlug.'-cat',
             'description' => 'Temp category for concurrency test',
             'created_at' => now(),
             'updated_at' => now(),
@@ -77,7 +79,7 @@ class MC06C1ConcurrencyTest extends TestCase
         // Create product with stock = 1
         $productId = DB::table('products')->insertGetId([
             'category_id' => $categoryId,
-            'name' => 'Concurrent Test Product ' . $this->testSlug,
+            'name' => 'Concurrent Test Product '.$this->testSlug,
             'slug' => $this->testSlug,
             'description' => 'Test product for concurrency test',
             'price' => 100.00,

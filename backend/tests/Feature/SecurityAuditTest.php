@@ -7,7 +7,6 @@ use App\Logging\SanitizeContextProcessor;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Monolog\Level;
 use Monolog\LogRecord;
 use Symfony\Component\HttpFoundation\Response;
@@ -130,7 +129,7 @@ class SecurityAuditTest extends TestCase
      */
     public function test_input_sanitizer_middleware_strips_malicious_script_tags_and_null_bytes(): void
     {
-        $middleware = new SanitizeInputMiddleware();
+        $middleware = new SanitizeInputMiddleware;
 
         $rawInput = [
             'comment' => "Message avec <script>alert('xss')</script> et du texte sain.",
@@ -164,10 +163,10 @@ class SecurityAuditTest extends TestCase
      */
     public function test_monolog_sanitizer_redacts_credentials_and_tokens(): void
     {
-        $processor = new SanitizeContextProcessor();
+        $processor = new SanitizeContextProcessor;
 
         $sensitiveRecord = new LogRecord(
-            datetime: new \DateTimeImmutable(),
+            datetime: new \DateTimeImmutable,
             channel: 'daily',
             level: Level::Info,
             message: 'Requête authentifiée avec Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 et token 42|abcdef1234567890abcdef1234567890abcdef12',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -36,8 +37,8 @@ class PublicHealthCheckController extends Controller
 
         $cacheOk = true;
         try {
-            \Illuminate\Support\Facades\Cache::put('health_ping', 1, 5);
-            $cacheOk = (\Illuminate\Support\Facades\Cache::get('health_ping') === 1);
+            Cache::put('health_ping', 1, 5);
+            $cacheOk = (Cache::get('health_ping') === 1);
         } catch (\Throwable $e) {
             $cacheOk = false;
         }

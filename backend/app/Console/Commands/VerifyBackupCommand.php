@@ -155,7 +155,7 @@ class VerifyBackupCommand extends Command
             $this->line('  <options=bold>Métadonnées du manifest :</>');
             $this->line("    • Date & heure : {$m['created_at']}");
             $this->line("    • Version App  : {$m['app_version']}");
-            $this->line("    • Commit Git   : ".($m['git_commit'] ?? 'N/A'));
+            $this->line('    • Commit Git   : '.($m['git_commit'] ?? 'N/A'));
             $this->line("    • Moteur DB    : {$m['database']['engine']} (Base: {$m['database']['name']}, Tables: {$m['database']['tables_count']})");
             $this->line("    • Fichiers     : {$m['total_files_count']} indexés");
         }

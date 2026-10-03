@@ -28,10 +28,11 @@ class MC06C1DynamicTest extends TestCase
     private function createTestCategory(array $attributes = []): Category
     {
         $unique = Str::random(10);
+
         return Category::create(array_merge([
-            'name' => 'Cat ' . $unique,
-            'slug' => 'cat-' . $unique,
-            'description' => 'Test description ' . $unique,
+            'name' => 'Cat '.$unique,
+            'slug' => 'cat-'.$unique,
+            'description' => 'Test description '.$unique,
             'image' => 'categories/test.jpg',
         ], $attributes));
     }
@@ -39,12 +40,13 @@ class MC06C1DynamicTest extends TestCase
     private function createTestProduct(int $categoryId, array $attributes = []): Product
     {
         $unique = Str::random(10);
+
         return Product::create(array_merge([
             'category_id' => $categoryId,
-            'name' => 'Prod ' . $unique,
-            'slug' => 'prod-' . $unique,
-            'description' => 'Test description ' . $unique,
-            'short_description' => 'Short desc ' . $unique,
+            'name' => 'Prod '.$unique,
+            'slug' => 'prod-'.$unique,
+            'description' => 'Test description '.$unique,
+            'short_description' => 'Short desc '.$unique,
             'price' => 100.00,
             'stock' => 10,
             'brand' => 'Hafrose',

@@ -8,7 +8,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Monolog\Handler\StreamHandler;
 use Monolog\Level;
+use Monolog\Logger;
 use Monolog\LogRecord;
 use Tests\TestCase;
 
@@ -83,7 +85,7 @@ class LoggingAndMonitoringTest extends TestCase
      */
     public function test_sanitize_context_processor_redacts_sensitive_keys(): void
     {
-        $processor = new SanitizeContextProcessor();
+        $processor = new SanitizeContextProcessor;
 
         $context = [
             'user_id' => 42,
@@ -101,7 +103,7 @@ class LoggingAndMonitoringTest extends TestCase
         ];
 
         $record = new LogRecord(
-            datetime: new \DateTimeImmutable(),
+            datetime: new \DateTimeImmutable,
             channel: 'testing',
             level: Level::Info,
             message: 'User authentication attempt',
@@ -127,12 +129,12 @@ class LoggingAndMonitoringTest extends TestCase
      */
     public function test_sanitize_context_processor_redacts_patterns_in_messages(): void
     {
-        $processor = new SanitizeContextProcessor();
+        $processor = new SanitizeContextProcessor;
 
         $rawMessage = 'Header Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xyz.abc with key base64:aJh0BPjx92M9Fz1qyL63dW0xzK8qisPGBjUUjKAR8Pg= and Sanctum token 442|GshHwgQawjeF3eC4I3xVTjfdhGAECVMfoCOmcID4306dc69d';
 
         $record = new LogRecord(
-            datetime: new \DateTimeImmutable(),
+            datetime: new \DateTimeImmutable,
             channel: 'testing',
             level: Level::Error,
             message: $rawMessage,
@@ -167,17 +169,17 @@ class LoggingAndMonitoringTest extends TestCase
         }
 
         // Configurer un channel Monolog temporaire pointant sur ce fichier
-        $handler = new \Monolog\Handler\StreamHandler($tempLogPath, \Monolog\Level::Debug);
-        $processor = new \App\Logging\SanitizeContextProcessor();
-        $monolog = new \Monolog\Logger('sanitize_test');
+        $handler = new StreamHandler($tempLogPath, Level::Debug);
+        $processor = new SanitizeContextProcessor;
+        $monolog = new Logger('sanitize_test');
         $monolog->pushHandler($handler);
         $monolog->pushProcessor($processor);
 
         // Écrire un log avec des données sensibles via Monolog directement
         $monolog->error('Erreur applicative simulée avec token', [
             'password' => 'MonMotDePasseSecret!',
-            'token'    => '123|TokenConfidentielDeSecuriteSuperLong',
-            'app_key'  => config('app.key'),
+            'token' => '123|TokenConfidentielDeSecuriteSuperLong',
+            'app_key' => config('app.key'),
             'operation' => 'test_controlled_error',
         ]);
 
@@ -204,7 +206,6 @@ class LoggingAndMonitoringTest extends TestCase
         // Nettoyage
         File::delete($tempLogPath);
     }
-
 
     /**
      * 6. Authentification Client : Login réussi, échec et logout

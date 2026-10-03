@@ -121,7 +121,7 @@ class CleanLogsCommand extends Command
             return self::SUCCESS;
         }
 
-        if (! $isForce && ! $this->confirm("  Confirmez-vous la suppression définitive de ces ".count($toDelete)." fichier(s) de logs ?", false)) {
+        if (! $isForce && ! $this->confirm('  Confirmez-vous la suppression définitive de ces '.count($toDelete).' fichier(s) de logs ?', false)) {
             $this->info('  Opération annulée par l\'utilisateur.');
 
             return self::SUCCESS;

@@ -315,7 +315,6 @@ class ProductionBackupService
         fclose($handle);
     }
 
-
     // ─── Sauvegarde storage/ ─────────────────────────────────────────────────
 
     /**
@@ -896,7 +895,7 @@ class ProductionBackupService
         // Créer la base cible si nécessaire
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$targetDatabase}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
         $pdo->exec("USE `{$targetDatabase}`;");
-        $pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=0;');
         $pdo->exec("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';");
 
         $handle = fopen($dumpFile, 'r');
@@ -925,7 +924,7 @@ class ProductionBackupService
 
         fclose($handle);
 
-        $pdo->exec("SET FOREIGN_KEY_CHECKS=1;");
+        $pdo->exec('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**
@@ -1002,6 +1001,7 @@ class ProductionBackupService
                         if ($fileStream === false) {
                             $report['errors'][] = "Fichier manquant dans l'archive : {$relativePath}";
                             $allChecksumsOk = false;
+
                             continue;
                         }
 
