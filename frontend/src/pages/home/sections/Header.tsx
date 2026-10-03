@@ -26,13 +26,11 @@ export const Header = ({
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Auth state — determines where 👤 navigates to (/login, /account, or /admin)
-  const { isAuthenticated, user } = useAuthStore();
-  const accountDestination = !isAuthenticated
-    ? '/login'
-    : user?.role === 'admin' || user?.role === 'super_admin'
-    ? '/admin'
-    : '/account';
+  // Auth state — determines where 👤 navigates to (/login or /account)
+  // IMPORTANT: The public Header must NEVER route to /admin.
+  // Admin navigation is exclusively handled by AdminLayout and ProtectedRoute.
+  const { isAuthenticated } = useAuthStore();
+  const accountDestination = isAuthenticated ? '/account' : '/login';
 
   // Source unique de vérité : catégories chargées depuis l'API backend
   const { data: categoriesData, isLoading: isCategoriesLoading } = useCategories();
