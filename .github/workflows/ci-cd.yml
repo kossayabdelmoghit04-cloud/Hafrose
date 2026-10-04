@@ -53,6 +53,30 @@ jobs:
   backend-ci:
     name: Backend Lint, Static Analysis & Tests
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: test
+          MYSQL_USER: hafrose_ci
+          MYSQL_PASSWORD: hafrose_ci_password
+          MYSQL_ROOT_PASSWORD: hafrose_ci_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: test
+      DB_USERNAME: hafrose_ci
+      DB_PASSWORD: hafrose_ci_password
+
 
     steps:
       - name: Checkout Code
@@ -94,9 +118,6 @@ jobs:
 
       - name: Run database migrations
         working-directory: ./backend
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/backend/database/database.sqlite
         run: php artisan migrate --force
 
       - name: Clear application caches
@@ -110,8 +131,6 @@ jobs:
         working-directory: ./backend
         env:
           APP_ENV: testing
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ${{ github.workspace }}/backend/database/database.sqlite
           CACHE_STORE: array
           QUEUE_CONNECTION: sync
           MAIL_MAILER: array
