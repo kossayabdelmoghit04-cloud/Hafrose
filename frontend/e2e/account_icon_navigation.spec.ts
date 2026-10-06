@@ -16,6 +16,12 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     await page.evaluate(() => {
       (window as unknown as { __spaMarker: boolean }).__spaMarker = true;
     });
+    const documentRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.resourceType() === 'document') {
+        documentRequests.push(request.url());
+      }
+    });
 
     // 2. Vérifier la visibilité de la barre d'icônes
     const searchBtn = page.locator('button[aria-label="Rechercher"]');
@@ -40,6 +46,7 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     // 6. Confirmer que la navigation est SPA (le marqueur window est toujours présent)
     const spaMarker = await page.evaluate(() => (window as unknown as { __spaMarker?: boolean }).__spaMarker);
     expect(spaMarker).toBe(true);
+    expect(documentRequests).toEqual([]);
   });
 
   test('TEST 2 — Utilisateur authentifié : clic icône compte → /account', async ({ page }) => {
@@ -57,6 +64,17 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     // 2. Retourner sur l'accueil
     await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
 
+    // Poser une preuve de continuité SPA et surveiller les navigations document après le chargement initial
+    await page.evaluate(() => {
+      (window as unknown as { __spaMarker: boolean }).__spaMarker = true;
+    });
+    const documentRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.resourceType() === 'document') {
+        documentRequests.push(request.url());
+      }
+    });
+
     // 3. Vérifier l'icône 👤 et son href
     const accountLink = page.locator('a[aria-label="Mon compte"]').first();
     await expect(accountLink).toBeVisible();
@@ -69,6 +87,10 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     // 5. Vérifier la navigation vers /account et l'affichage de AccountPage
     await expect(page).toHaveURL('http://localhost:3000/account');
     await expect(page.locator('h1')).toContainText('Bienvenue');
+
+    const spaMarker = await page.evaluate(() => (window as unknown as { __spaMarker?: boolean }).__spaMarker);
+    expect(spaMarker).toBe(true);
+    expect(documentRequests).toEqual([]);
   });
 
   test('TEST 3 — Accès direct /login : LoginPage est visible', async ({ page }) => {
@@ -103,6 +125,16 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
 
+    await page.evaluate(() => {
+      (window as unknown as { __spaMarker: boolean }).__spaMarker = true;
+    });
+    const documentRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.resourceType() === 'document') {
+        documentRequests.push(request.url());
+      }
+    });
+
     // Ouvrir le menu mobile
     const menuToggle = page.locator('button[aria-label="Ouvrir le menu"]');
     await menuToggle.click();
@@ -119,6 +151,10 @@ test.describe('Icône 👤 Mon Compte — Navigation conditionnelle (React Route
     // URL obligatoire : /login
     await expect(page).toHaveURL('http://localhost:3000/login');
     await expect(page.locator('h1')).toHaveText('Connexion Client');
+
+    const spaMarker = await page.evaluate(() => (window as unknown as { __spaMarker?: boolean }).__spaMarker);
+    expect(spaMarker).toBe(true);
+    expect(documentRequests).toEqual([]);
   });
 
 });

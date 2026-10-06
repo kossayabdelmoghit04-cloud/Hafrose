@@ -64,6 +64,12 @@ export const Header = ({
     }
   };
 
+  const handleAccountClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    navigate(accountDestination);
+    setMobileOpen(false);
+  };
+
   // Liens commerciaux spéciaux (Nouveautés & Soldes)
   const newsLink = { label: 'Nouveautés', href: '/#nouveautes', accent: false };
   const saleLink = { label: 'Soldes', href: '/shop?on_sale=true', accent: true };
@@ -191,6 +197,7 @@ export const Header = ({
             {/* 2. Mon Compte (Lien direct vers la page de connexion /login ou compte /account) */}
             <Link
               to={accountDestination}
+              onClick={handleAccountClick}
               aria-label="Mon compte"
               className="inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-700 hover:text-burgundy-500 hover:bg-rose-blush transition-all duration-200 ease-luxury focus:outline-none focus-visible:ring-2 focus-visible:ring-burgundy-500 select-none"
             >
@@ -297,7 +304,7 @@ export const Header = ({
             <div className="pt-4 flex items-center gap-4 border-t border-neutral-200 mt-2">
               <Link
                 to={accountDestination}
-                onClick={() => setMobileOpen(false)}
+                onClick={handleAccountClick}
                 className="flex items-center gap-2 text-body-sm text-neutral-600 hover:text-burgundy-500 transition-colors duration-200"
               >
                 <User className="w-4 h-4" /> Mon Compte
