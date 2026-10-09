@@ -81,7 +81,7 @@ class BlockSpamHoneypot
         Log::channel($channel)->warning('[Honeypot] Bot détecté — soumission bloquée.', [
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent() ?? 'unknown',
-            'route' => $request->fullUrl(),
+            'route' => $request->getPathInfo(),
             'method' => $request->method(),
             'field' => $fieldName,
             'timestamp' => now()->toDateTimeString(),
@@ -94,7 +94,7 @@ class BlockSpamHoneypot
             resource: $request->path(),
             metadata: [
                 'method' => $request->method(),
-                'route' => $request->fullUrl(),
+                'route' => $request->getPathInfo(),
                 'field' => $fieldName,
                 'user_agent' => $request->userAgent() ?? 'unknown',
             ]

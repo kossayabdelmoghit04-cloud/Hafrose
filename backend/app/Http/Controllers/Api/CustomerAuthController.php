@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -65,7 +66,11 @@ class CustomerAuthController extends Controller
         // Révoquer les anciens tokens pour éviter l'accumulation
         $user->tokens()->where('name', 'customer-token')->delete();
 
-        $token = $user->createToken('customer-token')->plainTextToken;
+        $token = $user->createToken(
+            'customer-token',
+            ['customer'],
+            now()->addMinutes((int) config('sanctum.customer_expiration'))
+        )->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
@@ -98,7 +103,11 @@ class CustomerAuthController extends Controller
             'role' => 'customer',
         ]);
 
-        $token = $user->createToken('customer-token')->plainTextToken;
+        $token = $user->createToken(
+            'customer-token',
+            ['customer'],
+            now()->addMinutes((int) config('sanctum.customer_expiration'))
+        )->plainTextToken;
 
         return $this->successResponse([
             'token' => $token,
@@ -127,16 +136,13 @@ class CustomerAuthController extends Controller
             'email' => 'required|email|max:255',
         ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        // Réponse volontairement identique pour empêcher l'énumération de comptes.
+        Password::sendResetLink($request->only('email'));
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            return $this->errorResponse(
-                'Impossible d\'envoyer l\'email de réinitialisation. Vérifiez votre adresse email.',
-                422
-            );
-        }
-
-        return $this->successResponse(null, 'Un lien de réinitialisation vous a été envoyé par email.');
+        return $this->successResponse(
+            null,
+            'Si un compte existe pour cette adresse, un lien de réinitialisation a été envoyé.'
+        );
     }
 
     /**
@@ -148,8 +154,8 @@ class CustomerAuthController extends Controller
         $data = $request->validate([
             'token' => 'required|string',
             'email' => 'required|email|max:255',
-            'password' => 'required|string|min:8|confirmed',
-            'password_confirmation' => 'required|string|min:8',
+            'password' => ['required', 'string', PasswordRule::min(12)->mixedCase()->numbers()->symbols(), 'confirmed'],
+            'password_confirmation' => ['required', 'string'],
         ]);
 
         $status = Password::reset(

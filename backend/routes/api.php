@@ -50,11 +50,11 @@ Route::prefix('auth')->middleware('throttle:6,1')->group(function () {
 });
 
 // ── Routes Client Authentifiées ───────────────────────────────────────────────
-Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+Route::middleware(['auth:sanctum', 'customer'])->prefix('auth')->group(function () {
     Route::post('/logout', [CustomerAuthController::class, 'logout']);
     Route::get('/me', [CustomerAuthController::class, 'me']);
-    Route::put('/profile', [CustomerAuthController::class, 'updateProfile']);
-    Route::put('/password', [CustomerAuthController::class, 'updatePassword']);
+    Route::put('/profile', [CustomerAuthController::class, 'updateProfile'])->middleware('throttle:sensitive');
+    Route::put('/password', [CustomerAuthController::class, 'updatePassword'])->middleware('throttle:sensitive');
 
     // Adresses
     Route::get('/addresses', [CustomerAddressController::class, 'index']);
@@ -76,7 +76,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
 // ── Wishlist (authentifiée, budget dédié anti-flood) ──────────────────────────
 // throttle:wishlist  → 30 req/min par user_id
-Route::middleware(['auth:sanctum', 'throttle:wishlist'])->group(function () {
+Route::middleware(['auth:sanctum', 'customer', 'throttle:wishlist'])->group(function () {
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/wishlist', [WishlistController::class, 'store']);
     Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy']);
@@ -143,12 +143,17 @@ Route::prefix('admin')->group(function () {
         Route::get('/analytics', [AnalyticsController::class, 'index']);
 
         // Exports CSV & Excel
-        Route::get('/export/{resource}/csv', [ExportController::class, 'exportCsv']);
-        Route::get('/export/{resource}/excel', [ExportController::class, 'exportExcel']);
+        Route::get('/export/{resource}/csv', [ExportController::class, 'exportCsv'])
+            ->where('resource', 'products|categories|orders|reviews|contacts|users')
+            ->middleware('throttle:admin-export');
+        Route::get('/export/{resource}/excel', [ExportController::class, 'exportExcel'])
+            ->where('resource', 'products|categories|orders|reviews|contacts|users')
+            ->middleware('throttle:admin-export');
 
         // Actions groupées (Bulk Actions) — Doit être déclaré avant /{resource}/{id} pour éviter les conflits
         Route::post('/{resource}/bulk', [BulkActionController::class, 'bulk'])
-            ->where('resource', 'products|categories|reviews|contacts|orders');
+            ->where('resource', 'products|categories|reviews|contacts|orders')
+            ->middleware('throttle:admin-bulk');
 
         // Historique des modifications
         Route::get('/history/{resource}/{id}', [HistoryController::class, 'show']);
@@ -205,9 +210,9 @@ Route::prefix('admin')->group(function () {
         Route::get('/cache/status', [CacheAdminController::class, 'status']);
 
         // ── Sauvegardes système (Phase 5.8.1) ────────────────────────────────
-        Route::post('/system/backup', [SystemBackupController::class, 'create']);
+        Route::post('/system/backup', [SystemBackupController::class, 'create'])->middleware('throttle:admin-heavy');
         Route::get('/system/backups', [SystemBackupController::class, 'index']);
-        Route::delete('/system/backups/{id}', [SystemBackupController::class, 'destroy']);
+        Route::delete('/system/backups/{id}', [SystemBackupController::class, 'destroy'])->middleware('throttle:admin-heavy');
 
         // ── Monitoring & Observabilité (Phase 5.9) ───────────────────────────
         Route::get('/system/health', [SystemMonitoringController::class, 'health']);
@@ -217,9 +222,9 @@ Route::prefix('admin')->group(function () {
 
         // ── Infrastructure de Déploiement & Optimisation (Phase 5.8.2.1) ─────
         Route::get('/system/deployment/status', [DeploymentController::class, 'status']);
-        Route::post('/system/deployment/optimize', [DeploymentController::class, 'optimize']);
-        Route::post('/system/deployment/clear', [DeploymentController::class, 'clear']);
-        Route::post('/system/deployment/warmup', [DeploymentController::class, 'warmup']);
+        Route::post('/system/deployment/optimize', [DeploymentController::class, 'optimize'])->middleware('throttle:admin-heavy');
+        Route::post('/system/deployment/clear', [DeploymentController::class, 'clear'])->middleware('throttle:admin-heavy');
+        Route::post('/system/deployment/warmup', [DeploymentController::class, 'warmup'])->middleware('throttle:admin-heavy');
 
         // ── v2.0 Enterprise Analytics ───────────────────────────────────────
         Route::get('/analytics/dashboard', [AnalyticsController::class, 'index']);
@@ -236,12 +241,12 @@ Route::middleware('throttle:api')->group(function () {
 });
 
 // Authenticated v2 Routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'customer'])->group(function () {
     // Phase 6.3: Loyalty Program
     Route::get('/loyalty/account', [LoyaltyController::class, 'account']);
     Route::get('/loyalty/rewards', [LoyaltyController::class, 'rewards']);
 
-    // Phase 6.17: Enterprise Security
-    Route::post('/security/2fa/setup', [SecurityController::class, 'setup2Fa']);
+    // Phase 6.17: Enterprise Security. Le pseudo-flux 2FA reste non exposé
+    // tant qu'un cycle complet setup/confirmation/challenge/recovery n'est pas disponible.
     Route::get('/security/audit-logs', [SecurityController::class, 'auditLogs']);
 });

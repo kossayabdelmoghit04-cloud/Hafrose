@@ -42,11 +42,15 @@ class BulkActionController extends Controller
             $result['count_ignored']
         );
 
+        $status = $result['count_ignored'] === 0
+            ? 200
+            : ($result['count_modified'] > 0 ? 207 : 422);
+
         return response()->json([
-            'success' => true,
+            'success' => $result['count_ignored'] === 0,
             'message' => $message,
             'errors' => $result['errors'],
             'data' => $result,
-        ]);
+        ], $status);
     }
 }

@@ -48,7 +48,7 @@ class AuthController extends Controller
                 ],
             ], 'Connexion réussie.');
         } catch (AuthenticationException $e) {
-            return $this->errorResponse($e->getMessage(), 401);
+            return $this->errorResponse('Identifiants incorrects.', 401);
         }
     }
 

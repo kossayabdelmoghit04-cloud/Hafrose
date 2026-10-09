@@ -88,13 +88,13 @@ class SystemBackupController extends Controller
                 );
 
                 if (! $report['success']) {
-                    $errorMessages = implode('; ', $report['errors']);
+                    Log::error('Synchronous system backup failed.', [
+                        'errors' => $report['errors'],
+                    ]);
 
                     return $this->errorResponse(
-                        "La sauvegarde a échoué : {$errorMessages}",
-                        500,
-                        $report['errors'],
-                        $report
+                        'La sauvegarde n a pas pu être exécutée.',
+                        500
                     );
                 }
 
@@ -229,7 +229,12 @@ class SystemBackupController extends Controller
             return $this->successResponse(null, "Sauvegarde '{$safeId}' supprimée avec succès.");
 
         } catch (\RuntimeException $e) {
-            return $this->errorResponse($e->getMessage(), 404);
+            Log::warning('Requested backup could not be deleted.', [
+                'error' => $e->getMessage(),
+                'id' => $id,
+            ]);
+
+            return $this->errorResponse('Sauvegarde introuvable.', 404);
 
         } catch (\Throwable $e) {
             Log::error('SystemBackupController: erreur suppression backup.', [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\CustomerOrderIndexRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
@@ -46,16 +47,28 @@ class OrderController extends Controller
      * GET /api/auth/orders
      * Obtenir l'historique des commandes du client connecté.
      */
-    public function myOrders(Request $request): JsonResponse
+    public function myOrders(CustomerOrderIndexRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Order::class);
 
+        $perPage = (int) ($request->validated()['per_page'] ?? 15);
         $orders = Order::with('orderItems.product')
             ->where('user_id', $request->user()->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage);
 
-        return $this->successResponse(OrderResource::collection($orders));
+        return response()->json([
+            'success' => true,
+            'message' => null,
+            'errors' => null,
+            'data' => OrderResource::collection($orders),
+            'meta' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ],
+        ]);
     }
 
     /**

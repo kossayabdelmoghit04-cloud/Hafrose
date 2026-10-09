@@ -34,14 +34,17 @@ class MonitoringMiddleware
         $startTime = microtime(true);
         $startMemory = memory_get_usage(true);
 
-        DB::enableQueryLog();
+        $collectSqlDetails = ! app()->isProduction();
+        if ($collectSqlDetails) {
+            DB::enableQueryLog();
+        }
 
         $response = $next($request);
 
         $executionMs = round((microtime(true) - $startTime) * 1000, 2);
         $memoryPeakMb = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
 
-        $queries = DB::getQueryLog();
+        $queries = $collectSqlDetails ? DB::getQueryLog() : [];
         $sqlCount = count($queries);
 
         $sqlTimeMs = 0.0;
@@ -50,7 +53,10 @@ class MonitoringMiddleware
         }
         $sqlTimeMs = round($sqlTimeMs, 2);
 
-        DB::disableQueryLog();
+        if ($collectSqlDetails) {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
 
         $content = $response->getContent();
         $responseSizeBytes = is_string($content) ? strlen($content) : 0;
@@ -59,7 +65,8 @@ class MonitoringMiddleware
         $slowThresholdMs = config('monitoring.slow_request_threshold', 1000);
         if ($executionMs > $slowThresholdMs) {
             $this->logger->warning("Requête lente détectée ({$executionMs} ms)", [
-                'url' => $request->fullUrl(),
+                'route' => $request->route()?->getName(),
+                'path' => $request->path(),
                 'method' => $request->method(),
                 'execution_ms' => $executionMs,
                 'threshold_ms' => $slowThresholdMs,

@@ -98,7 +98,7 @@ class OrderApiTest extends TestCase
                     'phone' => '0612345678',
                     'address' => '123 Rue de la Paix',
                     'city' => 'Paris',
-                    'total_price' => '250.00', // (2 * 100) + (1 * 50) = 250
+                    'total_price' => 300, // Sous-total 250 + frais serveur 50
                     'status' => 'En attente',
                 ],
             ]);
@@ -112,7 +112,7 @@ class OrderApiTest extends TestCase
         // Vérifier que la commande et ses lignes sont bien en BDD
         $this->assertDatabaseHas('orders', [
             'customer_name' => 'Jean Dupont',
-            'total_price' => 250.00,
+            'total_price' => 300.00,
         ]);
 
         $this->assertDatabaseCount('order_items', 2);

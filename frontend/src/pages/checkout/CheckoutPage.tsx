@@ -14,17 +14,20 @@ import { Divider } from '../../components/ui/Divider';
 import { Alert } from '../../components/ui/Alert';
 import { LazyImage } from '../../components/ui/LazyImage';
 import { formatPrice, getImageUrl } from '../../utils/formatters';
+import { calculateEstimatedShipping } from '../../utils/shipping';
 import { useCartStore } from '../../stores/useCartStore';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useCreateOrder } from '../../hooks/useAccountHooks';
 import { Order } from '../../types/models';
 import { useSEO } from '../../hooks/useSEO';
+import { usePublicSettings } from '../../hooks/useHomeHooks';
 
 export const CheckoutPage = () => {
   useSEO({ title: 'Commande | HAFROSE', noIndex: true });
   const { items, clearCart } = useCartStore();
   const { user } = useAuthStore();
   const createOrderMutation = useCreateOrder();
+  const { data: settingsResponse } = usePublicSettings();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<'form' | 'confirmed'>('form');
@@ -46,7 +49,9 @@ export const CheckoutPage = () => {
   });
 
   const subtotal = items.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
-  const shipping = formData.shippingMethod === 'vip' ? 15 : 0;
+  const shippingFee = Number(settingsResponse?.data?.shipping_fee ?? 50);
+  const freeShippingThreshold = Number(settingsResponse?.data?.free_shipping_threshold ?? 1000);
+  const shipping = calculateEstimatedShipping(subtotal, shippingFee, freeShippingThreshold);
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -74,7 +79,6 @@ export const CheckoutPage = () => {
         city: formData.city,
         postal_code: formData.postalCode,
         country: formData.country,
-        shipping_amount: shipping,
         shipping_method: formData.shippingMethod,
         payment_method: formData.paymentMethod,
         shipping_address: {
@@ -286,17 +290,10 @@ export const CheckoutPage = () => {
                 <div className="space-y-3">
                   <Radio
                     name="shipping"
-                    label="Livraison Express HAFROSE (24h-48h) — Offerte"
-                    description="Remise en main propre contre signature"
+                    label="Livraison Express HAFROSE (24h-48h)"
+                    description={shipping === 0 ? 'Livraison offerte' : `${formatPrice(shipping)} — calcul définitif par HAFROSE`}
                     checked={formData.shippingMethod === 'express'}
                     onChange={() => setFormData({ ...formData, shippingMethod: 'express' })}
-                  />
-                  <Radio
-                    name="shipping"
-                    label="Chronopost Coursier VIP (Le jour même)"
-                    description="15,00 MAD supplémentaires"
-                    checked={formData.shippingMethod === 'vip'}
-                    onChange={() => setFormData({ ...formData, shippingMethod: 'vip' })}
                   />
                 </div>
               </Card>

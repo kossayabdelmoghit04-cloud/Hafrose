@@ -29,8 +29,9 @@ class StoreOrderRequest extends FormRequest
             'city' => 'required|string|max:100',
             'postal_code' => 'nullable|string|max:20',
             'country' => 'nullable|string|max:100',
-            'shipping_amount' => 'nullable|numeric|min:0',
-            'shipping_method' => 'nullable|string|max:50',
+            // Le montant est toujours calculé par le serveur à partir des paramètres HAFROSE.
+            'shipping_amount' => 'prohibited',
+            'shipping_method' => 'nullable|string|in:express',
             'payment_method' => 'nullable|string|max:50',
             'payment_status' => 'prohibited',
             'shipping_address' => 'nullable|array',

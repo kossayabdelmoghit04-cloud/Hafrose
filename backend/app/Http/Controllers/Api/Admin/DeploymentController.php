@@ -12,6 +12,7 @@ use App\Services\DeploymentOptimizationService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -44,11 +45,22 @@ class DeploymentController extends Controller
     public function status(Request $request): JsonResponse
     {
         $healthReport = $this->healthService->checkAll();
-        $configStatus = config('deployment');
+        $checks = collect($healthReport['checks'] ?? [])->map(
+            static fn (array $check): array => ['status' => $check['status'] ?? 'unknown']
+        )->all();
 
         return $this->successResponse([
-            'health' => $healthReport,
-            'config' => $configStatus,
+            'health' => [
+                'overall_status' => $healthReport['overall_status'] ?? 'unknown',
+                'summary' => $healthReport['summary'] ?? [],
+                'checks' => $checks,
+            ],
+            'config' => [
+                'debug' => (bool) config('app.debug'),
+                'scheduler_enabled' => (bool) config('deployment.scheduler.enabled'),
+                'ssl_enabled' => (bool) config('deployment.ssl.enabled'),
+                'maintenance_mode' => (bool) config('deployment.flags.maintenance_mode'),
+            ],
         ], 'Statut du déploiement et de santé récupéré avec succès.');
     }
 
@@ -83,8 +95,10 @@ class DeploymentController extends Controller
                 $result['message']
             );
         } catch (Throwable $e) {
+            Log::error('Deployment optimization failed.', ['exception' => $e->getMessage()]);
+
             return $this->errorResponse(
-                "Erreur lors de l'optimisation : ".$e->getMessage(),
+                'L optimisation n a pas pu être exécutée.',
                 500
             );
         }
@@ -121,8 +135,10 @@ class DeploymentController extends Controller
                 $result['message']
             );
         } catch (Throwable $e) {
+            Log::error('Deployment cache clear failed.', ['exception' => $e->getMessage()]);
+
             return $this->errorResponse(
-                'Erreur lors du vidage des caches : '.$e->getMessage(),
+                'Le vidage des caches n a pas pu être exécuté.',
                 500
             );
         }
@@ -159,8 +175,10 @@ class DeploymentController extends Controller
                 $result['message']
             );
         } catch (Throwable $e) {
+            Log::error('Deployment cache warmup failed.', ['exception' => $e->getMessage()]);
+
             return $this->errorResponse(
-                'Erreur lors du préchauffage des caches : '.$e->getMessage(),
+                'Le préchauffage des caches n a pas pu être exécuté.',
                 500
             );
         }

@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Comportement :
  * - Lit le token dans le champ `cf-turnstile-response` de la requête.
  * - Délègue la vérification au TurnstileService (aucune logique réseau ici).
- * - Transmet l'IP et la route complète au service pour un logging riche.
+ * - Transmet l'IP et le chemin sans query string au service pour un logging sûr.
  * - Retourne une réponse JSON 422 cohérente avec le reste de l'API en cas d'échec.
  * - Si TURNSTILE_ENABLED=false (tests, CI), le service accepte tout token.
  *
@@ -47,7 +47,7 @@ class VerifyTurnstileToken
     {
         $token = $request->input('cf-turnstile-response');
         $ip = $request->ip();
-        $route = $request->fullUrl();
+        $route = $request->getPathInfo();
 
         if (! $this->turnstile->verify($token, $ip, $route)) {
             $this->logFailure($ip, $route, empty($token));
@@ -72,7 +72,7 @@ class VerifyTurnstileToken
      * et l'inscrire dans le journal d'activité global.
      *
      * @param  string|null  $ip  Adresse IP du client.
-     * @param  string  $route  URL complète appelée.
+     * @param  string  $route  Chemin appelé sans query string.
      * @param  bool  $tokenEmpty  Indique si le token était absent (vs invalide).
      */
     private function logFailure(?string $ip, string $route, bool $tokenEmpty): void

@@ -6,17 +6,35 @@ import { PasswordInput } from '../../components/ui/PasswordInput';
 import { Button } from '../../components/ui/Button';
 import { Alert } from '../../components/ui/Alert';
 import { authService } from '../../services/auth.service';
+import { ApiErrorResponse } from '../../types/api';
+import { validators } from '../../utils/validators';
+
+const RESET_LINK_ERROR = 'Le lien de réinitialisation est invalide, expiré ou incomplet.';
+const PASSWORD_POLICY_ERROR = 'Le mot de passe doit contenir au moins 12 caractères, avec une majuscule, une minuscule, un chiffre et un symbole.';
+
+const getResetErrorMessage = (error: unknown): string => {
+  if (!error || typeof error !== 'object') {
+    return 'La réinitialisation a échoué. Veuillez réessayer.';
+  }
+
+  const apiError = error as ApiErrorResponse;
+  const validationMessage = apiError.errors?.password?.[0]
+    || apiError.errors?.password_confirmation?.[0]
+    || apiError.errors?.email?.[0];
+
+  return validationMessage || apiError.message || 'La réinitialisation a échoué. Veuillez réessayer.';
+};
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || 'demo-token';
+  const token = searchParams.get('token')?.trim() || '';
   const emailParam = searchParams.get('email') || '';
 
   const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(token ? '' : RESET_LINK_ERROR);
   const [success, setSuccess] = useState(false);
 
   const navigate = useNavigate();
@@ -25,12 +43,16 @@ export const ResetPasswordPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    if (!token) {
+      setError(RESET_LINK_ERROR);
+      return;
+    }
     if (!email.trim() || !email.includes('@')) {
       setError('Veuillez renseigner votre adresse e-mail.');
       return;
     }
-    if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.');
+    if (!validators.isStrongPassword(password)) {
+      setError(PASSWORD_POLICY_ERROR);
       return;
     }
     if (password !== passwordConfirmation) {
@@ -40,16 +62,19 @@ export const ResetPasswordPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword({
+      const response = await authService.resetPassword({
         email,
         token,
         password,
         password_confirmation: passwordConfirmation,
       });
-      setSuccess(true);
-    } catch {
-      // Mock fallback for frontend preview
-      setSuccess(true);
+      if (response.success) {
+        setSuccess(true);
+      } else {
+        setError(response.message || 'La réinitialisation a échoué. Veuillez réessayer.');
+      }
+    } catch (resetError: unknown) {
+      setError(getResetErrorMessage(resetError));
     } finally {
       setIsLoading(false);
     }

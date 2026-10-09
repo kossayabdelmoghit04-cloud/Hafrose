@@ -20,14 +20,18 @@ class OrderService
 
     protected ActivityLogService $activityLogService;
 
+    protected SettingService $settingService;
+
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         ProductRepositoryInterface $productRepository,
-        ActivityLogService $activityLogService
+        ActivityLogService $activityLogService,
+        SettingService $settingService
     ) {
         $this->orderRepository = $orderRepository;
         $this->productRepository = $productRepository;
         $this->activityLogService = $activityLogService;
+        $this->settingService = $settingService;
     }
 
     /**
@@ -45,7 +49,7 @@ class OrderService
                 'city' => $data['city'],
                 'postal_code' => $data['postal_code'] ?? $data['shipping_address']['postal_code'] ?? null,
                 'country' => $data['country'] ?? $data['shipping_address']['country'] ?? 'France',
-                'shipping_amount' => $data['shipping_amount'] ?? 0.00,
+                'shipping_amount' => 0.00,
                 'shipping_method' => $data['shipping_method'] ?? 'express',
                 'payment_method' => $data['payment_method'] ?? 'card',
                 'payment_status' => Order::PAYMENT_STATUS_PENDING,
@@ -86,7 +90,20 @@ class OrderService
                 ]);
             }
 
-            // Recharger la commande pour obtenir le total_price mis à jour par Eloquent
+            // Le serveur est l'unique source de vérité pour les frais de livraison.
+            $order->refresh();
+            $settings = $this->settingService->getSettings();
+            $shippingFee = max(0, (float) ($settings['shipping_fee'] ?? 50));
+            $freeShippingThreshold = max(0, (float) ($settings['free_shipping_threshold'] ?? 1000));
+            $subtotal = (float) $order->subtotal_amount;
+            $shippingAmount = $freeShippingThreshold > 0 && $subtotal >= $freeShippingThreshold
+                ? 0.00
+                : $shippingFee;
+
+            $order->shipping_amount = $shippingAmount;
+            $order->recalculateTotal();
+
+            // Recharger la commande pour obtenir les montants finaux calculés côté serveur.
             $order->refresh();
 
             // Enregistrer l'activité de création de commande

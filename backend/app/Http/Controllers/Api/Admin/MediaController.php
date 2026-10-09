@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMediaRequest;
+use App\Http\Requests\AdminMediaIndexRequest;
 use App\Http\Resources\MediaResource;
 use App\Models\AdminLog;
 use App\Services\AdminLogService;
@@ -24,9 +25,9 @@ class MediaController extends Controller
     /**
      * Obtenir la liste paginée des médias.
      */
-    public function index(Request $request): JsonResponse
+    public function index(AdminMediaIndexRequest $request): JsonResponse
     {
-        $perPage = (int) $request->input('per_page', 18);
+        $perPage = (int) ($request->validated()['per_page'] ?? 18);
         $media = $this->mediaService->getPaginatedMedia($perPage);
 
         return response()->json([

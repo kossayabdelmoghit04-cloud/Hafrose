@@ -21,6 +21,7 @@ class BulkActionService
     public function __construct(
         protected AdminLogService $adminLogService,
         protected ActivityLogService $activityLogService,
+        protected OrderService $orderService,
     ) {}
 
     /**
@@ -68,7 +69,7 @@ class BulkActionService
                     }
                 } catch (\Throwable $e) {
                     $countIgnored++;
-                    $errors[] = "ID {$id}: ".$e->getMessage();
+                    $errors[] = "ID {$id}: The operation could not be completed.";
                     Log::error("BulkAction error for {$normalizedResource} #{$id}: ".$e->getMessage());
                 }
             }
@@ -220,7 +221,7 @@ class BulkActionService
                 return ['success' => true];
 
             case 'archive':
-                $order->update(['status' => Order::STATUS_CANCELLED]);
+                $this->orderService->updateOrderStatus($order, Order::STATUS_CANCELLED);
 
                 return ['success' => true];
 
@@ -229,13 +230,31 @@ class BulkActionService
                 if (! $newStatus) {
                     return ['success' => false, 'error' => 'Le statut cible est obligatoire.'];
                 }
-                $order->update(['status' => $newStatus]);
+                if (! in_array($newStatus, self::validOrderStatuses(), true)) {
+                    return ['success' => false, 'error' => 'Le statut cible est invalide.'];
+                }
+
+                $this->orderService->updateOrderStatus($order, $newStatus);
 
                 return ['success' => true];
 
             default:
                 return ['success' => false, 'error' => "Action '{$action}' non supportée pour les commandes."];
         }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function validOrderStatuses(): array
+    {
+        return [
+            Order::STATUS_PENDING,
+            Order::STATUS_CONFIRMED,
+            Order::STATUS_SHIPPED,
+            Order::STATUS_DELIVERED,
+            Order::STATUS_CANCELLED,
+        ];
     }
 
     protected function handleReviewAction(string $action, int $id, array $params): array

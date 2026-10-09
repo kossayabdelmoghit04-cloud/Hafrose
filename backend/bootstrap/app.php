@@ -4,6 +4,7 @@ use App\Exceptions\InsufficientStockException;
 use App\Exceptions\ProductNotFoundException;
 use App\Http\Middleware\BlockSpamHoneypot;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsCustomer;
 use App\Http\Middleware\MonitoringMiddleware;
 use App\Http\Middleware\PerformanceMonitoringMiddleware;
 use App\Http\Middleware\SanitizeInputMiddleware;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'admin' => EnsureUserIsAdmin::class,
+            'customer' => EnsureUserIsCustomer::class,
             'honeypot' => BlockSpamHoneypot::class,
             'turnstile' => VerifyTurnstileToken::class,
             'perf.monitor' => PerformanceMonitoringMiddleware::class,

@@ -8,15 +8,20 @@ import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { LazyImage } from '../../components/ui/LazyImage';
 import { formatPrice, getImageUrl } from '../../utils/formatters';
+import { calculateEstimatedShipping } from '../../utils/shipping';
 import { useCartStore } from '../../stores/useCartStore';
 import { useSEO } from '../../hooks/useSEO';
+import { usePublicSettings } from '../../hooks/useHomeHooks';
 
 export const CartPage = () => {
   useSEO({ title: 'Mon Panier | HAFROSE', noIndex: true });
   const { items, updateQuantity, removeItem } = useCartStore();
+  const { data: settingsResponse } = usePublicSettings();
 
   const subtotal = items.reduce((acc, i) => acc + i.unit_price * i.quantity, 0);
-  const shipping = subtotal >= 150 || subtotal === 0 ? 0 : 9;
+  const shippingFee = Number(settingsResponse?.data?.shipping_fee ?? 50);
+  const freeShippingThreshold = Number(settingsResponse?.data?.free_shipping_threshold ?? 1000);
+  const shipping = calculateEstimatedShipping(subtotal, shippingFee, freeShippingThreshold);
   const vat = Math.round((subtotal - (subtotal / 1.2)) * 100) / 100;
   const total = subtotal + shipping;
 

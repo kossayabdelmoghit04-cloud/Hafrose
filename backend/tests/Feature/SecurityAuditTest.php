@@ -48,9 +48,9 @@ class SecurityAuditTest extends TestCase
             'Le wildcard "*" est strictement interdit dans les origines CORS avec support des credentials.'
         );
 
-        $this->assertTrue(
+        $this->assertFalse(
             $supportsCredentials,
-            'CORS doit supporter les credentials pour les sessions et cookies Sanctum.'
+            'CORS ne doit pas autoriser les credentials : HAFROSE utilise des Bearer tokens Sanctum.'
         );
     }
 

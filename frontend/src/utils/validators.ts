@@ -15,10 +15,10 @@ export const validators = {
 
   /**
    * Returns true if the string meets the minimum password requirements.
-   * Rule: >= 8 chars, at least 1 uppercase, 1 number.
+   * Mirrors Laravel's reset-password policy: >= 12 chars, uppercase, lowercase, number and symbol.
    */
   isStrongPassword(value: string): boolean {
-    return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(value);
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/.test(value);
   },
 
   /**

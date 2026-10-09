@@ -19,10 +19,20 @@ class AdminBulkActionRequest extends FormRequest
                 'string',
                 'in:delete,activate,deactivate,publish,unpublish,approve,reject,mark_read,mark_unread,status_update,archive',
             ],
-            'ids' => ['required', 'array', 'min:1'],
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
             'ids.*' => ['integer', 'min:1'],
             'params' => ['nullable', 'array'],
-            'params.status' => ['nullable', 'string', 'max:50'],
+            'params.status' => [
+                'nullable',
+                'string',
+                'in:'.implode(',', [
+                    \App\Models\Order::STATUS_PENDING,
+                    \App\Models\Order::STATUS_CONFIRMED,
+                    \App\Models\Order::STATUS_SHIPPED,
+                    \App\Models\Order::STATUS_DELIVERED,
+                    \App\Models\Order::STATUS_CANCELLED,
+                ]),
+            ],
         ];
     }
 

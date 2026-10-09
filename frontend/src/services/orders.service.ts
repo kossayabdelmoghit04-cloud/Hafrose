@@ -10,7 +10,6 @@ export interface CreateOrderPayload {
   city?: string;
   postal_code?: string;
   country?: string;
-  shipping_amount?: number;
   shipping_method?: string;
   payment_method?: 'card' | 'paypal' | 'cod' | string;
   shipping_address?: {
@@ -50,7 +49,6 @@ function formatOrderPayload(payload: CreateOrderPayload) {
     city,
     postal_code: postalCode,
     country,
-    shipping_amount: payload.shipping_amount ?? 0,
     shipping_method: payload.shipping_method ?? 'express',
     payment_method: payload.payment_method ?? 'card',
     shipping_address: {
@@ -83,4 +81,3 @@ export const ordersService = {
     return apiClient.post(API_ENDPOINTS.ORDERS.CREATE, formatOrderPayload(payload));
   },
 };
-

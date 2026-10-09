@@ -116,7 +116,7 @@ class ActivityLogTest extends TestCase
         // Vérifier les métadonnées
         $log = ActivityLog::where('event_type', ActivityLog::EVENT_ORDER_CREATED)->first();
         $this->assertEquals('John Doe', $log->metadata['customer']);
-        $this->assertEquals(100.00, $log->metadata['total_price']);
+        $this->assertEquals(150.00, $log->metadata['total_price']);
         $this->assertEquals('Paris', $log->metadata['city']);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GiftCardCheckRequest;
 use App\Services\GiftCardService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -19,9 +20,9 @@ class GiftCardController extends Controller
         $this->giftCardService = $giftCardService;
     }
 
-    public function check(Request $request): JsonResponse
+    public function check(GiftCardCheckRequest $request): JsonResponse
     {
-        $code = $request->input('code', '');
+        $code = $request->validated()['code'];
         $card = $this->giftCardService->checkCard($code);
 
         if (! $card) {

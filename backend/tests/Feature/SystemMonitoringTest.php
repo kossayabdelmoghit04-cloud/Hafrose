@@ -139,9 +139,6 @@ class SystemMonitoringTest extends TestCase
                     'summary' => [
                         'status',
                         'active_alerts',
-                        'php_version',
-                        'laravel_version',
-                        'environment',
                         'timestamp',
                     ],
                     'health',
@@ -169,11 +166,10 @@ class SystemMonitoringTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    'php_version',
-                    'interface',
-                    'memory_limit',
-                    'max_execution_time',
-                    'loaded_extensions',
+                    'status',
+                    'upload_max_filesize',
+                    'post_max_size',
+                    'opcache_enabled',
                 ],
             ]);
     }

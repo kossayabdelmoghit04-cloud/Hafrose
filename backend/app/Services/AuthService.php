@@ -34,8 +34,13 @@ class AuthService
             throw new AuthenticationException('Accès interdit. Réservé aux administrateurs.');
         }
 
-        // Créer un token Sanctum
-        $token = $user->createToken('admin-token')->plainTextToken;
+        // Une connexion admin invalide toutes les sessions API admin précédentes.
+        $user->tokens()->delete();
+        $token = $user->createToken(
+            'admin-token',
+            ['admin'],
+            now()->addMinutes((int) config('sanctum.admin_expiration'))
+        )->plainTextToken;
 
         // Enregistrer l'activité de connexion
         $this->activityLogService->log(

@@ -340,13 +340,13 @@ class MC06C1DynamicTest extends TestCase
 
         $orderItem = $order->orderItems()->first();
         $this->assertEquals('150.00', (string) $orderItem->unit_price);
-        $this->assertEquals('300.00', (string) $order->fresh()->total_price);
+        $this->assertEquals('350.00', (string) $order->fresh()->total_price);
 
         // Product price changes in catalog
         $product->update(['price' => 250.00]);
 
         $this->assertEquals('150.00', (string) $orderItem->fresh()->unit_price, 'Historical unit_price must not change');
-        $this->assertEquals('300.00', (string) $order->fresh()->total_price, 'Historical total_price must not change');
+        $this->assertEquals('350.00', (string) $order->fresh()->total_price, 'Historical total_price must not change');
     }
 
     /**

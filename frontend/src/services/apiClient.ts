@@ -12,7 +12,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  withCredentials: true, // Required for Laravel Sanctum cookie authentication
+  withCredentials: false, // HAFROSE uses explicit Sanctum Bearer tokens.
 });
 
 /**

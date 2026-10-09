@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AutocompleteRequest;
 use App\Services\SearchService;
 use App\Traits\HttpResponses;
 use Illuminate\Http\JsonResponse;
@@ -19,9 +20,9 @@ class SearchController extends Controller
         $this->searchService = $searchService;
     }
 
-    public function autocomplete(Request $request): JsonResponse
+    public function autocomplete(AutocompleteRequest $request): JsonResponse
     {
-        $q = $request->query('q', '');
+        $q = $request->validated()['q'] ?? '';
         $results = $this->searchService->autocomplete($q);
 
         return $this->successResponse($results);

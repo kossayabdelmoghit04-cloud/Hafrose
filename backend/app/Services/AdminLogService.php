@@ -59,7 +59,7 @@ class AdminLogService
                 'new_values' => $sanitizedNew,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'url' => substr($request->fullUrl(), 0, 500),
+                'url' => substr($request->getPathInfo(), 0, 500),
                 'method' => strtoupper($request->method()),
             ]);
         } catch (\Throwable $e) {

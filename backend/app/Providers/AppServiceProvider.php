@@ -17,6 +17,7 @@ use App\Policies\OrderPolicy;
 use App\Policies\ReviewPolicy;
 use App\Policies\UserAddressPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -57,6 +58,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        ResetPassword::createUrlUsing(function (object $notifiable, string $token): string {
+            $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
+
+            return $frontendUrl.'/reset-password?'.http_build_query([
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ]);
+        });
+
         // ── Policies d'autorisation centralisées (ARC-03) ──────────────────────
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(UserAddress::class, UserAddressPolicy::class);
@@ -103,6 +113,22 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('admin-login', function (Request $request) {
             return Limit::perMinute(5)
                 ->by($request->ip());
+        });
+
+        RateLimiter::for('admin-heavy', function (Request $request) {
+            return Limit::perMinute(5)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('admin-export', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('admin-bulk', function (Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('sensitive', function (Request $request) {
+            return Limit::perMinute(6)->by($request->user()?->id ?: $request->ip());
         });
     }
 }
