@@ -119,7 +119,7 @@ class ProductionBackupTest extends TestCase
             'BACKUP_IMAGES',
             'BACKUP_COMPRESS',
             'BACKUP_MIN_DISK_SPACE_MB',
-            'BACKUP_STORAGE_DISK',
+            'BACKUP_DISK',
             'MAINTENANCE_SECRET',
             'MAINTENANCE_ALLOWED_IPS',
             'MAINTENANCE_MESSAGE',

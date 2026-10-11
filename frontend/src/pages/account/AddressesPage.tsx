@@ -16,6 +16,7 @@ import {
   useSetDefaultAddress,
 } from '../../hooks/useAccountHooks';
 import { UserAddress } from '../../types/models';
+import { DEFAULT_COUNTRY, MOROCCAN_CITY_OPTIONS } from '../../constants/locations';
 
 export const AddressesPage: React.FC = () => {
   const { data: apiAddresses, isLoading, isError, refetch } = useAddresses();
@@ -35,7 +36,7 @@ export const AddressesPage: React.FC = () => {
     address: '',
     city: '',
     postal_code: '',
-    country: 'France',
+    country: DEFAULT_COUNTRY,
     phone: '',
     is_default: false,
   });
@@ -46,9 +47,9 @@ export const AddressesPage: React.FC = () => {
       title: '',
       name: '',
       address: '',
-      city: '',
-      postal_code: '',
-      country: 'France',
+      city: 'Casablanca',
+      postal_code: '20000',
+      country: DEFAULT_COUNTRY,
       phone: '',
       is_default: addresses.length === 0,
     });
@@ -61,9 +62,9 @@ export const AddressesPage: React.FC = () => {
       title: addr.title,
       name: addr.name,
       address: addr.address,
-      city: addr.city,
-      postal_code: addr.postal_code,
-      country: addr.country || 'France',
+      city: addr.city || 'Casablanca',
+      postal_code: addr.postal_code || '20000',
+      country: DEFAULT_COUNTRY,
       phone: addr.phone || '',
       is_default: addr.is_default,
     });
@@ -89,10 +90,15 @@ export const AddressesPage: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        country: DEFAULT_COUNTRY,
+      };
+
       if (editingAddress) {
-        await updateAddressMutation.mutateAsync({ id: editingAddress.id, payload: formData });
+        await updateAddressMutation.mutateAsync({ id: editingAddress.id, payload });
       } else {
-        await addAddressMutation.mutateAsync(formData);
+        await addAddressMutation.mutateAsync(payload);
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -107,7 +113,7 @@ export const AddressesPage: React.FC = () => {
         <div>
           <h1 className="font-serif text-h2 text-neutral-950">Mes Adresses de Livraison</h1>
           <p className="text-body-sm text-neutral-600">
-            Gérez vos adresses pour accélérer vos futurs achats HAFROSE.
+            Gérez vos adresses de livraison au Maroc pour accélérer vos futurs achats HAFROSE.
           </p>
         </div>
 
@@ -141,7 +147,7 @@ export const AddressesPage: React.FC = () => {
           </div>
           <h2 className="font-serif text-h4 text-neutral-900">Aucune adresse enregistrée</h2>
           <p className="text-body-sm text-neutral-500 leading-relaxed">
-            Ajoutez votre adresse de livraison pour simplifier et accélérer vos commandes sur la Maison HAFROSE.
+            Ajoutez votre adresse de livraison au Maroc pour simplifier et accélérer vos commandes sur la Maison HAFROSE.
           </p>
           <div className="pt-2">
             <Button variant="primary" size="md" leftIcon={<Plus className="w-4 h-4" />} onClick={handleOpenAddModal}>
@@ -155,7 +161,7 @@ export const AddressesPage: React.FC = () => {
       {!isLoading && addresses.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {addresses.map((addr) => (
-            <Card key={addr.id} className="p-6 bg-white space-y-4 relative flex flex-col justify-between border-neutral-200/80">
+            <Card key={addr.id} className="p-6 bg-white space-y-4 relative flex flex-col justify-between border-neutral-200/80 hover:border-burgundy-200 transition-colors">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-serif text-h4 text-neutral-950 flex items-center gap-2">
@@ -171,8 +177,8 @@ export const AddressesPage: React.FC = () => {
                 <div className="text-body-sm text-neutral-700 space-y-0.5">
                   <p className="font-semibold text-neutral-950">{addr.name}</p>
                   <p>{addr.address}</p>
-                  <p>{addr.postal_code} {addr.city}, {addr.country}</p>
-                  {addr.phone && <p className="text-neutral-500 pt-1">Tél : {addr.phone}</p>}
+                  <p>{addr.postal_code} {addr.city}, {addr.country || DEFAULT_COUNTRY}</p>
+                  {addr.phone && <p className="text-neutral-500 pt-1 font-sans">Tél : {addr.phone}</p>}
                 </div>
               </div>
 
@@ -223,7 +229,7 @@ export const AddressesPage: React.FC = () => {
       >
         <form onSubmit={handleSave} className="space-y-4">
           <Input
-            label="Nom de l'adresse (ex: Domicile, Bureau)"
+            label="Nom de l'adresse (ex: Domicile, Bureau, Riad)"
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -234,47 +240,60 @@ export const AddressesPage: React.FC = () => {
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Mme. Éléonore De Saint-Germain"
+            placeholder="Mme. Kenza El Fassi"
           />
           <Input
             label="Adresse de rue"
             required
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            placeholder="124 Avenue Montaigne"
+            placeholder="12 Boulevard de la Corniche, Anfa"
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Ville (Maroc)"
+              required
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              options={[
+                { value: '', label: 'Sélectionner une ville...' },
+                ...MOROCCAN_CITY_OPTIONS,
+              ]}
+            />
             <Input
               label="Code Postal"
               required
               value={formData.postal_code}
               onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-              placeholder="75008"
-            />
-            <Input
-              label="Ville"
-              required
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              placeholder="Paris"
+              placeholder="20000"
             />
           </div>
-          <Select
-            label="Pays"
-            value={formData.country}
-            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-            options={[
-              { value: 'France', label: 'France' },
-              { value: 'Belgique', label: 'Belgique' },
-              { value: 'Luxembourg', label: 'Luxembourg' },
-              { value: 'Suisse', label: 'Suisse' },
-            ]}
-          />
+
+          {/* Pays — Lecture seule fixe, design élégant */}
+          <div className="space-y-1.5">
+            <label className="block text-body-sm font-medium text-neutral-800">
+              Pays de livraison
+            </label>
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-cream-100/70 border border-neutral-200 rounded-xs text-body-sm text-neutral-900 font-medium">
+              <span className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-burgundy-600" />
+                Maroc (Royaume du Maroc)
+              </span>
+              <span className="text-[11px] font-sans font-semibold uppercase tracking-wider text-burgundy-700 bg-rose-50 px-2 py-0.5 rounded-xs border border-rose-200">
+                Fixe / Inclus
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-500 font-sans">
+              La Maison HAFROSE livre actuellement sur l'ensemble du territoire marocain.
+            </p>
+          </div>
+
           <Input
             label="Téléphone de Contact"
+            type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="+33 6 12 34 56 78"
+            placeholder="+212 6 12 34 56 78"
           />
           <Checkbox
             label="Définir comme adresse principale"

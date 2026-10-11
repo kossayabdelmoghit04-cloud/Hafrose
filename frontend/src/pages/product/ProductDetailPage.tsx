@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, ChevronDown } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, ChevronDown, Zap } from 'lucide-react';
 import { Container } from '../../components/ui/Container';
 import { Section } from '../../components/ui/Section';
 import { Breadcrumb } from '../../components/ui/Breadcrumb';
@@ -17,10 +17,16 @@ import { useWishlistStore } from '../../stores/useWishlistStore';
 import { useSEO, useJsonLD } from '../../hooks/useSEO';
 import { buildProductLD, buildBreadcrumbLD, SITE_URL } from '../../utils/seo';
 import { LazyImage } from '../../components/ui/LazyImage';
+import { ReviewForm } from '../../components/reviews';
 
 export const ProductDetailPage = () => {
   const { slug = '' } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  /** MC-09-C1 — F01-D1: detect ?buyNow=1 intent from Home Page ACHETER button */
+  const isBuyNowIntent = searchParams.get('buyNow') === '1';
+  const buyNowExecutedRef = useRef(false);
 
   const [selectedImg, setSelectedImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -78,6 +84,32 @@ export const ProductDetailPage = () => {
   useJsonLD(breadcrumbLD);
 
   const isItemWishlisted = product ? isWishlisted(product.id) : false;
+
+  // ── MC-09-C1 — F01-D1: Auto-execute buyNow for simple products ───────────
+  // Runs once when the product loads and buyNow=1 is in the URL.
+  // - Simple product (no mandatory variant): add 1 unit → /checkout
+  // - Product with variants: show intent banner, user must select manually
+  // - Out of stock: do nothing (banner will show out-of-stock state)
+  useEffect(() => {
+    if (!isBuyNowIntent) return;
+    if (!product) return;
+    if (buyNowExecutedRef.current) return;
+
+    const stock = product.stock ?? product.stock_quantity ?? 0;
+    const hasMandatoryVariants = Boolean(
+      (product as unknown as { has_variants?: boolean }).has_variants ||
+      (Array.isArray((product as unknown as { variants?: unknown[] }).variants) &&
+        ((product as unknown as { variants: unknown[] }).variants.length > 0))
+    );
+
+    // Only auto-execute for simple, in-stock products
+    if (!hasMandatoryVariants && stock > 0) {
+      buyNowExecutedRef.current = true;
+      addToCart(product, 1);
+      navigate('/checkout', { replace: false });
+    }
+    // For variant products or OOS, the intent banner handles UX (see JSX below)
+  }, [isBuyNowIntent, product, addToCart, navigate]);
 
   const handleWishlistToggle = () => {
     if (!product) return;
@@ -219,6 +251,41 @@ export const ProductDetailPage = () => {
                   {product.description}
                 </p>
 
+                {/* MC-09-C1 — BuyNow intent banner for variant products or OOS */}
+                {isBuyNowIntent && (() => {
+                  const stock = product.stock ?? product.stock_quantity ?? 0;
+                  const hasMandatoryVariants = Boolean(
+                    (product as unknown as { has_variants?: boolean }).has_variants ||
+                    (Array.isArray((product as unknown as { variants?: unknown[] }).variants) &&
+                      ((product as unknown as { variants: unknown[] }).variants.length > 0))
+                  );
+                  if (stock <= 0) {
+                    return (
+                      <div
+                        role="alert"
+                        className="flex items-center gap-3 px-4 py-3 rounded-md bg-error-50 border border-error-200 text-error-700 text-body-sm"
+                        data-testid="buynow-outofstock-banner"
+                      >
+                        <ShoppingBag className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                        <span>Ce produit est actuellement indisponible. L'achat direct n'est pas possible.</span>
+                      </div>
+                    );
+                  }
+                  if (hasMandatoryVariants) {
+                    return (
+                      <div
+                        role="status"
+                        className="flex items-center gap-3 px-4 py-3 rounded-md bg-burgundy-50 border border-burgundy-200 text-burgundy-700 text-body-sm"
+                        data-testid="buynow-variant-banner"
+                      >
+                        <Zap className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                        <span>Sélectionnez vos options ci-dessous pour finaliser votre achat direct.</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Quantity & Actions */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
@@ -235,8 +302,9 @@ export const ProductDetailPage = () => {
                         fullWidth
                         leftIcon={<ShoppingBag className="w-5 h-5" />}
                         onClick={() => addToCart(product, quantity)}
+                        data-testid="pdp-add-to-cart"
                       >
-                        Ajouter au Panier
+                        {isBuyNowIntent ? 'Acheter Maintenant' : 'Ajouter au Panier'}
                       </Button>
                     </div>
                     <IconButton
@@ -300,6 +368,8 @@ export const ProductDetailPage = () => {
               </div>
             </div>
           )}
+
+          {!isLoading && !isError && product && <ReviewForm productId={product.id} />}
 
           {/* Related Products */}
           {relatedProducts.length > 0 && (

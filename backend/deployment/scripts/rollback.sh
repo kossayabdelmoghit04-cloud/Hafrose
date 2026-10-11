@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Deprecated: use repository-root deployment/scripts/rollback.sh" >&2
+exit 64
 # ==============================================================================
 # HAFROSE Backend — Automated Rollback Script
 # ==============================================================================

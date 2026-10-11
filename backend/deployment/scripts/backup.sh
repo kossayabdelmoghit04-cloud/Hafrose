@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Deprecated: production backup runs through the root Docker scheduler" >&2
+exit 64
 # ==============================================================================
 # HAFROSE Backend — Automated Backup Execution Script
 # ==============================================================================

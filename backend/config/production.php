@@ -144,7 +144,7 @@ return [
         /**
          * Disque utilisé pour les sauvegardes (local, s3…).
          */
-        'disk' => env('BACKUP_STORAGE_DISK', 'local'),
+        'disk' => env('BACKUP_DISK', 'local'),
 
         /**
          * Mode lecture seule du stockage en production.
@@ -158,6 +158,17 @@ return [
             'app/',
             'app/public/',
         ],
+    ],
+
+    'encryption' => [
+        'enabled' => (bool) env('BACKUP_ENCRYPTION_ENABLED', false),
+        'key' => env('BACKUP_ENCRYPTION_KEY'),
+    ],
+
+    'offsite' => [
+        'enabled' => (bool) env('OFFSITE_ENABLED', false),
+        'disk' => env('OFFSITE_DISK'),
+        'prefix' => trim((string) env('OFFSITE_PREFIX', 'hafrose'), '/'),
     ],
 
     // ─── Santé système ──────────────────────────────────────────────────────────

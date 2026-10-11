@@ -21,6 +21,8 @@ import { useCreateOrder } from '../../hooks/useAccountHooks';
 import { Order } from '../../types/models';
 import { useSEO } from '../../hooks/useSEO';
 import { usePublicSettings } from '../../hooks/useHomeHooks';
+import { MOROCCAN_CITY_OPTIONS } from '../../constants/locations';
+import { TurnstileWidget } from '../../components/security';
 
 export const CheckoutPage = () => {
   useSEO({ title: 'Commande | HAFROSE', noIndex: true });
@@ -33,6 +35,8 @@ export const CheckoutPage = () => {
   const [step, setStep] = useState<'form' | 'confirmed'>('form');
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const [formError, setFormError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const [formData, setFormData] = useState({
     firstName: user?.first_name || '',
@@ -40,8 +44,8 @@ export const CheckoutPage = () => {
     email: user?.email || '',
     phone: user?.phone || '',
     address: '',
-    city: '',
-    postalCode: '',
+    city: 'Casablanca',
+    postalCode: '20000',
     country: 'Maroc',
     shippingMethod: 'express',
     paymentMethod: 'card' as 'card' | 'paypal' | 'cod',
@@ -70,9 +74,14 @@ export const CheckoutPage = () => {
       setFormError('Votre panier est vide.');
       return;
     }
+    if (!turnstileToken) {
+      setFormError('Veuillez terminer la vérification anti-robot.');
+      return;
+    }
 
     try {
       const order = await createOrderMutation.mutateAsync({
+        turnstileToken,
         customer: `${formData.firstName} ${formData.lastName}`.trim(),
         phone: formData.phone,
         address: formData.address,
@@ -104,6 +113,8 @@ export const CheckoutPage = () => {
       setStep('confirmed');
     } catch (err: any) {
       const msg = err?.message || (err?.errors ? Object.values(err.errors).flat().join(' ') : null);
+      setTurnstileToken(null);
+      setTurnstileResetKey((value) => value + 1);
       setFormError(msg || 'Une erreur s\'est produite lors de la création de votre commande. Veuillez réessayer.');
     }
   };
@@ -250,36 +261,39 @@ export const CheckoutPage = () => {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Select
+                    label="Ville (Maroc)"
+                    required
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    options={[
+                      { value: '', label: 'Sélectionner une ville...' },
+                      ...MOROCCAN_CITY_OPTIONS,
+                    ]}
+                  />
                   <Input
                     label="Code Postal"
                     required
                     value={formData.postalCode}
                     onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    placeholder="20000"
                   />
-                  <div className="col-span-2">
-                    <Input
-                      label="Ville"
-                      required
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-body-sm font-medium text-neutral-800">
+                    Pays de livraison
+                  </label>
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-cream-100/70 border border-neutral-200 rounded-xs text-body-sm text-neutral-900 font-medium">
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block w-2 h-2 rounded-full bg-burgundy-600" />
+                      Maroc (Royaume du Maroc)
+                    </span>
+                    <span className="text-[11px] font-sans font-semibold uppercase tracking-wider text-burgundy-700 bg-rose-50 px-2 py-0.5 rounded-xs border border-rose-200">
+                      Marché Exclusif
+                    </span>
                   </div>
                 </div>
-                <Select
-                  label="Pays / Région"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  options={[
-                    { value: 'Maroc', label: 'Maroc' },
-                    { value: 'Algérie', label: 'Algérie' },
-                    { value: 'Tunisie', label: 'Tunisie' },
-                    { value: 'France', label: 'France' },
-                    { value: 'Belgique', label: 'Belgique' },
-                    { value: 'Luxembourg', label: 'Luxembourg' },
-                    { value: 'Suisse', label: 'Suisse' },
-                  ]}
-                />
               </Card>
 
               {/* 2. Shipping Options */}
@@ -388,12 +402,19 @@ export const CheckoutPage = () => {
                   onChange={(e) => setFormData({ ...formData, acceptTerms: e.target.checked })}
                 />
 
+                <TurnstileWidget
+                  action="checkout"
+                  resetKey={turnstileResetKey}
+                  onTokenChange={setTurnstileToken}
+                />
+
                 <Button
                   type="submit"
                   variant="primary"
                   size="lg"
                   fullWidth
                   isLoading={createOrderMutation.isPending}
+                  disabled={!turnstileToken || createOrderMutation.isPending}
                   leftIcon={<ShieldCheck className="w-5 h-5" />}
                 >
                   Confirmer et Payer {formatPrice(total)}

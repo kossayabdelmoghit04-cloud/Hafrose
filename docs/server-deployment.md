@@ -216,3 +216,6 @@ bash deployment/scripts/health-check.sh
 - **Journaux PHP-FPM** : `/var/log/php8.3-fpm-hafrose-error.log`
 - **Journaux Laravel** : `storage/logs/laravel.log`
 - **Commande Health Status** : `php artisan hafrose:deploy:status`
+# DEPRECATED
+
+This host-based deployment guide is retained for audit history only. Do not execute its commands. The production source of truth is deployment/README.md and the immutable-image scripts under deployment/scripts/.

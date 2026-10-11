@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.41
         env:
           MYSQL_DATABASE: test
           MYSQL_USER: hafrose_ci
@@ -238,11 +238,48 @@ jobs:
         working-directory: ./backend
         run: composer validate --strict
 
+      - name: Audit Composer Runtime Dependencies
+        working-directory: ./backend
+        run: composer audit --no-dev --locked
+
   # ── 4. Production Deployment Trigger (main branch only) ───────────────────
-  deploy-production:
-    name: Deploy to Production
+  docker-images:
+    name: Build and Test Immutable Docker Images
     needs: [frontend-ci, backend-ci, security-checks]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build SHA-tagged Images
+        run: |
+          docker build --tag hafrose-backend:${{ github.sha }} backend
+          docker build --build-arg VITE_TURNSTILE_SITE_KEY=1x00000000000000000000AA --tag hafrose-frontend:${{ github.sha }} frontend
+
+      - name: Validate Backend Image
+        run: |
+          test "$(docker image inspect hafrose-backend:${{ github.sha }} --format '{{.Config.User}}')" = "www-data"
+          docker run --rm hafrose-backend:${{ github.sha }} composer check-platform-reqs --no-dev
+          docker run --rm hafrose-backend:${{ github.sha }} php artisan about
+          ! grep -R -- '--ignore-platform-reqs' backend/Dockerfile
+
+      - name: Validate Frontend Nginx and HTTP
+        run: |
+          docker run --rm hafrose-frontend:${{ github.sha }} nginx -t
+          docker run -d --name hafrose-frontend-smoke -p 127.0.0.1:8080:80 hafrose-frontend:${{ github.sha }}
+          trap 'docker rm -f hafrose-frontend-smoke >/dev/null 2>&1 || true' EXIT
+          for attempt in 1 2 3 4 5; do curl --fail http://127.0.0.1:8080/ && break; sleep 2; done
+
+      - name: Registry Publication Guard
+        run: echo "Images tested locally only. Registry publication remains disabled until C1b."
+
+  legacy-deploy-disabled:
+    name: Legacy Deploy Disabled
+    needs: [frontend-ci, backend-ci, security-checks]
+    # Replaced by deploy-production.yml. Retained temporarily for audit history.
+    if: false
     runs-on: ubuntu-latest
 
     steps:

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProductCard } from '../../../components/ui/ProductCard';
 import { ProductCardSkeleton } from '../../../components/ui/ProductCard/ProductCardSkeleton';
@@ -7,8 +7,8 @@ import { Section } from '../../../components/ui/Section';
 import { Button } from '../../../components/ui/Button';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { useProducts } from '../../../hooks/useProductHooks';
-import { useCartStore } from '../../../stores/useCartStore';
 import { useWishlistStore } from '../../../stores/useWishlistStore';
+import { useBuyNow } from '../../../hooks/useBuyNow';
 import { getImageUrl } from '../../../utils/formatters';
 import { Product } from '../../../types/models';
 
@@ -42,13 +42,30 @@ export const CategoryProductSection: React.FC<CategoryProductSectionProps> = ({
   bg = 'cream',
 }) => {
   const navigate = useNavigate();
+  const [feedback, setFeedback] = useState<string | null>(null);
   const { data, isLoading, isError, refetch } = useProducts({
     category: categorySlug,
     per_page: limit,
   });
 
-  const { addItem: addToCart } = useCartStore();
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
+
+  const { buyNow, buyingProductId } = useBuyNow({
+    onFeedback: (result, product) => {
+      if (result === 'no_stock') {
+        setFeedback(`"${product.name}" est actuellement en rupture de stock.`);
+        setTimeout(() => setFeedback(null), 4000);
+      } else if (result === 'needs_variant') {
+        setFeedback(`Veuillez sélectionner vos options pour "${product.name}".`);
+        setTimeout(() => setFeedback(null), 4000);
+      } else if (result === 'error') {
+        setFeedback("Une erreur est survenue lors de l'achat.");
+        setTimeout(() => setFeedback(null), 4000);
+      } else {
+        setFeedback(null);
+      }
+    },
+  });
 
   const products: Product[] = data?.data ?? [];
 
@@ -146,11 +163,22 @@ export const CategoryProductSection: React.FC<CategoryProductSectionProps> = ({
                   badgeText={product.is_featured ? 'Best-seller' : undefined}
                   isWishlisted={isWishlisted(product.id)}
                   onWishlistToggle={() => handleWishlistToggle(product)}
-                  onQuickAdd={() => addToCart(product, 1)}
+                  onBuyNow={() => buyNow(product)}
+                  isBuyingNow={buyingProductId === product.id}
                   onClick={(slug) => navigate(`/product/${slug}`)}
                 />
               ))}
             </div>
+
+            {feedback && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-6 p-3 rounded-xs bg-burgundy-50 border border-burgundy-200 text-burgundy-800 text-body-sm text-center font-medium max-w-md mx-auto"
+              >
+                {feedback}
+              </div>
+            )}
 
             {/* View All CTA */}
             <div className="text-center mt-12">

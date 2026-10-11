@@ -57,6 +57,16 @@ class TurnstileIntegrationTest extends TestCase
             ->assertJson(['success' => true]);
     }
 
+    public function test_disabled_turnstile_is_never_a_production_bypass(): void
+    {
+        $this->app['env'] = 'production';
+        Config::set('turnstile.enabled', false);
+
+        $this->postJson('/api/contact', $this->validContactPayload())
+            ->assertStatus(422)
+            ->assertJson(['success' => false]);
+    }
+
     /**
      * Lorsque le token est absent, la soumission échoue avec HTTP 422.
      */

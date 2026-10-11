@@ -4,5 +4,7 @@ export const STORAGE_KEYS = {
   CART_ITEMS: 'hafrose_cart_items',
   WISHLIST_ITEMS: 'hafrose_wishlist_items',
   THEME_PREFERENCE: 'hafrose_theme',
+  ADMIN_THEME_PREFERENCE: 'hafrose_admin_theme',
   CURRENCY_PREFERENCE: 'hafrose_currency',
 } as const;
+

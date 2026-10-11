@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Deprecated: use Docker healthchecks from repository-root docker-compose.yml" >&2
+exit 64
 # ==============================================================================
 # HAFROSE Backend — System Health Check Script
 # ==============================================================================

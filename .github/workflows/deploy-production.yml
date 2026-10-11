@@ -1,0 +1,39 @@
+name: HAFROSE Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tested 40-character commit SHA already present in the configured registry
+        required: true
+        type: string
+
+concurrency:
+  group: hafrose-production-deployment
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # Deliberately disabled until C1b configures the registry, host, and Environment.
+    if: vars.PRODUCTION_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate Immutable Tag
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: echo "$IMAGE_TAG" | grep -Eq '^[0-9a-f]{40}$'
+
+      - name: Activate Tested Images
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          script: |
+            set -eu
+            cd "${{ vars.PROD_DEPLOY_PATH }}"
+            ./deployment/scripts/deploy.sh "${{ inputs.image_tag }}"

@@ -23,10 +23,10 @@ class UserAddressFactory extends Factory
             'title' => $this->faker->randomElement(['Domicile', 'Bureau', 'Livraison']),
             'name' => $this->faker->name(),
             'address' => $this->faker->streetAddress(),
-            'city' => $this->faker->city(),
-            'postal_code' => $this->faker->postcode(),
-            'country' => 'France',
-            'phone' => $this->faker->phoneNumber(),
+            'city' => 'Casablanca',
+            'postal_code' => '20000',
+            'country' => 'Maroc',
+            'phone' => '+212600000000',
             'is_default' => false,
         ];
     }

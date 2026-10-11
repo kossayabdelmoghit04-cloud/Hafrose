@@ -12,6 +12,7 @@ const SearchPage = lazy(() => import('../pages/search/SearchPage'));
 const WishlistPage = lazy(() => import('../pages/wishlist/WishlistPage'));
 const CartPage = lazy(() => import('../pages/cart/CartPage'));
 const CheckoutPage = lazy(() => import('../pages/checkout/CheckoutPage'));
+const ContactPage = lazy(() => import('../pages/contact/ContactPage'));
 
 // Lazy-loaded Auth pages
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'));
@@ -105,6 +106,14 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <CheckoutPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'contact',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <ContactPage />
           </Suspense>
         ),
       },

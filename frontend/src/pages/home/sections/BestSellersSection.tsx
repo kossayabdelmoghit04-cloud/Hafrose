@@ -9,8 +9,8 @@ import { Button } from '../../../components/ui/Button';
 import { IconButton } from '../../../components/ui/IconButton';
 import { ErrorState } from '../../../components/ui/ErrorState';
 import { useFeaturedProducts } from '../../../hooks/useProductHooks';
-import { useCartStore } from '../../../stores/useCartStore';
 import { useWishlistStore } from '../../../stores/useWishlistStore';
+import { useBuyNow } from '../../../hooks/useBuyNow';
 import { getImageUrl } from '../../../utils/formatters';
 import { Product } from '../../../types/models';
 
@@ -18,11 +18,28 @@ const VISIBLE = 4;
 
 export const BestSellersSection = () => {
   const [offset, setOffset] = useState(0);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { data, isLoading, isError, refetch } = useFeaturedProducts(8);
-  const { addItem: addToCart } = useCartStore();
   const { isWishlisted, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
+
+  const { buyNow, buyingProductId } = useBuyNow({
+    onFeedback: (result, product) => {
+      if (result === 'no_stock') {
+        setFeedback(`"${product.name}" est actuellement en rupture de stock.`);
+        setTimeout(() => setFeedback(null), 4000);
+      } else if (result === 'needs_variant') {
+        setFeedback(`Veuillez sélectionner vos options pour "${product.name}".`);
+        setTimeout(() => setFeedback(null), 4000);
+      } else if (result === 'error') {
+        setFeedback("Une erreur est survenue lors de l'achat.");
+        setTimeout(() => setFeedback(null), 4000);
+      } else {
+        setFeedback(null);
+      }
+    },
+  });
 
   const products: Product[] = data?.data ?? [];
   const maxOffset = Math.max(0, products.length - VISIBLE);
@@ -107,11 +124,22 @@ export const BestSellersSection = () => {
                   badgeText={product.is_featured ? 'Best-seller' : undefined}
                   isWishlisted={isWishlisted(product.id)}
                   onWishlistToggle={() => handleWishlistToggle(product)}
-                  onQuickAdd={() => addToCart(product, 1)}
+                  onBuyNow={() => buyNow(product)}
+                  isBuyingNow={buyingProductId === product.id}
                   onClick={(slug) => navigate(`/product/${slug}`)}
                 />
               ))}
             </div>
+
+            {feedback && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-6 p-3 rounded-xs bg-burgundy-50 border border-burgundy-200 text-burgundy-800 text-body-sm text-center font-medium max-w-md mx-auto"
+              >
+                {feedback}
+              </div>
+            )}
 
             {/* View All CTA */}
             <div className="text-center mt-12">

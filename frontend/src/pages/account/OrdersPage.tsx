@@ -118,12 +118,14 @@ export const OrdersPage: React.FC = () => {
                       <span className="font-serif text-h4 text-neutral-950">{order.order_number}</span>
                       <span
                         className={`text-caption font-semibold px-2.5 py-0.5 rounded-xs border flex items-center gap-1.5 ${
-                          order.status === 'shipped'
+                          order.status === 'shipped' || order.status === 'Expédiée'
                             ? 'bg-burgundy-50 text-burgundy-700 border-burgundy-100'
-                            : 'bg-success-50 text-success-700 border-success-100'
+                            : order.status === 'delivered' || order.status === 'Livrée'
+                            ? 'bg-success-50 text-success-700 border-success-100'
+                            : 'bg-warning-50 text-warning-700 border-warning-100'
                         }`}
                       >
-                        {order.status === 'shipped' ? (
+                        {order.status === 'shipped' || order.status === 'Expédiée' ? (
                           <Clock className="w-3.5 h-3.5" />
                         ) : (
                           <CheckCircle2 className="w-3.5 h-3.5" />

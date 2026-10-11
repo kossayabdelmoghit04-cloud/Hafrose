@@ -22,6 +22,8 @@ import {
 import { useAuthStore } from '../stores/useAuthStore';
 import { useAdminLogout } from '../features/admin/hooks/useAdminAuth';
 import { useClearCache, useAdminDashboard } from '../features/admin/hooks/useAdminData';
+import { useAdminThemeStore } from '../stores/useAdminThemeStore';
+import { AdminThemeToggle } from '../components/admin/AdminThemeToggle';
 
 
 interface NavItem {
@@ -77,6 +79,7 @@ export const AdminLayout: React.FC = () => {
   const logoutMutation = useAdminLogout();
   const clearCacheMutation = useClearCache();
   const { data: dashboardData } = useAdminDashboard();
+  const adminTheme = useAdminThemeStore((state) => state.adminTheme);
 
   const metrics = dashboardData?.metrics;
 
@@ -98,7 +101,7 @@ export const AdminLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-neutral-900 text-neutral-100 font-sans antialiased">
+    <div className={`admin-root admin-theme-${adminTheme} min-h-screen flex bg-neutral-900 text-neutral-100 font-sans antialiased`}>
       {/* Mobile Drawer Overlay */}
       {mobileOpen && (
         <div
@@ -239,6 +242,9 @@ export const AdminLayout: React.FC = () => {
 
           {/* Quick Actions & Profile Menu */}
           <div className="flex items-center gap-3">
+            {/* Theme Toggle (MC-08) */}
+            <AdminThemeToggle />
+
             <button
               onClick={handleClearCache}
               disabled={clearCacheMutation.isPending}

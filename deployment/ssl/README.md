@@ -108,3 +108,6 @@ openssl s_client -connect hafrose.com:443 -servername hafrose.com
 ```bash
 echo | openssl s_client -servername hafrose.com -connect hafrose.com:443 2>/dev/null | openssl x509 -noout -dates
 ```
+# DEPRECATED
+
+This document describes the former host-installed Nginx path. It is retained for audit history only. The active repository configuration is deployment/nginx/production.conf; real certificate provisioning remains MC-08-A-C1b.

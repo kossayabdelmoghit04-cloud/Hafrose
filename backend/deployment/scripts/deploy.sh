@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Deprecated: use repository-root deployment/scripts/deploy.sh" >&2
+exit 64
 # ==============================================================================
 # HAFROSE Backend — Automated Production Deployment Script
 # ==============================================================================

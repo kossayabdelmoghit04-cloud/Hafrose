@@ -133,3 +133,743 @@
     @apply inline-flex items-center px-2.5 py-0.5 rounded-xs text-badge font-sans font-semibold tracking-wider uppercase bg-gold-50 text-gold-800 border border-gold-200;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   HAFROSE Admin Back-Office Theme System (MC-08)
+   Strictly scoped to .admin-root — zero bleed into the public storefront.
+
+   LIGHT MODE  → Ivoire chaleureux · Bordeaux · Or champagne
+   DARK MODE   → Prune profond premium · Bordeaux lumineux · Or doux
+   ───────────────────────────────────────────────────────────── */
+
+.admin-root {
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ██  LIGHT MODE — Identité HAFROSE Ivoire & Bordeaux
+   ══════════════════════════════════════════════════════════════ */
+.admin-root.admin-theme-light {
+  /* ── Design tokens ── */
+  --admin-bg-base:          #FAF7F2;
+  --admin-bg-surface:       #FFFFFF;
+  --admin-bg-muted:         #F3EDE5;
+  --admin-bg-card:          #FEFCF9;
+  --admin-bg-hover:         #EDE5DB;
+  --admin-border:           #E3D8CE;
+  --admin-border-subtle:    #EDE5DC;
+  --admin-text-primary:     #2C1810;
+  --admin-text-secondary:   #6B5E57;
+  --admin-text-muted:       #9C8A82;
+  --admin-accent-burg:      #8A1538;
+  --admin-accent-gold:      #B8963E;
+  --admin-accent-burg-bg:   #FDF0F3;
+  --admin-accent-burg-bdr:  #F0C0CC;
+
+  background-color: var(--admin-bg-base) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* ── SIDEBAR ── */
+.admin-root.admin-theme-light aside {
+  background-color: #FFFFFF !important;
+  border-right-color: #E3D8CE !important;
+}
+
+/* Brand header inside sidebar */
+.admin-root.admin-theme-light aside > div:first-child {
+  background-color: #FEFCF9 !important;
+  border-bottom-color: #E3D8CE !important;
+}
+
+/* "Luxury Back-Office" sub-label → or doux */
+.admin-root.admin-theme-light aside .text-amber-500 {
+  color: #B8963E !important;
+}
+
+/* Section labels (COMMERCE, CONTENU…) */
+.admin-root.admin-theme-light aside .text-neutral-500 {
+  color: #9C8A82 !important;
+}
+
+/* Inactive nav items */
+.admin-root.admin-theme-light aside .text-neutral-400 {
+  color: #7A6A63 !important;
+}
+
+/* Active nav item — bordeaux doux */
+.admin-root.admin-theme-light .bg-burgundy-900\/40 {
+  background-color: #FDF0F3 !important;
+  border-color: #F0C0CC !important;
+}
+.admin-root.admin-theme-light .bg-burgundy-900\/40 span,
+.admin-root.admin-theme-light .bg-burgundy-900\/40 .text-white {
+  color: #8A1538 !important;
+}
+.admin-root.admin-theme-light .bg-burgundy-900\/40 .text-burgundy-400 {
+  color: #8A1538 !important;
+}
+
+/* Nav hover */
+.admin-root.admin-theme-light .hover\:bg-neutral-900\/60:hover,
+.admin-root.admin-theme-light .hover\:bg-neutral-900\/50:hover,
+.admin-root.admin-theme-light .hover\:text-neutral-200:hover {
+  background-color: #EDE5DB !important;
+  color: #2C1810 !important;
+}
+
+/* Sidebar user profile footer */
+.admin-root.admin-theme-light aside .border-t {
+  background-color: #FAF7F2 !important;
+  border-top-color: #E3D8CE !important;
+}
+
+/* Badge counts in nav */
+.admin-root.admin-theme-light .bg-amber-500\/20 {
+  background-color: #FEF7EA !important;
+  border-color: #F5D89A !important;
+}
+.admin-root.admin-theme-light .text-amber-400 {
+  color: #B8963E !important;
+}
+
+/* ── HEADER / TOPBAR ── */
+.admin-root.admin-theme-light header {
+  background-color: rgba(254, 252, 249, 0.97) !important;
+  border-bottom-color: #E3D8CE !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 1px 0 0 rgba(138, 21, 56, 0.07),
+              0 2px 10px -3px rgba(44, 24, 16, 0.06) !important;
+}
+
+/* Breadcrumb */
+.admin-root.admin-theme-light header .text-neutral-400 {
+  color: #9C8A82 !important;
+}
+.admin-root.admin-theme-light header .text-neutral-600 {
+  color: #C4B0A8 !important;
+}
+.admin-root.admin-theme-light header h1 {
+  color: #2C1810 !important;
+}
+
+/* Header action buttons (Vider Cache, Voir boutique) */
+.admin-root.admin-theme-light header .text-neutral-300 {
+  color: #5A4A42 !important;
+}
+.admin-root.admin-theme-light header .hover\:text-white:hover {
+  color: #2C1810 !important;
+}
+
+/* User icon chip */
+.admin-root.admin-theme-light .bg-amber-500\/10 {
+  background-color: #FEF7EA !important;
+}
+.admin-root.admin-theme-light .border-amber-500\/30 {
+  border-color: #F5D89A !important;
+}
+.admin-root.admin-theme-light .text-amber-300 {
+  color: #B8963E !important;
+}
+
+/* ── GENERIC SURFACE OVERRIDES ── */
+
+/* Darkest surfaces → blanc pur */
+.admin-root.admin-theme-light .bg-neutral-950,
+.admin-root.admin-theme-light .bg-neutral-950\/80,
+.admin-root.admin-theme-light .bg-neutral-950\/90 {
+  background-color: #FFFFFF !important;
+}
+
+/* Mid-dark → crème chaude */
+.admin-root.admin-theme-light .bg-neutral-900,
+.admin-root.admin-theme-light .bg-neutral-900\/40,
+.admin-root.admin-theme-light .bg-neutral-900\/50,
+.admin-root.admin-theme-light .bg-neutral-900\/60,
+.admin-root.admin-theme-light .bg-neutral-900\/80 {
+  background-color: #F3EDE5 !important;
+}
+
+.admin-root.admin-theme-light .bg-neutral-900\/30 {
+  background-color: #F8F4EF !important;
+}
+
+.admin-root.admin-theme-light .bg-neutral-800\/50,
+.admin-root.admin-theme-light .bg-neutral-800\/30 {
+  background-color: #EDE5DC !important;
+}
+
+/* ── HOVER & INTERACTIVE STATES ── */
+.admin-root.admin-theme-light .hover\:bg-neutral-900:hover,
+.admin-root.admin-theme-light .hover\:bg-neutral-800:hover {
+  background-color: #EDE5DB !important;
+}
+
+/* ── BORDERS ── */
+.admin-root.admin-theme-light .border-neutral-800,
+.admin-root.admin-theme-light .border-neutral-800\/80,
+.admin-root.admin-theme-light .border-neutral-800\/60,
+.admin-root.admin-theme-light .border-neutral-800\/50,
+.admin-root.admin-theme-light .border-neutral-700,
+.admin-root.admin-theme-light .border-neutral-700\/50 {
+  border-color: #E3D8CE !important;
+}
+
+.admin-root.admin-theme-light .divide-neutral-900 > :not([hidden]) ~ :not([hidden]),
+.admin-root.admin-theme-light .divide-neutral-800 > :not([hidden]) ~ :not([hidden]),
+.admin-root.admin-theme-light .divide-neutral-700 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #EDE5DC !important;
+}
+
+/* ── TYPOGRAPHY ── */
+.admin-root.admin-theme-light .text-white,
+.admin-root.admin-theme-light .text-neutral-100 {
+  color: #2C1810 !important;
+}
+
+.admin-root.admin-theme-light .text-neutral-200 {
+  color: #3D2820 !important;
+}
+
+.admin-root.admin-theme-light .text-neutral-300 {
+  color: #5A4A42 !important;
+}
+
+.admin-root.admin-theme-light .text-neutral-400 {
+  color: #7A6A63 !important;
+}
+
+.admin-root.admin-theme-light .text-neutral-500 {
+  color: #9C8A82 !important;
+}
+
+.admin-root.admin-theme-light .text-neutral-600 {
+  color: #C4B0A8 !important;
+}
+
+/* ── KPI CARDS ── */
+/* Base card surface */
+.admin-root.admin-theme-light .rounded-2xl.border {
+  background-color: #FEFCF9 !important;
+  border-color: #E3D8CE !important;
+  box-shadow: 0 2px 12px -2px rgba(44, 24, 16, 0.06),
+              0 1px 3px -1px rgba(44, 24, 16, 0.04) !important;
+}
+
+/* Gold KPI hover accent */
+.admin-root.admin-theme-light .hover\:border-amber-500\/30:hover {
+  border-color: rgba(184, 150, 62, 0.45) !important;
+  box-shadow: 0 4px 20px -4px rgba(184, 150, 62, 0.14) !important;
+}
+
+/* Bordeaux KPI hover accent */
+.admin-root.admin-theme-light .hover\:border-burgundy-500\/30:hover {
+  border-color: rgba(138, 21, 56, 0.35) !important;
+  box-shadow: 0 4px 20px -4px rgba(138, 21, 56, 0.12) !important;
+}
+
+/* KPI icon containers — amber */
+.admin-root.admin-theme-light .bg-amber-500\/10 {
+  background-color: #FEF3E2 !important;
+}
+.admin-root.admin-theme-light .border-amber-500\/20,
+.admin-root.admin-theme-light .border-amber-500\/30 {
+  border-color: #F5D89A !important;
+}
+
+/* KPI decorative glow blobs */
+.admin-root.admin-theme-light .bg-amber-500\/5 {
+  background-color: rgba(184, 150, 62, 0.08) !important;
+}
+.admin-root.admin-theme-light .group-hover\:bg-amber-500\/10:hover {
+  background-color: rgba(184, 150, 62, 0.14) !important;
+}
+
+/* KPI icon containers — burgundy */
+.admin-root.admin-theme-light .bg-burgundy-900\/40,
+.admin-root.admin-theme-light .bg-burgundy-900\/60,
+.admin-root.admin-theme-light .bg-burgundy-900\/80 {
+  background-color: #8A1538 !important;
+  border-color: #C4405E !important;
+}
+.admin-root.admin-theme-light .bg-burgundy-900\/40 .text-burgundy-400,
+.admin-root.admin-theme-light .text-burgundy-400 {
+  color: #FFFFFF !important;
+}
+.admin-root.admin-theme-light .text-burgundy-300 {
+  color: #FFFFFF !important;
+}
+.admin-root.admin-theme-light .border-burgundy-700\/40,
+.admin-root.admin-theme-light .border-burgundy-700\/50 {
+  border-color: rgba(138, 21, 56, 0.35) !important;
+}
+
+/* Sparkles / amber small icons in KPI footer */
+.admin-root.admin-theme-light .text-amber-500 {
+  color: #A67C28 !important;
+}
+.admin-root.admin-theme-light .text-amber-600 {
+  color: #8D6820 !important;
+}
+
+/* Sidebar amber label */
+.admin-root.admin-theme-light .text-amber-500.font-medium {
+  color: #B8963E !important;
+}
+
+/* ── TABLES ── */
+.admin-root.admin-theme-light table {
+  background-color: #FFFFFF !important;
+}
+
+.admin-root.admin-theme-light thead,
+.admin-root.admin-theme-light thead tr {
+  background-color: #F8F3EE !important;
+  border-bottom-color: #E3D8CE !important;
+}
+
+.admin-root.admin-theme-light thead th {
+  color: #7A6A63 !important;
+}
+
+.admin-root.admin-theme-light tbody tr {
+  border-bottom-color: #F0E8DE !important;
+}
+
+.admin-root.admin-theme-light tbody tr:hover {
+  background-color: #FAF5EF !important;
+}
+
+.admin-root.admin-theme-light tbody td {
+  color: #2C1810 !important;
+}
+
+/* ── FORM CONTROLS ── */
+.admin-root.admin-theme-light input,
+.admin-root.admin-theme-light select,
+.admin-root.admin-theme-light textarea {
+  background-color: #FFFFFF !important;
+  color: #2C1810 !important;
+  border-color: #CEBFB6 !important;
+}
+
+.admin-root.admin-theme-light input:focus,
+.admin-root.admin-theme-light select:focus,
+.admin-root.admin-theme-light textarea:focus {
+  border-color: #8A1538 !important;
+  box-shadow: 0 0 0 3px rgba(138, 21, 56, 0.12) !important;
+  outline: none !important;
+}
+
+.admin-root.admin-theme-light input::placeholder,
+.admin-root.admin-theme-light textarea::placeholder {
+  color: #B8A89E !important;
+}
+
+.admin-root.admin-theme-light label {
+  color: #5A4A42 !important;
+}
+
+/* ── STATUS BADGES ── */
+
+/* Livrée — vert émeraude → sage chaleureux */
+.admin-root.admin-theme-light .bg-emerald-950\/80,
+.admin-root.admin-theme-light .bg-emerald-950\/40 {
+  background-color: #EDFAF3 !important;
+  border-color: #A7ECC6 !important;
+}
+.admin-root.admin-theme-light .text-emerald-400 {
+  color: #176B3A !important;
+}
+.admin-root.admin-theme-light .border-emerald-800\/50 {
+  border-color: #A7ECC6 !important;
+}
+
+/* Expédiée — bleu → ardoise calme */
+.admin-root.admin-theme-light .bg-blue-950\/80,
+.admin-root.admin-theme-light .bg-blue-950\/40 {
+  background-color: #EEF5FD !important;
+  border-color: #AECDED !important;
+}
+.admin-root.admin-theme-light .text-blue-400 {
+  color: #1A5C99 !important;
+}
+.admin-root.admin-theme-light .border-blue-800\/50 {
+  border-color: #AECDED !important;
+}
+
+/* En préparation — indigo → violet chaud */
+.admin-root.admin-theme-light .bg-indigo-950\/80,
+.admin-root.admin-theme-light .bg-indigo-950\/40 {
+  background-color: #F2F0FD !important;
+  border-color: #C4BAF2 !important;
+}
+.admin-root.admin-theme-light .text-indigo-400 {
+  color: #4838B2 !important;
+}
+.admin-root.admin-theme-light .border-indigo-800\/50 {
+  border-color: #C4BAF2 !important;
+}
+
+/* Annulée — rose → bordeaux très doux */
+.admin-root.admin-theme-light .bg-rose-950\/80,
+.admin-root.admin-theme-light .bg-rose-950\/40 {
+  background-color: #FDF0F3 !important;
+  border-color: #F0C0CC !important;
+}
+.admin-root.admin-theme-light .text-rose-400 {
+  color: #8A1538 !important;
+}
+.admin-root.admin-theme-light .border-rose-800\/50 {
+  border-color: #F0C0CC !important;
+}
+
+/* En attente — amber → or doux */
+.admin-root.admin-theme-light .bg-amber-950\/80,
+.admin-root.admin-theme-light .bg-amber-950\/40 {
+  background-color: #FEF7EA !important;
+  border-color: #F5D89A !important;
+}
+.admin-root.admin-theme-light .border-amber-800\/50 {
+  border-color: #F5D89A !important;
+}
+
+/* Erreur / Danger */
+.admin-root.admin-theme-light .bg-error-950\/40,
+.admin-root.admin-theme-light .bg-error-950\/30 {
+  background-color: #FFF0F0 !important;
+  border-color: #F5BABA !important;
+}
+.admin-root.admin-theme-light .text-error-400 {
+  color: #B91C1C !important;
+}
+.admin-root.admin-theme-light .hover\:bg-error-950\/40:hover,
+.admin-root.admin-theme-light .hover\:bg-error-950\/30:hover {
+  background-color: #FFF0F0 !important;
+}
+
+/* ── MODALS & DROPDOWNS ── */
+/* User dropdown panel */
+.admin-root.admin-theme-light .shadow-2xl.rounded-2xl,
+.admin-root.admin-theme-light .rounded-2xl.shadow-2xl {
+  background-color: #FFFFFF !important;
+  border-color: #E3D8CE !important;
+  box-shadow: 0 20px 60px -10px rgba(44, 24, 16, 0.18),
+              0 8px 20px -6px rgba(44, 24, 16, 0.10) !important;
+}
+
+/* Dropdown dividers */
+.admin-root.admin-theme-light .border-neutral-800\/60 {
+  border-color: #EDE5DC !important;
+}
+
+/* ── SHADOWS ── */
+.admin-root.admin-theme-light .shadow-lg,
+.admin-root.admin-theme-light .shadow-xl,
+.admin-root.admin-theme-light .shadow-2xl {
+  box-shadow: 0 4px 20px -2px rgba(44, 24, 16, 0.07),
+              0 2px 6px -1px rgba(44, 24, 16, 0.04) !important;
+}
+
+/* ── FOCUS RINGS ── */
+.admin-root.admin-theme-light .focus-visible\:ring-amber-500\/50:focus-visible {
+  box-shadow: 0 0 0 3px rgba(138, 21, 56, 0.25) !important;
+}
+
+/* ── SCROLLBAR ── */
+.admin-root.admin-theme-light ::-webkit-scrollbar-track {
+  background: #F3EDE5 !important;
+}
+.admin-root.admin-theme-light .scrollbar-thumb-neutral-800::-webkit-scrollbar-thumb,
+.admin-root.admin-theme-light ::-webkit-scrollbar-thumb {
+  background: #CCBFB5 !important;
+  border-radius: 4px !important;
+}
+.admin-root.admin-theme-light ::-webkit-scrollbar-thumb:hover {
+  background: #8A1538 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ██  DARK MODE — Premium Prune HAFROSE
+   ══════════════════════════════════════════════════════════════ */
+.admin-root.admin-theme-dark {
+  /* ── Design tokens ── */
+  --admin-bg-base:       #14090E;
+  --admin-bg-surface:    #1E0F16;
+  --admin-bg-muted:      #271420;
+  --admin-border:        #3D2030;
+  --admin-text-primary:  #F5EDE8;
+  --admin-text-secondary:#C4AFA8;
+  --admin-accent-burg:   #C44060;
+  --admin-accent-gold:   #D4AF37;
+
+  background-color: var(--admin-bg-base) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* ── Dark Sidebar ── */
+.admin-root.admin-theme-dark aside {
+  background-color: #1E0F16 !important;
+  border-right-color: #3D2030 !important;
+}
+
+.admin-root.admin-theme-dark aside > div:first-child {
+  background-color: #160B12 !important;
+  border-bottom-color: #3D2030 !important;
+}
+
+/* Section labels */
+.admin-root.admin-theme-dark .text-neutral-500 {
+  color: #7A5E68 !important;
+}
+
+/* Nav inactive items */
+.admin-root.admin-theme-dark .text-neutral-400 {
+  color: #C4AFA8 !important;
+}
+
+/* Nav active item */
+.admin-root.admin-theme-dark .bg-burgundy-900\/40 {
+  background-color: rgba(196, 64, 96, 0.18) !important;
+  border-color: rgba(196, 64, 96, 0.35) !important;
+}
+.admin-root.admin-theme-dark .bg-burgundy-900\/40 .text-white,
+.admin-root.admin-theme-dark .bg-burgundy-900\/40 span {
+  color: #F5EDE8 !important;
+}
+.admin-root.admin-theme-dark .bg-burgundy-900\/40 .text-burgundy-400 {
+  color: #E07090 !important;
+}
+
+/* Nav hover */
+.admin-root.admin-theme-dark .hover\:bg-neutral-900\/60:hover,
+.admin-root.admin-theme-dark .hover\:bg-neutral-900\/50:hover {
+  background-color: #2D1824 !important;
+}
+.admin-root.admin-theme-dark .hover\:text-neutral-200:hover {
+  color: #F5EDE8 !important;
+}
+
+/* Amber sub-label */
+.admin-root.admin-theme-dark .text-amber-500 {
+  color: #D4AF37 !important;
+}
+.admin-root.admin-theme-dark .text-amber-400 {
+  color: #D4AF37 !important;
+}
+
+/* ── Dark Header ── */
+.admin-root.admin-theme-dark header {
+  background-color: rgba(20, 9, 14, 0.96) !important;
+  border-bottom-color: #3D2030 !important;
+  box-shadow: 0 1px 0 0 rgba(196, 64, 96, 0.10),
+              0 2px 8px -3px rgba(0, 0, 0, 0.40) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+/* ── Dark Surfaces ── */
+.admin-root.admin-theme-dark .bg-neutral-950,
+.admin-root.admin-theme-dark .bg-neutral-950\/90,
+.admin-root.admin-theme-dark .bg-neutral-950\/80 {
+  background-color: #1E0F16 !important;
+}
+
+.admin-root.admin-theme-dark .bg-neutral-900,
+.admin-root.admin-theme-dark .bg-neutral-900\/60,
+.admin-root.admin-theme-dark .bg-neutral-900\/50,
+.admin-root.admin-theme-dark .bg-neutral-900\/40 {
+  background-color: #271420 !important;
+}
+
+.admin-root.admin-theme-dark .bg-neutral-900\/30 {
+  background-color: #231220 !important;
+}
+
+/* Hover */
+.admin-root.admin-theme-dark .hover\:bg-neutral-900:hover,
+.admin-root.admin-theme-dark .hover\:bg-neutral-800:hover {
+  background-color: #2D1824 !important;
+}
+
+/* ── Dark Borders ── */
+.admin-root.admin-theme-dark .border-neutral-800,
+.admin-root.admin-theme-dark .border-neutral-800\/80,
+.admin-root.admin-theme-dark .border-neutral-800\/60,
+.admin-root.admin-theme-dark .border-neutral-800\/50,
+.admin-root.admin-theme-dark .border-neutral-700,
+.admin-root.admin-theme-dark .border-neutral-700\/50 {
+  border-color: #3D2030 !important;
+}
+
+.admin-root.admin-theme-dark .divide-neutral-900 > :not([hidden]) ~ :not([hidden]),
+.admin-root.admin-theme-dark .divide-neutral-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #3D2030 !important;
+}
+
+/* ── Dark Typography ── */
+.admin-root.admin-theme-dark .text-neutral-200 {
+  color: #EBE0DA !important;
+}
+
+.admin-root.admin-theme-dark .text-neutral-300 {
+  color: #D8C8C0 !important;
+}
+
+/* ── Dark KPI Cards ── */
+.admin-root.admin-theme-dark .rounded-2xl.border {
+  background-color: #1E0F16 !important;
+  border-color: #3D2030 !important;
+  box-shadow: 0 2px 16px -4px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Dark amber badge */
+.admin-root.admin-theme-dark .bg-amber-500\/10,
+.admin-root.admin-theme-dark .bg-amber-500\/20 {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  border-color: rgba(212, 175, 55, 0.25) !important;
+}
+.admin-root.admin-theme-dark .border-amber-500\/20,
+.admin-root.admin-theme-dark .border-amber-500\/30 {
+  border-color: rgba(212, 175, 55, 0.25) !important;
+}
+
+/* Dark burgundy icon container */
+.admin-root.admin-theme-dark .bg-burgundy-900\/40 {
+  background-color: rgba(196, 64, 96, 0.18) !important;
+}
+.admin-root.admin-theme-dark .bg-burgundy-900\/60,
+.admin-root.admin-theme-dark .bg-burgundy-900\/80 {
+  background-color: rgba(196, 64, 96, 0.30) !important;
+}
+.admin-root.admin-theme-dark .text-burgundy-400 {
+  color: #E07090 !important;
+}
+.admin-root.admin-theme-dark .text-burgundy-300 {
+  color: #F0A0B8 !important;
+}
+
+/* ── Dark Tables ── */
+.admin-root.admin-theme-dark table {
+  background-color: #1E0F16 !important;
+}
+.admin-root.admin-theme-dark thead,
+.admin-root.admin-theme-dark thead tr {
+  background-color: #160B12 !important;
+  border-bottom-color: #3D2030 !important;
+}
+.admin-root.admin-theme-dark thead th {
+  color: #7A5E68 !important;
+}
+.admin-root.admin-theme-dark tbody tr {
+  border-bottom-color: #2D1824 !important;
+}
+.admin-root.admin-theme-dark tbody tr:hover {
+  background-color: #271420 !important;
+}
+.admin-root.admin-theme-dark tbody td {
+  color: #F5EDE8 !important;
+}
+
+/* ── Dark Form Controls ── */
+.admin-root.admin-theme-dark input,
+.admin-root.admin-theme-dark select,
+.admin-root.admin-theme-dark textarea {
+  background-color: #1E0F16 !important;
+  color: #F5EDE8 !important;
+  border-color: #3D2030 !important;
+}
+
+.admin-root.admin-theme-dark input:focus,
+.admin-root.admin-theme-dark select:focus,
+.admin-root.admin-theme-dark textarea:focus {
+  border-color: #C44060 !important;
+  box-shadow: 0 0 0 3px rgba(196, 64, 96, 0.18) !important;
+}
+
+.admin-root.admin-theme-dark input::placeholder,
+.admin-root.admin-theme-dark textarea::placeholder {
+  color: #6B5E68 !important;
+}
+
+/* ── Dark Status Badges ── */
+.admin-root.admin-theme-dark .bg-emerald-950\/80 {
+  background-color: rgba(20, 83, 45, 0.35) !important;
+  border-color: rgba(74, 222, 128, 0.20) !important;
+}
+.admin-root.admin-theme-dark .text-emerald-400 {
+  color: #4ADE80 !important;
+}
+
+.admin-root.admin-theme-dark .bg-blue-950\/80 {
+  background-color: rgba(23, 37, 84, 0.40) !important;
+  border-color: rgba(96, 165, 250, 0.20) !important;
+}
+.admin-root.admin-theme-dark .text-blue-400 {
+  color: #60A5FA !important;
+}
+
+.admin-root.admin-theme-dark .bg-indigo-950\/80 {
+  background-color: rgba(49, 46, 129, 0.35) !important;
+  border-color: rgba(129, 140, 248, 0.20) !important;
+}
+.admin-root.admin-theme-dark .text-indigo-400 {
+  color: #818CF8 !important;
+}
+
+.admin-root.admin-theme-dark .bg-rose-950\/80 {
+  background-color: rgba(76, 5, 25, 0.40) !important;
+  border-color: rgba(251, 113, 133, 0.20) !important;
+}
+.admin-root.admin-theme-dark .text-rose-400 {
+  color: #FB7185 !important;
+}
+
+.admin-root.admin-theme-dark .bg-amber-950\/80 {
+  background-color: rgba(69, 26, 3, 0.40) !important;
+  border-color: rgba(251, 191, 36, 0.20) !important;
+}
+
+.admin-root.admin-theme-dark .bg-error-950\/40,
+.admin-root.admin-theme-dark .bg-error-950\/30 {
+  background-color: rgba(127, 29, 29, 0.30) !important;
+  border-color: rgba(239, 68, 68, 0.20) !important;
+}
+.admin-root.admin-theme-dark .text-error-400 {
+  color: #F87171 !important;
+}
+.admin-root.admin-theme-dark .hover\:bg-error-950\/40:hover,
+.admin-root.admin-theme-dark .hover\:bg-error-950\/30:hover {
+  background-color: rgba(127, 29, 29, 0.35) !important;
+}
+
+/* ── Dark Modals & Dropdowns ── */
+.admin-root.admin-theme-dark .rounded-2xl.shadow-2xl,
+.admin-root.admin-theme-dark .shadow-2xl.rounded-2xl {
+  background-color: #1E0F16 !important;
+  border-color: #3D2030 !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.70),
+              0 10px 24px -6px rgba(0, 0, 0, 0.50) !important;
+}
+
+/* ── Dark Shadows ── */
+.admin-root.admin-theme-dark .shadow-lg,
+.admin-root.admin-theme-dark .shadow-xl,
+.admin-root.admin-theme-dark .shadow-2xl {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.50),
+              0 2px 8px -2px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* ── Dark Scrollbar ── */
+.admin-root.admin-theme-dark ::-webkit-scrollbar-track {
+  background: #1E0F16 !important;
+}
+.admin-root.admin-theme-dark .scrollbar-thumb-neutral-800::-webkit-scrollbar-thumb,
+.admin-root.admin-theme-dark ::-webkit-scrollbar-thumb {
+  background: #4A2535 !important;
+  border-radius: 4px !important;
+}
+.admin-root.admin-theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: #C44060 !important;
+}
+

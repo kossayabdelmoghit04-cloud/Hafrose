@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\Process\ExecutableFinder;
 use ZipArchive;
 
 /**
@@ -167,7 +168,7 @@ class ProductionBackupService
     // ─── Sauvegarde base de données ──────────────────────────────────────────
 
     /**
-     * Sauvegarder la base de données via mysqldump (avec fallback PDO natif).
+     * Sauvegarder la base de données via un client MySQL transactionnel.
      */
     private function backupDatabase(bool $dryRun, bool $verbose): void
     {
@@ -206,46 +207,22 @@ class ProductionBackupService
         $password = $config['password'] ?? '';
         $dumpFile = $destDir.'/database.sql';
 
-        // Tentative 1 : mysqldump via shell (si disponible et compatible)
-        $findCmd = PHP_OS_FAMILY === 'Windows' ? 'where mysqldump 2>nul' : 'which mysqldump 2>/dev/null';
-        $mysqldump = trim((string) shell_exec($findCmd));
-        if ($mysqldump !== '') {
-            $cmd = sprintf(
-                '%s --host=%s --port=%s --user=%s --password=%s --single-transaction --quick %s > %s 2>&1',
-                escapeshellarg($mysqldump),
-                escapeshellarg($host),
-                escapeshellarg((string) $port),
-                escapeshellarg($username),
-                escapeshellarg($password),
-                escapeshellarg($database),
-                escapeshellarg($dumpFile)
-            );
-            exec($cmd, $shellOutput, $exitCode);
-
-            if ($exitCode === 0 && File::exists($dumpFile) && File::size($dumpFile) > 100) {
-                $sizeKb = round(File::size($dumpFile) / 1024, 1);
-                $this->addStep('database', 'OK', "Dump MySQL (mysqldump) : {$database} ({$sizeKb} Ko)");
-
-                return;
-            }
-        }
-
-        // Tentative 2 : PDO-native dump — compatible MySQL 8.0+ (caching_sha2_password) sans binaire externe
         try {
-            $this->backupDatabaseViaPdo($database, $username, $password, $host, (int) $port, $dumpFile);
+            $this->runMysqlDump($database, $username, $password, $host, (int) $port, $dumpFile);
             $sizeKb = round(File::size($dumpFile) / 1024, 1);
-            $this->addStep('database', 'OK', "Dump MySQL (PDO natif) : {$database} ({$sizeKb} Ko)");
-        } catch (\Throwable $e) {
-            $this->addStep('database', 'FAIL', $e->getMessage());
-            $this->report['errors'][] = "Sauvegarde base de données échouée : {$e->getMessage()}";
+            $this->addStep('database', 'OK', "Consistent MySQL dump: {$database} ({$sizeKb} KB)");
+        } catch (\Throwable $exception) {
+            $this->addStep('database', 'FAIL', $exception->getMessage());
+            $this->report['errors'][] = 'Database backup failed: '.$exception->getMessage();
         }
+
     }
 
     /**
-     * Dump MySQL/MariaDB via PDO — aucun binaire externe requis.
+     * Dump MySQL/MariaDB via le client natif requis dans l'image.
      * Compatible MySQL 8.0+ (caching_sha2_password) et MariaDB.
      */
-    private function backupDatabaseViaPdo(
+    private function runMysqlDump(
         string $database,
         string $username,
         string $password,
@@ -253,67 +230,50 @@ class ProductionBackupService
         int $port,
         string $dumpFile
     ): void {
-        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
-        $pdo = new \PDO($dsn, $username, $password, [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
-        ]);
+        $finder = new ExecutableFinder;
+        $binary = $finder->find('mysqldump') ?? $finder->find('mariadb-dump');
 
-        $handle = fopen($dumpFile, 'w');
-        if ($handle === false) {
-            throw new \RuntimeException("Impossible de créer le fichier dump : {$dumpFile}");
+        if ($binary === null) {
+            throw new \RuntimeException('mysqldump/mariadb-dump is required; PDO fallback is disabled.');
         }
 
-        $now = now()->toIso8601String();
-        fwrite($handle, "-- HAFROSE MySQL Dump — {$now}\n");
-        fwrite($handle, "-- Database: {$database}\n\n");
-        fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
-        fwrite($handle, "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n");
+        $command = [
+            $binary,
+            '--host='.$host,
+            '--port='.(string) $port,
+            '--user='.$username,
+            '--single-transaction',
+            '--quick',
+            '--routines',
+            '--triggers',
+            '--hex-blob',
+            '--default-character-set=utf8mb4',
+            '--no-tablespaces',
+            $database,
+        ];
+        $pipes = [];
+        $environment = array_merge($_SERVER, $_ENV, ['MYSQL_PWD' => $password]);
+        $process = proc_open($command, [
+            0 => ['pipe', 'r'],
+            1 => ['file', $dumpFile, 'w'],
+            2 => ['pipe', 'w'],
+        ], $pipes, null, $environment);
 
-        $tables = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(\PDO::FETCH_NUM);
-
-        foreach ($tables as $tableRow) {
-            $table = $tableRow[0];
-
-            // CREATE TABLE statement
-            $create = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(\PDO::FETCH_NUM);
-            fwrite($handle, "\n-- Table structure for `{$table}`\n");
-            fwrite($handle, "DROP TABLE IF EXISTS `{$table}`;\n");
-            fwrite($handle, $create[1].";\n\n");
-
-            // INSERT data in chunks of 500 rows
-            $stmt = $pdo->query("SELECT * FROM `{$table}`");
-            $cols = $pdo->query("DESCRIBE `{$table}`")->fetchAll(\PDO::FETCH_COLUMN);
-            $columns = '`'.implode('`, `', $cols).'`';
-            $buffer = [];
-            $headerWritten = false;
-
-            while ($rowData = $stmt->fetch(\PDO::FETCH_NUM)) {
-                if (! $headerWritten) {
-                    fwrite($handle, "-- Data for table `{$table}`\n");
-                    $headerWritten = true;
-                }
-
-                $escaped = array_map(function ($val) use ($pdo) {
-                    return $val === null ? 'NULL' : $pdo->quote($val);
-                }, $rowData);
-
-                $buffer[] = '('.implode(', ', $escaped).')';
-
-                if (count($buffer) >= 500) {
-                    fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES\n".implode(",\n", $buffer).";\n");
-                    $buffer = [];
-                }
-            }
-
-            if (! empty($buffer)) {
-                fwrite($handle, "INSERT INTO `{$table}` ({$columns}) VALUES\n".implode(",\n", $buffer).";\n");
-            }
+        if (! is_resource($process)) {
+            throw new \RuntimeException('Unable to start the MySQL dump process.');
         }
 
-        fwrite($handle, "\nSET FOREIGN_KEY_CHECKS=1;\n");
-        fclose($handle);
+        fclose($pipes[0]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        $exitCode = proc_close($process);
+
+        if ($exitCode !== 0 || ! File::exists($dumpFile) || File::size($dumpFile) < 100) {
+            File::delete($dumpFile);
+            throw new \RuntimeException('MySQL dump failed: '.trim((string) $error));
+        }
     }
+
 
     // ─── Sauvegarde storage/ ─────────────────────────────────────────────────
 
@@ -588,8 +548,38 @@ class ProductionBackupService
             "Archive : {$archiveName} ({$addedFiles} fichiers, {$sizeKb} Ko, SHA-256: ".substr($archiveSha256, 0, 12).'…)'
         );
 
+        $this->copyArchiveOffsite($archivePath, $archiveName);
+
         // Chemin relatif pour le rapport
         return "{$backupBasePath}/{$archiveName}";
+    }
+
+    private function copyArchiveOffsite(string $archivePath, string $archiveName): void
+    {
+        if (! config('production.offsite.enabled', false)) {
+            $this->addStep('offsite', 'SKIP', 'OFFSITE_ENABLED=false');
+
+            return;
+        }
+
+        $disk = config('production.offsite.disk');
+        if (! is_string($disk) || $disk === '') {
+            throw new \RuntimeException('OFFSITE_DISK is required when offsite backup is enabled.');
+        }
+
+        $stream = fopen($archivePath, 'r');
+        if ($stream === false) {
+            throw new \RuntimeException('Unable to open backup archive for offsite copy.');
+        }
+
+        $prefix = config('production.offsite.prefix', 'hafrose');
+        try {
+            Storage::disk($disk)->put($prefix.'/'.$archiveName, $stream);
+        } finally {
+            fclose($stream);
+        }
+
+        $this->addStep('offsite', 'OK', 'Archive copied to configured offsite disk.');
     }
 
     // ─── Rotation des sauvegardes ────────────────────────────────────────────
@@ -873,7 +863,7 @@ class ProductionBackupService
     }
 
     /**
-     * Restaurer un fichier dump SQL dans une base MySQL via PDO natif.
+     * Restaurer un fichier dump SQL avec le client MySQL natif.
      */
     private function restoreMysqlDatabase(string $dumpFile, string $targetDatabase): void
     {
@@ -885,53 +875,67 @@ class ProductionBackupService
         $username = $config['username'] ?? 'root';
         $password = $config['password'] ?? '';
 
-        $dsn = "mysql:host={$host};port={$port};charset=utf8mb4";
-        $pdo = new \PDO($dsn, $username, $password, [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
-            \PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
-        ]);
+        $this->runMysqlRestore($dumpFile, $targetDatabase, $host, $port, $username, $password);
 
-        // Créer la base cible si nécessaire
-        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$targetDatabase}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-        $pdo->exec("USE `{$targetDatabase}`;");
-        $pdo->exec('SET FOREIGN_KEY_CHECKS=0;');
-        $pdo->exec("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';");
-
-        $handle = fopen($dumpFile, 'r');
-        if ($handle === false) {
-            throw new \RuntimeException("Impossible d'ouvrir le fichier SQL : {$dumpFile}");
-        }
-
-        $buffer = '';
-        while (($line = fgets($handle)) !== false) {
-            $trimmed = trim($line);
-            if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '/*')) {
-                continue;
-            }
-
-            $buffer .= $line;
-
-            if (str_ends_with($trimmed, ';')) {
-                $pdo->exec($buffer);
-                $buffer = '';
-            }
-        }
-
-        if (trim($buffer) !== '') {
-            $pdo->exec($buffer);
-        }
-
-        fclose($handle);
-
-        $pdo->exec('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**
-     * Vérifier l'intégrité détaillée d'une archive de sauvegarde.
-     *
-     * @return array Rapport d'intégrité détaillé.
+     * Importer un dump vérifié avec le client MySQL natif.
      */
+    private function runMysqlRestore(
+        string $dumpFile,
+        string $database,
+        string $host,
+        int $port,
+        string $username,
+        string $password
+    ): void {
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $database)) {
+            throw new \RuntimeException('Unsafe target database name.');
+        }
+
+        $finder = new ExecutableFinder;
+        $binary = $finder->find('mysql') ?? $finder->find('mariadb');
+        if ($binary === null) {
+            throw new \RuntimeException('mysql/mariadb client is required for restore.');
+        }
+
+        $input = fopen($dumpFile, 'r');
+        if ($input === false) {
+            throw new \RuntimeException('Unable to open the SQL dump.');
+        }
+
+        $pipes = [];
+        $environment = array_merge($_SERVER, $_ENV, ['MYSQL_PWD' => $password]);
+        $process = proc_open([
+            $binary,
+            '--host='.$host,
+            '--port='.(string) $port,
+            '--user='.$username,
+            '--database='.$database,
+            '--default-character-set=utf8mb4',
+        ], [
+            0 => $input,
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ], $pipes, null, $environment);
+
+        if (! is_resource($process)) {
+            fclose($input);
+            throw new \RuntimeException('Unable to start the MySQL restore process.');
+        }
+
+        stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        fclose($input);
+
+        if (proc_close($process) !== 0) {
+            throw new \RuntimeException('MySQL restore failed: '.trim((string) $error));
+        }
+    }
+
     public function verifyBackup(string $backupId): array
     {
         $backupBasePath = config('production.backup.path', 'backups');

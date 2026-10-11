@@ -1,44 +1,33 @@
-# ── Stage 1: Composer dependencies ───────────────────────────────────────────
-FROM composer:2.7 AS composer-deps
+FROM composer:2.8.12 AS composer-bin
 
-WORKDIR /app
+# composer.lock pins PHP 8.4.3. Install dependencies only after every required
+# extension is available in the same runtime image used in production.
+FROM php:8.4.3-fpm-alpine3.21 AS production
 
-COPY composer.json composer.lock ./
-
-# Install production dependencies only
-RUN composer install \
-    --no-dev \
-    --no-scripts \
-    --no-autoloader \
-    --optimize-autoloader \
-    --prefer-dist \
-    --ignore-platform-reqs
-
-COPY . .
-
-RUN composer dump-autoload --optimize --no-dev --ignore-platform-reqs
-
-# ── Stage 2: PHP-FPM Production ───────────────────────────────────────────────
-FROM php:8.4-fpm-alpine AS production
-
-# Install system dependencies and PHP extensions
 RUN apk add --no-cache \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    libwebp-dev \
-    libzip-dev \
-    oniguruma-dev \
+        curl \
+        icu-libs \
+        libjpeg-turbo \
+        libpng \
+        libwebp \
+        libzip \
+        mariadb-client \
+    && apk add --no-cache --virtual .build-deps \
+        curl-dev \
+        icu-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+        libxml2-dev \
+        libzip-dev \
+        oniguruma-dev \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
-    && docker-php-ext-install \
-        pdo \
-        pdo_mysql \
-        mbstring \
-        zip \
-        gd \
-        bcmath \
-        opcache
+    && docker-php-ext-install -j$(nproc) \
+        bcmath curl dom gd intl mbstring opcache pdo_mysql simplexml xml xmlreader xmlwriter zip \
+    && apk del .build-deps
 
-# OPcache configuration for production performance
+COPY --from=composer-bin /usr/bin/composer /usr/local/bin/composer
+
 RUN { \
     echo 'opcache.memory_consumption=256'; \
     echo 'opcache.interned_strings_buffer=16'; \
@@ -46,12 +35,10 @@ RUN { \
     echo 'opcache.validate_timestamps=0'; \
     echo 'opcache.save_comments=1'; \
     echo 'opcache.enable_cli=1'; \
-} > /usr/local/etc/php/conf.d/opcache.ini
-
-# PHP-FPM production settings
-RUN { \
+} > /usr/local/etc/php/conf.d/opcache.ini \
+    && { \
     echo 'upload_max_filesize=20M'; \
-    echo 'post_max_size=20M'; \
+    echo 'post_max_size=25M'; \
     echo 'max_execution_time=60'; \
     echo 'memory_limit=512M'; \
     echo 'expose_php=Off'; \
@@ -59,19 +46,24 @@ RUN { \
 
 WORKDIR /var/www/html
 
-# Copy application from composer stage
-COPY --from=composer-deps /app /var/www/html
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --no-scripts --no-autoloader --prefer-dist --no-progress
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+COPY . .
 
-# Remove sensitive files from production image
-RUN rm -f .env.example .env.ci
+RUN composer dump-autoload --no-dev --optimize --no-interaction \
+    && composer check-platform-reqs --no-dev \
+    && mkdir -p storage/app/public storage/app/backups storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && test -e public/storage || ln -s ../storage/app/public public/storage \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R u=rwX,g=rwX,o=rX storage bootstrap/cache \
+    && rm -f .env .env.ci .env.example
 
 EXPOSE 9000
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-    CMD php artisan --version || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD ["php", "artisan", "hafrose:healthcheck", "--quiet"]
 
-CMD ["php-fpm"]
+USER www-data
+
+CMD ["php-fpm", "-F"]

@@ -4,6 +4,7 @@ import { Order } from '../types/models';
 import { ApiResponse } from '../types/api';
 
 export interface CreateOrderPayload {
+  turnstileToken: string;
   customer?: string;
   phone?: string;
   address?: string;
@@ -43,6 +44,7 @@ function formatOrderPayload(payload: CreateOrderPayload) {
   const country = payload.country || payload.shipping_address?.country || 'France';
 
   return {
+    'cf-turnstile-response': payload.turnstileToken,
     customer: customerName,
     phone,
     address,

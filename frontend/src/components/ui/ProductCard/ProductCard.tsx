@@ -29,6 +29,8 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   isWishlisted = false,
   onWishlistToggle,
   onQuickAdd,
+  onBuyNow,
+  isBuyingNow = false,
   onClick,
   className,
 }) => {
@@ -91,8 +93,8 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           </div>
         )}
 
-        {/* Quick Add Overlay Button (Appears on Hover) */}
-        {onQuickAdd && (
+        {/* Quick Add Overlay Button (Appears on Hover — only if direct buy is not active) */}
+        {onQuickAdd && !onBuyNow && (
           <div className="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-luxury">
             <Button
               variant="primary"
@@ -111,7 +113,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
       </div>
 
       {/* Content Details */}
-      <div className="p-4 flex flex-col flex-1 justify-between space-y-2">
+      <div className="p-4 flex flex-col flex-1 justify-between space-y-3">
         <div>
           {categoryName && (
             <span className="text-caption font-medium tracking-wider uppercase text-neutral-500 block mb-1">
@@ -123,21 +125,48 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           </h3>
         </div>
 
-        {/* Price Block */}
-        <div className="flex items-baseline gap-2 pt-1" aria-label={`Prix: ${formattedSalePrice ?? formattedPrice}`}>
-          {formattedSalePrice ? (
-            <>
-              <span className="font-sans font-semibold text-body-base text-burgundy-600">
-                {formattedSalePrice}
-              </span>
-              <span className="font-sans text-body-sm text-neutral-400 line-through" aria-label={`Ancien prix: ${formattedPrice}`}>
+        {/* Price & Buy Now Actions */}
+        <div className="space-y-3 pt-1">
+          <div className="flex items-baseline gap-2" aria-label={`Prix: ${formattedSalePrice ?? formattedPrice}`}>
+            {formattedSalePrice ? (
+              <>
+                <span className="font-sans font-semibold text-body-base text-burgundy-600">
+                  {formattedSalePrice}
+                </span>
+                <span className="font-sans text-body-sm text-neutral-400 line-through" aria-label={`Ancien prix: ${formattedPrice}`}>
+                  {formattedPrice}
+                </span>
+              </>
+            ) : (
+              <span className="font-sans font-semibold text-body-base text-neutral-900">
                 {formattedPrice}
               </span>
-            </>
-          ) : (
-            <span className="font-sans font-semibold text-body-base text-neutral-900">
-              {formattedPrice}
-            </span>
+            )}
+          </div>
+
+          {/* Direct Purchase CTA — MC-09 */}
+          {onBuyNow && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                id={`buy-now-${id}`}
+                variant="primary"
+                size="sm"
+                fullWidth
+                isLoading={isBuyingNow}
+                disabled={isBuyingNow}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBuyNow(id);
+                }}
+                aria-label={`Acheter ${name}`}
+                className="tracking-luxury-wide font-semibold shadow-hafrose-xs"
+              >
+                Acheter
+              </Button>
+            </div>
           )}
         </div>
       </div>

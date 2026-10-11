@@ -127,19 +127,19 @@ export const AccountLayout: React.FC = () => {
       />
 
       {/* ── Introduction & Breadcrumb Section ─────────────────────── */}
-      <div className="bg-cream-200/70 border-b border-cream-400/60 py-6 md:py-8">
-        <Container>
+      <div className="bg-cream-200/70 border-b border-cream-400/60 py-3.5 md:py-4.5">
+        <Container size="2xl" className="max-w-[1400px]">
           <Breadcrumb
             items={breadcrumbItems}
             onNavigate={(href) => navigate(href)}
-            className="mb-3"
+            className="mb-1.5"
           />
-          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5">
             <div>
-              <span className="text-[11px] font-sans uppercase tracking-[0.2em] font-semibold text-burgundy-600 block mb-0.5">
+              <span className="text-[10px] sm:text-[11px] font-sans uppercase tracking-[0.2em] font-semibold text-burgundy-600 block mb-0.5">
                 Espace Client Privé
               </span>
-              <p className="font-serif text-h3 md:text-h2 text-neutral-950">
+              <p className="font-serif text-h3 md:text-h2 text-neutral-950 leading-tight">
                 Mon Compte
               </p>
             </div>
@@ -151,8 +151,8 @@ export const AccountLayout: React.FC = () => {
       </div>
 
       {/* ── Main Account Shell ────────────────────────────────────── */}
-      <div className="flex-grow py-8 md:py-12">
-        <Container>
+      <div className="flex-grow py-6 md:py-8">
+        <Container size="2xl" className="max-w-[1400px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
             {/* Sidebar — sticky on large screens */}
             <aside className="lg:col-span-4 xl:col-span-3 lg:sticky lg:top-28">

@@ -75,10 +75,10 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* ══ 1. Hero / Welcome Banner ══════════════════════════════════════ */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-burgundy-800 rounded-md px-7 py-8 md:px-10 md:py-10 shadow-hafrose-md">
+      <div className="relative overflow-hidden bg-gradient-to-br from-burgundy-950 via-burgundy-900 to-burgundy-800 rounded-md px-6 py-6 sm:px-8 sm:py-7 md:px-9 md:py-8 shadow-hafrose-md">
         <div
           aria-hidden="true"
-          className="absolute right-0 top-0 w-48 h-full opacity-5 pointer-events-none"
+          className="absolute right-0 top-0 w-64 h-full opacity-5 pointer-events-none"
           style={{
             backgroundImage:
               'repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)',
@@ -86,43 +86,50 @@ export const DashboardPage: React.FC = () => {
           }}
         />
 
-        <span className="inline-block text-[11px] font-sans uppercase tracking-[0.2em] font-semibold text-rose-300 mb-3">
-          Cercle Privé HAFROSE
-        </span>
+        <div className="relative z-10">
+          <span className="inline-block text-[10px] sm:text-[11px] font-sans uppercase tracking-[0.2em] font-semibold text-rose-300 mb-2">
+            Cercle Privé HAFROSE
+          </span>
 
-        <h1 className="font-serif text-h2 md:text-h1 text-cream-100 leading-snug mb-3">
-          Bienvenue,&nbsp;{userName}
-        </h1>
+          <h1
+            className="font-serif text-h2 md:text-h1 text-cream-100 leading-snug mb-2.5 truncate max-w-full"
+            title={`Bienvenue, ${userName}`}
+          >
+            Bienvenue,&nbsp;{userName}
+          </h1>
 
-        <p className="text-body-sm text-cream-200/70 max-w-md leading-relaxed">
-          Gérez vos commandes, retrouvez vos pièces coup de cœur et mettez à jour vos informations personnelles.
-        </p>
+          <p className="text-body-sm text-cream-200/80 max-w-xl leading-relaxed">
+            Gérez vos commandes exclusives, retrouvez vos pièces coup de cœur et mettez à jour vos informations personnelles.
+          </p>
+        </div>
       </div>
 
       {/* ══ 2. Cards de synthèse — 100% données réelles ════════════════════ */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
         {/* — Commandes — */}
-        <Card className="group p-5 bg-white border border-neutral-200/60 hover:border-burgundy-200 hover:shadow-hafrose-hover transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-9 h-9 rounded-sm bg-burgundy-50 text-burgundy-600 flex items-center justify-center">
-              <ShoppingBag className="w-4.5 h-4.5" aria-hidden="true" />
+        <Card className="group p-5 md:p-6 bg-white border border-neutral-200/70 hover:border-burgundy-200 hover:shadow-hafrose-hover transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-sm bg-burgundy-50 text-burgundy-600 flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <span
+                aria-label={`${realOrders.length} commande${realOrders.length > 1 ? 's' : ''}`}
+                className="font-serif text-h1 text-neutral-900 leading-none"
+              >
+                {realOrders.length}
+              </span>
             </div>
-            <span
-              aria-label={`${realOrders.length} commande${realOrders.length > 1 ? 's' : ''}`}
-              className="font-serif text-h1 text-neutral-900 leading-none"
-            >
-              {realOrders.length}
-            </span>
+            <h2 className="font-serif text-h5 text-neutral-950 mb-1">Mes Commandes</h2>
+            <p className="text-caption text-neutral-500 mb-4">
+              {realOrders.length === 0
+                ? 'Aucune commande enregistrée'
+                : `${realOrders.length} commande${realOrders.length > 1 ? 's' : ''} passée${realOrders.length > 1 ? 's' : ''}`}
+            </p>
           </div>
-          <h2 className="font-serif text-h5 text-neutral-950 mb-0.5">Mes Commandes</h2>
-          <p className="text-caption text-neutral-500 mb-4">
-            {realOrders.length === 0
-              ? 'Aucune commande enregistrée'
-              : `${realOrders.length} commande${realOrders.length > 1 ? 's' : ''} passée${realOrders.length > 1 ? 's' : ''}`}
-          </p>
           <Link
             to="/account/orders"
-            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200"
+            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200 pt-2 border-t border-neutral-100"
             aria-label="Voir toutes mes commandes"
           >
             Voir l'historique <ArrowRight className="w-3.5 h-3.5" />
@@ -130,27 +137,29 @@ export const DashboardPage: React.FC = () => {
         </Card>
 
         {/* — Favoris — */}
-        <Card className="group p-5 bg-white border border-neutral-200/60 hover:border-rose-200 hover:shadow-hafrose-hover transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-9 h-9 rounded-sm bg-rose-50 text-rose-600 flex items-center justify-center">
-              <Heart className="w-4.5 h-4.5" aria-hidden="true" />
+        <Card className="group p-5 md:p-6 bg-white border border-neutral-200/70 hover:border-rose-200 hover:shadow-hafrose-hover transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-sm bg-rose-50 text-rose-600 flex items-center justify-center">
+                <Heart className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <span
+                aria-label={`${wishlistItems.length} favoris`}
+                className="font-serif text-h1 text-neutral-900 leading-none"
+              >
+                {wishlistItems.length}
+              </span>
             </div>
-            <span
-              aria-label={`${wishlistItems.length} favoris`}
-              className="font-serif text-h1 text-neutral-900 leading-none"
-            >
-              {wishlistItems.length}
-            </span>
+            <h2 className="font-serif text-h5 text-neutral-950 mb-1">Ma Liste d'Envies</h2>
+            <p className="text-caption text-neutral-500 mb-4">
+              {wishlistItems.length === 0
+                ? 'Aucun favori enregistré'
+                : `${wishlistItems.length} création${wishlistItems.length > 1 ? 's' : ''} sauvegardée${wishlistItems.length > 1 ? 's' : ''}`}
+            </p>
           </div>
-          <h2 className="font-serif text-h5 text-neutral-950 mb-0.5">Ma Liste d'Envies</h2>
-          <p className="text-caption text-neutral-500 mb-4">
-            {wishlistItems.length === 0
-              ? 'Aucun favori enregistré'
-              : `${wishlistItems.length} création${wishlistItems.length > 1 ? 's' : ''} sauvegardée${wishlistItems.length > 1 ? 's' : ''}`}
-          </p>
           <Link
             to="/account/wishlist"
-            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200"
+            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200 pt-2 border-t border-neutral-100"
             aria-label="Voir mes favoris"
           >
             Voir mes favoris <ArrowRight className="w-3.5 h-3.5" />
@@ -158,28 +167,30 @@ export const DashboardPage: React.FC = () => {
         </Card>
 
         {/* — Adresse principale — */}
-        <Card className="group p-5 bg-white border border-neutral-200/60 hover:border-burgundy-200 hover:shadow-hafrose-hover transition-all duration-300">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-9 h-9 rounded-sm bg-cream-200 text-burgundy-600 flex items-center justify-center">
-              <MapPin className="w-4.5 h-4.5" aria-hidden="true" />
+        <Card className="group p-5 md:p-6 bg-white border border-neutral-200/70 hover:border-burgundy-200 hover:shadow-hafrose-hover transition-all duration-300 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-sm bg-cream-200 text-burgundy-600 flex items-center justify-center">
+                <MapPin className="w-5 h-5" aria-hidden="true" />
+              </div>
+              {primaryAddress ? (
+                <span className="text-[10px] font-semibold uppercase tracking-wider bg-success-50 text-success-700 px-2 py-0.5 rounded-xs border border-success-100">
+                  Principale
+                </span>
+              ) : (
+                <span className="text-[10px] font-semibold uppercase tracking-wider bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-xs border border-neutral-200">
+                  Non renseignée
+                </span>
+              )}
             </div>
-            {primaryAddress ? (
-              <span className="text-[11px] font-semibold uppercase tracking-wider bg-success-50 text-success-700 px-2 py-0.5 rounded-xs border border-success-100">
-                Principale
-              </span>
-            ) : (
-              <span className="text-[11px] font-semibold uppercase tracking-wider bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-xs border border-neutral-200">
-                Non renseignée
-              </span>
-            )}
+            <h2 className="font-serif text-h5 text-neutral-950 mb-1">Adresse Principale</h2>
+            <p className="text-caption text-neutral-500 truncate mb-4" title={addressShort || 'Aucune adresse enregistrée'}>
+              {addressShort || 'Aucune adresse enregistrée'}
+            </p>
           </div>
-          <h2 className="font-serif text-h5 text-neutral-950 mb-0.5">Adresse Principale</h2>
-          <p className="text-caption text-neutral-500 truncate mb-4" title={addressShort || 'Aucune adresse enregistrée'}>
-            {addressShort || 'Aucune adresse enregistrée'}
-          </p>
           <Link
             to="/account/addresses"
-            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200"
+            className="inline-flex items-center gap-1.5 text-caption font-semibold uppercase tracking-wide text-burgundy-600 hover:text-burgundy-800 transition-colors group-hover:gap-2.5 duration-200 pt-2 border-t border-neutral-100"
             aria-label="Gérer mes adresses"
           >
             {primaryAddress ? 'Gérer mes adresses' : 'Ajouter une adresse'} <ArrowRight className="w-3.5 h-3.5" />
@@ -188,9 +199,9 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* ══ 3. Commandes Récentes — Réelles ═══════════════════════════════ */}
-      <Card className="bg-white border border-neutral-200/60 overflow-hidden">
+      <Card className="bg-white border border-neutral-200/70 shadow-hafrose-card overflow-hidden">
         {/* Section header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100">
+        <div className="flex items-center justify-between px-6 py-4.5 border-b border-neutral-100">
           <div>
             <h2 className="font-serif text-h3 text-neutral-950">Commandes Récentes</h2>
             <p className="text-caption text-neutral-500 mt-0.5">Suivi en temps réel de vos achats</p>
@@ -218,11 +229,11 @@ export const DashboardPage: React.FC = () => {
               return (
                 <div
                   key={order.id}
-                  className="group px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-cream-100/50 transition-colors duration-150"
+                  className="group px-6 py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-cream-100/50 transition-colors duration-150"
                 >
-                  <div className="space-y-1.5 min-w-0">
+                  <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="font-serif text-h5 text-neutral-900 font-semibold">
+                      <span className="font-serif text-body-base text-neutral-950 font-semibold">
                         Commande&nbsp;#{order.order_number || order.id}
                       </span>
                       <span

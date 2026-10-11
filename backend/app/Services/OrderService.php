@@ -48,7 +48,7 @@ class OrderService
                 'address' => $data['address'],
                 'city' => $data['city'],
                 'postal_code' => $data['postal_code'] ?? $data['shipping_address']['postal_code'] ?? null,
-                'country' => $data['country'] ?? $data['shipping_address']['country'] ?? 'France',
+                'country' => \App\Support\Location\MarketService::canonicalCountry($data['country'] ?? $data['shipping_address']['country'] ?? null),
                 'shipping_amount' => 0.00,
                 'shipping_method' => $data['shipping_method'] ?? 'express',
                 'payment_method' => $data['payment_method'] ?? 'card',

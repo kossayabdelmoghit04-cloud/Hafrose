@@ -8,9 +8,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Détermine si la vérification Turnstile est active globalement.
-    | En désactivant cette option (TURNSTILE_ENABLED=false), aucun appel
-    | réseau vers Cloudflare n'est effectué et tout token est accepté.
-    | Indispensable pour les tests automatisés et les pipelines CI/CD.
+    | TURNSTILE_ENABLED=false n'est accepté que sous APP_ENV=testing.
+    | Tout autre environnement échoue fermé, y compris local et production.
+    | Les pipelines CI peuvent donc contourner le réseau sans ouvrir un bypass.
     |
     */
     'enabled' => env('TURNSTILE_ENABLED', true),

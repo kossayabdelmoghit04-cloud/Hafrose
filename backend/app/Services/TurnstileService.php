@@ -39,7 +39,16 @@ class TurnstileService
     {
         // Turnstile désactivé (tests CI/CD) : accepter immédiatement.
         if (! config('turnstile.enabled', true)) {
-            return true;
+            if (app()->environment('testing')) {
+                return true;
+            }
+
+            $this->logError('TURNSTILE_ENABLED=false is forbidden outside testing.', [
+                'environment' => app()->environment(),
+                'route' => $route,
+            ]);
+
+            return false;
         }
 
         // Token absent ou vide → refus sans appel réseau.
